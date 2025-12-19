@@ -126,6 +126,22 @@
         #p1-health { background-color: blue; width: 100%; }
         #p2-health { background-color: red; width: 100%; }
 
+        /* COMBO BOX STYLE */
+        .combo-box {
+            width: 40px;
+            height: 40px;
+            background-color: gray;
+            border: 2px solid black;
+            color: white;
+            font-weight: bold;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            font-size: 24px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
         /* ACHIEVEMENT TOAST */
         #achievement-toast {
             position: absolute;
@@ -308,6 +324,74 @@
             height: 24px;
         }
 
+        /* SANDBOX MENU STYLES */
+        #sandbox-menu {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            width: 700px;
+            height: 500px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #00FF00;
+            border-radius: 10px;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #sandbox-menu.active {
+            display: flex;
+        }
+        .sb-header {
+            font-size: 30px;
+            color: #00FF00;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        .sb-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 20px;
+        }
+        .sb-list {
+            flex: 1;
+            overflow-y: auto;
+            border-right: 1px solid #444;
+            padding-right: 10px;
+        }
+        .sb-cube-item {
+            padding: 10px;
+            background: #333;
+            margin-bottom: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .sb-cube-item:hover { background: #444; }
+        .sb-cube-item.active { border: 2px solid #00FF00; }
+        .sb-details {
+            flex: 2;
+            overflow-y: auto;
+            color: #ddd;
+        }
+        .sb-stat-block {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #222;
+            border-radius: 5px;
+        }
+        .sb-stat-title { color: #00FFFF; font-weight: bold; margin-bottom: 5px; }
+
+        /* Floating text for sandbox damage */
+        .floating-text-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50;
+        }
+
         ::-webkit-scrollbar { width: 10px; }
         ::-webkit-scrollbar-track { background: #222; }
         ::-webkit-scrollbar-thumb { background: #555; }
@@ -331,6 +415,21 @@
         </div>
     </div>
 
+    <!-- SANDBOX MENU -->
+    <div id="sandbox-menu">
+        <div class="sb-header">Sandbox Control Panel</div>
+        <div style="text-align:center; margin-bottom:10px; color:#aaa; font-style:italic;">Press 'R' to toggle this menu</div>
+        <div class="sb-content">
+            <div class="sb-list" id="sb-cube-list">
+                <!-- Populated by JS -->
+            </div>
+            <div class="sb-details" id="sb-details-pane">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+        <button class="btn btn-gray" style="width:100%; margin-top:10px; padding:10px;" onclick="toggleSandboxMenu()">CLOSE MENU</button>
+    </div>
+
     <div id="ui-layer">
         <div class="hud" id="hud">
             <div>
@@ -340,6 +439,8 @@
                     <!-- Minion Health Overlay -->
                     <div id="p1-minion-health" class="health-bar" style="background-color: #888; position: absolute; top: 0; left: 0; width: 0%; display: none;"></div>
                 </div>
+                <!-- COMBO BOX -->
+                <div id="p1-combo" class="combo-box">0</div>
             </div>
             <div style="text-align: right;">
                 <div style="color: red" id="p2-name">AI (Red)</div>
@@ -356,7 +457,7 @@
             <div class="menu-title">CUBE COMBAT</div>
 
             <button class="btn btn-green" onclick="navTo('screen-modes')">START GAME</button>
-            <button class="btn btn-blue" onclick="navTo('screen-cubes'); renderCubes()">SELECT CUBE</button>
+            <button class="btn btn-blue" onclick="prepareGame(null, 'screen-main')">COLLECTED CUBES</button>
             <button class="btn btn-pink" onclick="navTo('screen-achievements'); renderAchievements()">ACHIEVEMENTS</button>
             <button class="btn btn-red" onclick="confirmResetProgress()">RESET PROGRESS</button>
             <button class="btn btn-gray" onclick="quitGame()">QUIT</button>
@@ -365,7 +466,7 @@
         <div id="screen-modes" class="menu-screen">
             <div class="sub-title">SELECT GAME MODE</div>
 
-            <button class="btn btn-red" onclick="startGame('ai')">PLAYER VS AI</button>
+            <button class="btn btn-red" onclick="prepareGame('ai', 'screen-modes')">PLAYER VS AI</button>
             <button class="btn btn-blue" onclick="navTo('screen-pvp-submenu')">PLAYER VS PLAYER</button>
             <div style="height: 20px;"></div>
             <button class="btn btn-gray" onclick="navTo('screen-main')">BACK</button>
@@ -374,8 +475,8 @@
         <div id="screen-pvp-submenu" class="menu-screen">
             <div class="sub-title">PLAYER VS PLAYER</div>
 
-            <button class="btn btn-blue" onclick="startGame('pvp')">LOCAL MULTIPLAYER</button>
-            <button class="btn btn-cyan" onclick="navTo('screen-p2p-lobby')">P2P MULTIPLAYER</button>
+            <button class="btn btn-blue" onclick="prepareGame('pvp', 'screen-pvp-submenu')">LOCAL MULTIPLAYER</button>
+            <button class="btn btn-cyan" onclick="prepareGame('p2p_setup', 'screen-pvp-submenu')">P2P MULTIPLAYER</button>
             <div style="height: 20px;"></div>
             <button class="btn btn-gray" onclick="navTo('screen-modes')">BACK</button>
         </div>
@@ -407,8 +508,14 @@
         </div>
 
         <div id="screen-cubes" class="menu-screen">
-            <div class="sub-title">SELECT YOUR CUBE</div>
-            <button class="btn btn-gray" style="width: 150px; position: absolute; top: 20px; left: 20px;" onclick="navTo('screen-main')">BACK (ESC)</button>
+            <div class="sub-title">COLLECTED CUBES</div>
+            <button class="btn btn-gray" style="width: 150px; position: absolute; top: 20px; left: 20px;" onclick="handleCubeBack()">BACK (ESC)</button>
+
+            <!-- ACTION BUTTON: Appears when selecting for a game -->
+            <button id="btn-confirm-selection" class="btn btn-green" style="width: 200px; position: absolute; bottom: 20px; right: 20px; display: none;" onclick="confirmSelection()">FIGHT!</button>
+            
+            <!-- SANDBOX BUTTON -->
+            <button class="btn btn-orange" style="width: 200px; position: absolute; top: 20px; right: 20px;" onclick="startGame('sandbox')">SANDBOX MODE</button>
 
             <div class="cubes-layout">
                 <div class="cubes-grid" id="cubes-grid-container">
@@ -444,27 +551,77 @@
 
 <script>
 
-    // UPDATED CUBE DATA 
+    // UPDATED CUBE DATA WITH SANDBOX STATS
     const CUBE_DATA = [
-        { id: 1, name: "Sword Master", color: "blue", hp: 100, attacks: "Slash, Parry" },
-        { id: 2, name: "Angry Sniper", color: "red", hp: 100, attacks: "Charge, Laser" },
-        { id: 3, name: "Sniper Cube", color: "green", hp: 100, attacks: "Slash, Laser (Windup)" },
-        { id: 4, name: "Magic Cube", color: "hotpink", hp: 100, attacks: "Slash, Block (Bar)" },
-        { id: 5, name: "The Jorker", color: "#8B4513", hp: 75, attacks: "Kick, Laser (Windup)" },
-        { id: 6, name: "Ima Touch You", color: "indigo", hp: 75, attacks: "Slash, Pull (Invert)" },
-        { id: 7, name: "Vigilante", color: "#2F4F4F", hp: 125, attacks: "Takedown, Drone Support" },
-        { id : 8, name: "Fbt_7 (Secret)", color: "black", hp: 200, attacks: "Delete (Poison Slash), Error 404 (Disrupt+Clone), Hatred (Rage), Termination (Reality Shatter)" },
-        { id: 9, name: "Master Cube", color: "#FFD700", hp: "100", attacks: "Call back, Overtime" },
-        { id: 10, name: "Bobbythe124", color: "#CCCCFF", hp: 149, attacks: "Silence (Slash), Hatred (Rage), Beam, Bleed (Poison Slash)", passive: "Higher jumps after each jump" }
+        { 
+            id: 1, name: "Sword Master", color: "blue", hp: 100, attacks: "Slash, Parry",
+            attack1: "[SPACE] Slash: Standard melee attack. Deals 25 dmg.",
+            attack2: "[F] Parry: Turns black. Reflects attacks and stuns enemy.",
+            counter: "Do not attack when he turns black (Parry). Wait for the parry to end (1 sec) then punish."
+        },
+        { 
+            id: 2, name: "Angry Sniper", color: "red", hp: 100, attacks: "Dash (No CD), Laser",
+            attack1: "[SPACE] Dash: Quick burst charge. No cooldown.",
+            attack2: "[F] Laser: Long range beam. Deals 30 dmg.",
+            counter: "The Dash has no cooldown but short range. The Laser has a long windup (turns Cyan/Black). Jump over the laser."
+        },
+        { 
+            id: 3, name: "Sniper Cube", color: "green", hp: 100, attacks: "Slash, Laser (Windup)",
+            attack1: "[SPACE] Slash: Standard melee.",
+            attack2: "[F] Laser: Charges up (flashing) then fires a full screen beam (25 dmg).",
+            counter: "Hit him while he is charging the laser. He cannot move while charging."
+        },
+        { 
+            id: 4, name: "Magic Cube", color: "hotpink", hp: 100, attacks: "Slash, Block (Bar)",
+            attack1: "[SPACE] Slash: Standard melee.",
+            attack2: "[F] Block: Creates a shield. Drains energy bar. Negates damage.",
+            counter: "Wait for the blue energy bar to deplete. He cannot block forever."
+        },
+        { 
+            id: 5, name: "The Jorker", color: "#8B4513", hp: 75, attacks: "Kick, Laser (Windup)",
+            attack1: "[SPACE] Kick: Short range, high knockback. 15 dmg + Stun.",
+            attack2: "[F] Laser: Yellow beam. 25 dmg.",
+            counter: "Low HP (75). Rush him down, but stay out of Kick range to avoid being stunned."
+        },
+        { 
+            id: 6, name: "Ima Touch You", color: "indigo", hp: 75, attacks: "Slash, Pull (Invert)",
+            attack1: "[SPACE] Slash: Standard melee.",
+            attack2: "[F] Pull: Drags enemy closer. If very close, inverts controls.",
+            counter: "Low HP. If you see the purple line, run away to break the tether before he touches you."
+        },
+        { 
+            id: 7, name: "Vigilante", color: "#2F4F4F", hp: 125, attacks: "Takedown, Drone Support",
+            attack1: "[SPACE] Takedown: High speed dash. 20 dmg + knockback.",
+            attack2: "[F] Drone: Deploys a drone that shoots automatically.",
+            counter: "High HP. Destroy the drone if possible (or just dodge). Jump over the Takedown dash."
+        },
+        { 
+            id : 8, name: "Fbt_7 (Secret)", color: "black", hp: 200, attacks: "Delete (Poison), Error 404, Hatred, Termination",
+            attack1: "[SPACE] Delete: Poison Slash. [F] 404: Stun/Clone. [Q] Hatred: Rage Mode. [E] Termination: Ultimate.",
+            attack2: "Developer character with OP stats.",
+            counter: "Run. Survive the Hatred mode (Red glow) by kiting. Pray he misses the Delete slash."
+        },
+        { 
+            id: 9, name: "Master Cube", color: "#FFD700", hp: "100", attacks: "Call back, Overtime",
+            attack1: "[SPACE] Overtime: Buffs minion stats to 100%.",
+            attack2: "[F] Call Back: Swaps out for a random Minion.",
+            counter: "Kill the minion. When the Master returns, he is vulnerable before he can swap again."
+        },
+        { 
+            id: 10, name: "Bobbythe124", color: "#CCCCFF", hp: 149, attacks: "Silence, Hatred, Beam, Bleed",
+            attack1: "[SPACE] Silence: 35 dmg. [F] Beam: 50 dmg. [E] Bleed: Poison DoT.",
+            attack2: "Passive: Jumps get higher each time.",
+            counter: "Do not get hit by Silence. Watch out for his super high jumps - he can attack from above."
+        }
     ];
 
     let selectedCubeId = 1; // Default to Cube 1
 
     let ACHIEVEMENT_DATA = [
         { id: 1, name: "First Blood", desc: "Win your first battle", unlocks: "Sniper Cube", unlocked: false },
-        { id: 2, name: "Sharpshooter", desc: "Hit 5 beams in a row (Red Cube)", unlocks: "Magic Cube", unlocked: false },
+        { id: 2, name: "Sharpshooter", desc: "Hit 15 beams total (Red Cube)", unlocks: "Magic Cube", unlocked: false, progress: 0, maxProgress: 15 },
         { id: 3, name: "Unstoppable", desc: "Win without taking damage", unlocks: "The Jorker", unlocked: false },
-        { id: 4, name: "Wombo Combo", desc: "Absolutely combo the red Ai cube", unlocks: "Ima Touch You", unlocked: false },
+        { id: 4, name: "Wombo Combo", desc: "Counter an attack then hit every shot to win", unlocks: "Ima Touch You", unlocked: false },
         { id: 5, name: "In every timeline I kill you...", desc: "Lose to Fbt_7  ", unlocks: "Vigilante", unlocked: false },
         { id: 6, name: "Not like this", desc: "Fbt_7 vs Bobbythe124", unlocks: "The heartbreaking (placeholder)", unlocked: false},
         { id: 7, name: "Cube Master", desc: "Unlock all other cubes", unlocks: "Master Cube", unlocked: false }
@@ -477,19 +634,29 @@
         const parsed = JSON.parse(savedData);
         ACHIEVEMENT_DATA.forEach(ach => {
             const saved = parsed.find(p => p.id === ach.id);
-            if (saved && saved.unlocked) ach.unlocked = true;
+            if (saved) {
+                if (saved.unlocked) ach.unlocked = true;
+                if (saved.progress !== undefined) ach.progress = saved.progress; // Restore progress
+            }
         });
     }
 
     function saveGameData() {
-        const toSave = ACHIEVEMENT_DATA.map(a => ({ id: a.id, unlocked: a.unlocked }));
+        const toSave = ACHIEVEMENT_DATA.map(a => ({ 
+            id: a.id, 
+            unlocked: a.unlocked,
+            progress: a.progress 
+        }));
         localStorage.setItem('cubeCombatData', JSON.stringify(toSave));
     }
 
     function confirmResetProgress() {
         if (window.confirm("WARNING: Reset all progress?")) {
             localStorage.removeItem('cubeCombatData');
-            ACHIEVEMENT_DATA.forEach(ach => ach.unlocked = false);
+            ACHIEVEMENT_DATA.forEach(ach => {
+                ach.unlocked = false;
+                if (ach.progress !== undefined) ach.progress = 0;
+            });
             selectedCubeId = 1;
             alert("Progress reset.");
             navTo('screen-main');
@@ -497,7 +664,10 @@
     }
 
     function unlockAllAchievements() {
-        ACHIEVEMENT_DATA.forEach(ach => ach.unlocked = true);
+        ACHIEVEMENT_DATA.forEach(ach => {
+            ach.unlocked = true;
+            if(ach.maxProgress) ach.progress = ach.maxProgress;
+        });
         saveGameData();
         renderAchievements();
         alert("All achievements unlocked for testing!");
@@ -521,7 +691,13 @@
         setTimeout(() => toast.classList.remove('show'), 4000);
     }
 
-    let sessionStats = { beamStreak: 0 };
+    // SESSION STATS
+    let sessionStats = { 
+        beamStreak: 0,
+        womboComboActive: false,
+        womboComboHits: 0
+    };
+    let floatingTexts = []; // Store floating damage numbers
     
     // --- GLOBAL GAME MODES ---
     let isRetroMode = false;
@@ -533,6 +709,10 @@
     let conn = null;
     let p2pRole = null; 
     let networkKeys = {}; 
+    
+    // --- NAVIGATION FLOW VARS ---
+    let pendingGameMode = null;
+    let returnScreenId = 'screen-main';
 
     function quitGame() {
         if (window.parent && typeof window.parent.closeGame === 'function') {
@@ -549,9 +729,43 @@
         else document.getElementById('demo-label').classList.remove('hidden');
     }
 
+    // New Flow: Select Mode -> Select Character
+    function prepareGame(mode, fromScreen) {
+        pendingGameMode = mode;
+        returnScreenId = fromScreen || 'screen-main';
+        navTo('screen-cubes');
+        renderCubes();
+    }
+
+    function handleCubeBack() {
+        navTo(returnScreenId);
+        pendingGameMode = null;
+    }
+
+    function confirmSelection() {
+        if (!pendingGameMode) return;
+        
+        if (pendingGameMode === 'p2p_setup') {
+            // P2P Flow: Setup Character -> Go to Lobby
+            navTo('screen-p2p-lobby');
+        } else {
+            // Standard Flow: Character -> Start
+            startGame(pendingGameMode);
+        }
+    }
+
     function renderCubes() {
         const container = document.getElementById('cubes-grid-container');
         container.innerHTML = '';
+
+        // UI Updates for Flow
+        const actionBtn = document.getElementById('btn-confirm-selection');
+        if (pendingGameMode) {
+            actionBtn.style.display = 'block';
+            actionBtn.innerText = (pendingGameMode === 'p2p_setup') ? 'TO LOBBY >' : 'FIGHT!';
+        } else {
+            actionBtn.style.display = 'none';
+        }
 
         // Prepare display list
         let displayList = [...CUBE_DATA];
@@ -621,13 +835,30 @@
         ACHIEVEMENT_DATA.forEach(ach => {
             const div = document.createElement('div');
             div.className = `achievement-item ${ach.unlocked ? 'unlocked' : 'locked'}`;
+            
+            // Build progress bar HTML if maxProgress exists
+            let progressHtml = '';
+            if (ach.maxProgress) {
+                const current = ach.progress || 0;
+                const pct = Math.min(100, (current / ach.maxProgress) * 100);
+                progressHtml = `
+                    <div style="width: 100%; background: #222; height: 10px; margin-top: 8px; border-radius: 5px; position: relative; border: 1px solid #555;">
+                        <div style="width: ${pct}%; background: ${ach.unlocked ? '#00aa00' : '#00FFFF'}; height: 100%; border-radius: 5px; transition: width 0.3s;"></div>
+                        <div style="position: absolute; top: -18px; right: 0; font-size: 12px; color: #ccc;">${current}/${ach.maxProgress}</div>
+                    </div>
+                `;
+            }
+
             div.innerHTML = `
-                <div>
-                    <div style="font-size: 24px; font-weight:bold;">#${ach.id} - ${ach.name}</div>
+                <div style="width: 100%;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-size: 24px; font-weight:bold;">#${ach.id} - ${ach.name}</div>
+                        <div style="font-size: 20px; font-weight:bold;">${ach.unlocked ? 'UNLOCKED' : 'LOCKED'}</div>
+                    </div>
                     <div style="font-size: 16px; margin-top:5px;">${ach.desc}</div>
+                    ${progressHtml}
                     <div style="font-size: 14px; margin-top:5px; font-style:italic;">Unlocks: ${ach.unlocks}</div>
                 </div>
-                <div style="font-size: 20px; font-weight:bold;">${ach.unlocked ? 'UNLOCKED' : 'LOCKED'}</div>
             `;
             container.appendChild(div);
         });
@@ -665,9 +896,18 @@
         keys[e.code] = true;
         if (e.code === 'Escape') {
             if (gameState === 'playing') showMainMenu();
-            else if (gameState === 'menu' && !document.getElementById('screen-main').classList.contains('active')) navTo('screen-main');
+            else if (gameState === 'menu' && !document.getElementById('screen-main').classList.contains('active')) {
+                 if (document.getElementById('screen-cubes').classList.contains('active')) {
+                     handleCubeBack();
+                 } else {
+                     navTo('screen-main');
+                 }
+            }
         }
-        if (e.code === 'KeyR' && gameState === 'gameover') requestRestart();
+        if (e.code === 'KeyR') {
+             if (gameState === 'gameover') requestRestart();
+             if (gameState === 'playing' && gameMode === 'sandbox') toggleSandboxMenu();
+        }
     });
     window.addEventListener('keyup', e => keys[e.code] = false);
 
@@ -772,6 +1012,28 @@
     }
 
     // --- GAME CLASSES ---
+
+    class FloatingText {
+        constructor(x, y, text, color) {
+            this.x = x;
+            this.y = y;
+            this.text = text;
+            this.color = color;
+            this.life = 60; // Frames
+            this.vy = -2;
+        }
+        update() {
+            this.y += this.vy;
+            this.life--;
+        }
+        draw(ctx) {
+            ctx.globalAlpha = this.life / 60;
+            ctx.fillStyle = this.color;
+            ctx.font = "bold 24px Arial";
+            ctx.fillText(this.text, this.x, this.y);
+            ctx.globalAlpha = 1.0;
+        }
+    }
 
     function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {
         return x2 < x1 + w1 && x2 + w2 > x1 && y2 < y1 + h1 && y2 + h2 > y1;
@@ -878,6 +1140,18 @@
         takeDamage(amount) {
             if (gameMode === 'p2p' && p2pRole === 'client') return;
             if (this.dead) return;
+            
+            // SANDBOX LOGIC: SHOW TEXT
+            if (gameMode === 'sandbox') {
+                floatingTexts.push(new FloatingText(this.x + Math.random()*20, this.y, Math.round(amount), "#FF0000"));
+                return; // Don't actually take damage
+            }
+            
+            // WOMBO COMBO FAIL: Taking Damage
+            if (this === blueCube) {
+                sessionStats.womboComboActive = false;
+            }
+
             this.hp -= amount;
             if (this.hp <= 0) {
                 this.hp = 0;
@@ -1004,7 +1278,12 @@
                     redCube.takeDamage(25 * this.damageMult);
                     redCube.vx = this.facingRight ? 10 : -10;
                     redCube.vy = -5;
+                    // Combo Logic: Hit
+                    if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
                 }
+            } else {
+                // Combo Logic: Miss
+                sessionStats.womboComboActive = false;
             }
         }
 
@@ -1077,6 +1356,9 @@
             if (rectIntersect(beamX, beamY, beamW, beamH, redCube.x, redCube.y, redCube.w, redCube.h)) {
                 redCube.takeDamage(25 * this.damageMult);
                 redCube.vx = this.facingRight ? 15 : -15;
+                if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
+            } else {
+                sessionStats.womboComboActive = false;
             }
         }
 
@@ -1214,6 +1496,9 @@
                 redCube.vy = -10;
                 redCube.state = 'STUNNED'; // Mini stun
                 redCube.stateTimer = 20;
+                if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
+            } else {
+                sessionStats.womboComboActive = false;
             }
         }
         
@@ -1222,6 +1507,9 @@
             const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
             if (rectIntersect(beamX, this.y + 15, beamW, 30, redCube.x, redCube.y, redCube.w, redCube.h)) {
                 redCube.takeDamage(25 * this.damageMult);
+                if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
+            } else {
+                sessionStats.womboComboActive = false;
             }
         }
 
@@ -1394,9 +1682,14 @@
                     // Stop dash on impact
                     this.dashActive = false;
                     this.vx = this.facingRight ? -5 : 5; // Bounce back
+                    if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
                 }
 
-                if (this.dashTimer <= 0) this.dashActive = false;
+                if (this.dashTimer <= 0) {
+                    this.dashActive = false;
+                    // Missed dash
+                    // sessionStats.womboComboActive = false; // Dash is hard, maybe don't punish for movement dash? But it's an attack. Let's punish.
+                }
                 
                 // Gravity applies during dash (optional, but keeps it grounded)
                 this.vy += GRAVITY;
@@ -1626,7 +1919,10 @@
                         ticksRemaining: 5,
                         tickTimer: 60
                     });
+                    if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
                 }
+            } else {
+                sessionStats.womboComboActive = false;
             }
         }
         
@@ -2012,7 +2308,8 @@
 
         spawnMinion() {
             // Random class choice (excluding GoldCube/RedCube)
-            const types = [BlueCube, GreenCube, PinkCube, BrownCube, PurpleCube, VigilanteCube];
+            // Added AngrySniperCube to pool
+            const types = [BlueCube, GreenCube, PinkCube, BrownCube, PurpleCube, VigilanteCube, AngrySniperCube];
             const RandomClass = types[Math.floor(Math.random() * types.length)];
             
             this.minion = new RandomClass();
@@ -2259,7 +2556,10 @@
                     redCube.takeDamage(35 * this.damageMult);
                     redCube.vx = this.facingRight ? 10 : -10;
                     redCube.vy = -5;
+                    if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
                 }
+            } else {
+                sessionStats.womboComboActive = false;
             }
         }
         
@@ -2278,6 +2578,9 @@
             if (rectIntersect(beamX, beamY, beamW, beamH, redCube.x, redCube.y, redCube.w, redCube.h)) {
                 redCube.takeDamage(50 * this.damageMult);
                 redCube.vx = this.facingRight ? 15 : -15;
+                if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
+            } else {
+                sessionStats.womboComboActive = false;
             }
         }
         
@@ -2301,7 +2604,10 @@
                         ticksRemaining: 6,
                         tickTimer: 60
                     });
+                    if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
                 }
+            } else {
+                sessionStats.womboComboActive = false;
             }
         }
         
@@ -2435,13 +2741,15 @@
             this.stateTimer = 0;
             this.isInvincible = false;
             this.beamActive = false; 
+            // New dash property
+            this.dashTimer = 0;
         }
 
         update() {
             super.update(); 
             if (gameMode === 'p2p' && p2pRole === 'client') return; 
 
-            if (this.state !== 'CHARGING') this.isInvincible = false;
+            if (this.state !== 'DASHING') this.isInvincible = false;
             if (this.dead) return;
 
             let controlSource = keys;
@@ -2453,29 +2761,32 @@
                 this.updateAI();
             }
             
-            if (isRetroMode) return; // No complex state attacks in retro
+            if (isRetroMode) return; 
 
             // State Machine for Attacks
-            if (this.state === 'CHARGE_WINDUP') {
-                this.color = (Math.floor(Date.now() / 100) % 2 === 0) ? COLORS.RED : COLORS.BLACK; 
-                this.stateTimer--;
-                if (this.stateTimer <= 0) {
-                    this.state = 'CHARGING';
-                    this.stateTimer = 60; 
-                    this.vx = this.facingRight ? 15 : -15; 
-                    this.isInvincible = true; 
-                }
-            } 
-            else if (this.state === 'CHARGING') {
-                this.color = COLORS.RED;
-                if (this.x <= 0 || this.x + this.w >= WIDTH) this.handleWallHit();
+            if (this.state === 'DASHING') {
+                // Dash Logic (Vigilante Style)
+                this.vx = this.facingRight ? 20 : -20; 
+                this.isInvincible = true; 
+                
+                this.dashTimer--;
+
+                // Collision Logic
                 if (rectIntersect(this.x, this.y, this.w, this.h, blueCube.x, blueCube.y, blueCube.w, blueCube.h)) {
-                    this.hitPlayer(25, true);
+                    this.hitPlayer(20, true); // 20 damage (Vigilante val)
+                    // Bounce back
+                    this.vx = this.facingRight ? -5 : 5;
+                    this.state = 'IDLE';
                 }
-                this.stateTimer--;
-                if (this.stateTimer <= 0) {
+
+                if (this.dashTimer <= 0) {
                     this.state = 'IDLE';
                     this.vx = 0;
+                    // Combo: If dash ends and didn't hit, allow combo start
+                    if (!sessionStats.womboComboActive) {
+                        sessionStats.womboComboActive = true;
+                        sessionStats.womboComboHits = 0;
+                    }
                 }
             }
             else if (this.state === 'BEAM_WINDUP') {
@@ -2613,9 +2924,10 @@
         }
 
         startCharge() {
-            this.state = 'CHARGE_WINDUP';
-            this.stateTimer = 40; 
-            this.vx = 0;
+            // Replaced with Dash logic
+            this.state = 'DASHING';
+            this.dashTimer = 15; // Short duration
+            // No windup
         }
 
         startBeam() {
@@ -2635,6 +2947,11 @@
                 if (sessionStats.beamStreak >= 5) unlockAchievement(2); 
             } else {
                 sessionStats.beamStreak = 0;
+                // Combo: Missed beam starts combo opportunity
+                if (!sessionStats.womboComboActive) {
+                    sessionStats.womboComboActive = true;
+                    sessionStats.womboComboHits = 0;
+                }
             }
         }
 
@@ -2653,6 +2970,9 @@
                 this.state = 'STUNNED';
                 this.stateTimer = 90; 
                 this.vx = this.facingRight ? -10 : 10; 
+                // Combo: Parry successful starts combo
+                sessionStats.womboComboActive = true;
+                sessionStats.womboComboHits = 0;
                 return;
             }
             // Check Block (Magic Cube)
@@ -2669,6 +2989,13 @@
         draw(ctx) {
             super.draw(ctx);
             if (isRetroMode) return;
+            
+            // Draw Dash Afterimage
+            if (this.state === 'DASHING') {
+                ctx.fillStyle = "rgba(255, 0, 0, 0.5)"; // Red ghost
+                ctx.fillRect(this.x - (this.facingRight ? 20 : -20), this.y, this.w, this.h);
+            }
+
             if (this.state === 'BEAM_FIRING' || (gameMode === 'p2p' && p2pRole === 'client' && this.beamActive)) {
                 ctx.fillStyle = COLORS.CYAN;
                 const beamW = 600;
@@ -2683,32 +3010,65 @@
             }
         }
     }
+    
+    // GRAY CUBE (SANDBOX DUMMY)
+    class GrayCube extends Entity {
+        constructor() {
+            super(WIDTH - 150, FLOOR_Y - CUBE_SIZE, "gray", 9999);
+            this.facingRight = false;
+        }
+        
+        update() {
+            // Dummy logic: sit still, apply gravity
+            this.vy += GRAVITY;
+            this.y += this.vy;
+            if (this.y + this.h >= FLOOR_Y) {
+                this.y = FLOOR_Y - this.h;
+                this.vy = 0;
+                this.isGrounded = true;
+            }
+            this.vx = 0;
+        }
+    }
 
     let blueCube;
     let redCube;
 
     function initGame() {
+        // Reset stats
+        sessionStats.beamStreak = 0;
+        sessionStats.womboComboActive = false;
+        sessionStats.womboComboHits = 0;
+
         // FACTORY SPAWN BASED ON SELECTION
-        switch(selectedCubeId) {
+        if (gameMode === 'sandbox') {
+             spawnPlayerCube(selectedCubeId);
+             redCube = new GrayCube();
+        } else {
+            spawnPlayerCube(selectedCubeId);
+            redCube = new RedCube();
+        }
+        
+        isRetroMode = false;
+        shatterActive = false;
+        floatingTexts = [];
+
+        updateUI();
+    }
+    
+    function spawnPlayerCube(id) {
+        switch(id) {
+            case 2: blueCube = new AngrySniperCube(); break; // Added Player Version for ID 2
             case 3: blueCube = new GreenCube(); break;
             case 4: blueCube = new PinkCube(); break;
             case 5: blueCube = new BrownCube(); break;
             case 6: blueCube = new PurpleCube(); break;
             case 7: blueCube = new VigilanteCube(); break;
-            case 8: blueCube = new Fbt7Cube(); break; // Added custom class for Fbt_7
+            case 8: blueCube = new Fbt7Cube(); break; 
             case 9: blueCube = new GoldCube(); break;
-            case 10: blueCube = new Bobbythe124Cube(); break; // Bobbythe124 - Not achievement locked
+            case 10: blueCube = new Bobbythe124Cube(); break; 
             default: blueCube = new BlueCube(); break;
         }
-
-        redCube = new RedCube();
-        
-        isRetroMode = false;
-        shatterActive = false;
-
-        // Reset stats
-        sessionStats.beamStreak = 0;
-        updateUI();
     }
 
     function updateUI() {
@@ -2721,7 +3081,9 @@
         }
 
         const p1Pct = (blueCube.hp / blueCube.maxHp) * 100;
-        const p2Pct = (redCube.hp / redCube.maxHp) * 100;
+        // P2 bar is full gray in sandbox
+        const p2Pct = (gameMode === 'sandbox') ? 100 : (redCube.hp / redCube.maxHp) * 100;
+        
         document.getElementById('p1-health').style.width = p1Pct + '%';
         document.getElementById('p2-health').style.width = p2Pct + '%';
         
@@ -2738,13 +3100,37 @@
         let name = "AI (Red)";
         if(gameMode === 'pvp') name = "P2 (Local)";
         if(gameMode === 'p2p') name = "P2 (Online)";
+        if(gameMode === 'sandbox') {
+            name = "Dummy (Gray)";
+            document.getElementById('p2-health').style.backgroundColor = "gray";
+        } else {
+            document.getElementById('p2-health').style.backgroundColor = "red";
+        }
         document.getElementById('p2-name').innerText = name;
         
         document.getElementById('p1-name-display').innerText = blueCube.constructor.name.replace('Cube', '') + " (P1)";
+
+        // Combo UI
+        const comboEl = document.getElementById('p1-combo');
+        if (sessionStats.womboComboActive) {
+            comboEl.style.display = 'flex';
+            comboEl.innerText = sessionStats.womboComboHits;
+        } else {
+            comboEl.style.display = 'none';
+        }
     }
 
     function checkGameOver() {
         if (gameState !== 'playing') return;
+        if (gameMode === 'sandbox') {
+             // Instant respawn/heal in sandbox
+             if (blueCube.dead) {
+                 blueCube.hp = blueCube.maxHp;
+                 blueCube.dead = false;
+                 floatingTexts.push(new FloatingText(blueCube.x, blueCube.y - 50, "RESPAWN", "#00FF00"));
+             }
+             return;
+        }
         if (blueCube.dead) finishGame('RED CUBE');
         else if (redCube.dead) finishGame('BLUE CUBE');
     }
@@ -2760,7 +3146,12 @@
         // Achievements
         if (winnerName === 'BLUE CUBE') {
             unlockAchievement(1); 
-            if (blueCube.hp === blueCube.maxHp) unlockAchievement(3); 
+            if (blueCube.hp === blueCube.maxHp) unlockAchievement(3);
+            
+            // WOMBO COMBO CHECK (ID 4)
+            if (sessionStats.womboComboActive && sessionStats.womboComboHits >= 3) {
+                unlockAchievement(4);
+            }
         }
 
         showGameOver();
@@ -2781,6 +3172,13 @@
         if (!isRetroMode) {
             ctx.fillStyle = "#333";
             ctx.fillRect(0, FLOOR_Y, WIDTH, HEIGHT - FLOOR_Y);
+        }
+        
+        // Update floating texts
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+            floatingTexts[i].update();
+            floatingTexts[i].draw(ctx);
+            if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
         }
 
         if (gameMode === 'p2p') {
@@ -2839,15 +3237,11 @@
              const p1Pct = Math.max(0, (blueCube.hp / blueCube.maxHp));
              const p2Pct = Math.max(0, (redCube.hp / redCube.maxHp));
              
-             // Left Bar (Blue) in screenshot right, but usually P1 left. I will put P1 left.
-             // Screenshot has Red Left, Blue Right. I will follow screenshot.
-             // Red Left
              ctx.fillStyle = "red";
              ctx.fillRect(20, 20, 300 * p2Pct, 30);
              ctx.strokeStyle = "black";
              ctx.strokeRect(20, 20, 300, 30);
              
-             // Blue Right
              ctx.fillStyle = "blue";
              ctx.fillRect(WIDTH - 320, 20, 300 * p1Pct, 30);
              ctx.strokeStyle = "black";
@@ -2862,6 +3256,14 @@
              ctx.fillStyle = "blue";
              ctx.textAlign = "right";
              ctx.fillText("Blue Kills: 0", WIDTH - 20, HEIGHT - 20);
+        }
+        
+        // Sandbox tutorial hint
+        if (gameMode === 'sandbox' && !document.getElementById('sandbox-menu').classList.contains('active')) {
+             ctx.fillStyle = "white";
+             ctx.font = "16px Arial";
+             ctx.textAlign = "center";
+             ctx.fillText("Press 'R' for Sandbox Menu", WIDTH/2, 30);
         }
         
         updateUI(); 
@@ -2933,6 +3335,66 @@
         document.getElementById('game-over-screen').classList.add('hidden');
         document.getElementById('demo-label').classList.add('hidden');
         navTo('screen-main');
+    }
+    
+    // --- SANDBOX MENU FUNCTIONS ---
+    function toggleSandboxMenu() {
+        const menu = document.getElementById('sandbox-menu');
+        const isActive = menu.classList.contains('active');
+        if (isActive) menu.classList.remove('active');
+        else {
+            menu.classList.add('active');
+            renderSandboxMenu();
+        }
+    }
+
+    function renderSandboxMenu() {
+        const list = document.getElementById('sb-cube-list');
+        list.innerHTML = "";
+        
+        CUBE_DATA.forEach(cube => {
+            if (cube.id === 9 && !ACHIEVEMENT_DATA.find(a=>a.id===6).unlocked) return; // Hide Master unless unlocked? Or show all for testing? Let's show all in sandbox.
+            
+            const item = document.createElement('div');
+            item.className = 'sb-cube-item ' + (selectedCubeId === cube.id ? 'active' : '');
+            item.innerHTML = `
+                <div style="width:30px; height:30px; background:${cube.color}; margin-right:10px; border:1px solid white;"></div>
+                <div style="color:white; font-weight:bold;">${cube.name}</div>
+            `;
+            item.onclick = () => {
+                selectedCubeId = cube.id;
+                spawnPlayerCube(cube.id);
+                renderSandboxMenu(); // Re-render to update active class
+                updateUI();
+                renderSandboxDetails(cube);
+            };
+            list.appendChild(item);
+        });
+        
+        // Initial render detail
+        const current = CUBE_DATA.find(c => c.id === selectedCubeId);
+        if(current) renderSandboxDetails(current);
+    }
+
+    function renderSandboxDetails(cube) {
+        const panel = document.getElementById('sb-details-pane');
+        panel.innerHTML = `
+            <div style="font-size:24px; color:${cube.color}; font-weight:bold; margin-bottom:15px;">${cube.name}</div>
+            <div class="sb-stat-block">
+                <div class="sb-stat-title">Base Stats</div>
+                <div>HP: ${cube.hp}</div>
+                <div>Color: ${cube.color}</div>
+            </div>
+            <div class="sb-stat-block">
+                <div class="sb-stat-title">Attacks</div>
+                <div style="margin-bottom:5px;">${cube.attack1 || "N/A"}</div>
+                <div>${cube.attack2 || "N/A"}</div>
+            </div>
+            <div class="sb-stat-block">
+                <div class="sb-stat-title">Counter Strategy</div>
+                <div style="color:#aaa;">${cube.counter || "No specific counter data."}</div>
+            </div>
+        `;
     }
 
     // Init first render
