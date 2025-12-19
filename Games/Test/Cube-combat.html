@@ -1746,6 +1746,145 @@
         }
     }
 
+    // CUBE 2: ANGRY SNIPER (Player Version)
+    class AngrySniperCube extends BlueCube {
+        constructor() {
+            super();
+            this.color = "red";
+            this.baseColor = "red";
+            this.dashActive = false;
+            this.dashTimer = 0;
+            this.beamState = 'IDLE';
+            this.beamTimer = 0;
+        }
+
+        update() {
+            if (this.dead) return;
+            if (isRetroMode) {
+                super.update();
+                return;
+            }
+
+            // BEAM LOGIC
+            if (this.beamState !== 'IDLE') {
+                this.vx = 0; // Stop moving
+                this.beamTimer--;
+                
+                if (this.beamState === 'WINDUP') {
+                    this.color = (Math.floor(Date.now() / 100) % 2 === 0) ? "cyan" : "black";
+                    if (this.beamTimer <= 0) {
+                        this.beamState = 'FIRING';
+                        this.beamTimer = 20;
+                        this.fireBeam();
+                    }
+                } else if (this.beamState === 'FIRING') {
+                    this.color = "red";
+                    if (this.beamTimer <= 0) {
+                        this.beamState = 'IDLE';
+                    }
+                }
+                return; // Skip normal movement
+            }
+
+            // DASH LOGIC
+            if (this.dashActive) {
+                this.dashTimer--;
+                this.vx = this.facingRight ? 20 : -20;
+                
+                // Collision with Enemy
+                if (rectIntersect(this.x, this.y, this.w, this.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
+                    redCube.takeDamage(20 * this.damageMult); // Vigilante dash is 20, seems fair
+                    redCube.vx = this.facingRight ? 15 : -15;
+                    redCube.vy = -5;
+                    this.dashActive = false; // Stop dash on impact
+                    this.vx = this.facingRight ? -5 : 5; // Bounce back
+                    if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
+                }
+
+                if (this.dashTimer <= 0) {
+                    this.dashActive = false;
+                    this.vx = 0;
+                }
+                
+                // Gravity during dash? AI RedCube doesn't seem to care, but let's add it for platforming
+                this.vy += GRAVITY;
+                this.y += this.vy;
+                if (this.y + this.h >= FLOOR_Y) {
+                    this.y = FLOOR_Y - this.h;
+                    this.vy = 0;
+                    this.isGrounded = true;
+                }
+                this.x += this.vx;
+                if (this.x < 0) this.x = 0;
+                if (this.x + this.w > WIDTH) this.x = WIDTH - this.w;
+                return; // Skip normal movement
+            }
+
+            // Check for Laser Input (F)
+            if (keys['KeyF']) {
+                this.beamState = 'WINDUP';
+                this.beamTimer = 50;
+                return;
+            }
+
+            // Delegated Movement & Space (Dash) to super
+            super.update();
+        }
+
+        // Override Space Action
+        performSlash() {
+            if (!this.dashActive) {
+                this.dashActive = true;
+                this.dashTimer = 15;
+                this.slashCooldown = 15; // Short cooldown (practically none)
+            }
+        }
+        
+        fireBeam() {
+            const beamW = 600;
+            const beamH = 40;
+            const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
+            const beamY = this.y + (this.h/2) - (beamH/2);
+            
+            if (rectIntersect(beamX, beamY, beamW, beamH, redCube.x, redCube.y, redCube.w, redCube.h)) {
+                redCube.takeDamage(30 * this.damageMult);
+                if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
+            } else {
+                sessionStats.womboComboActive = false;
+            }
+        }
+        
+        takeDamage(amount) {
+            if (this.dashActive) return; // Invincible while dashing
+            super.takeDamage(amount);
+        }
+
+        draw(ctx) {
+            super.draw(ctx);
+            if (isRetroMode) return;
+
+            // Dash Ghost
+            if (this.dashActive) {
+                ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+                ctx.fillRect(this.x - (this.facingRight ? 20 : -20), this.y, this.w, this.h);
+            }
+
+            // Beam
+            if (this.beamState === 'FIRING') {
+                ctx.fillStyle = "cyan";
+                const beamW = 600;
+                const beamH = 40;
+                const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
+                const beamY = this.y + (this.h/2) - (beamH/2);
+                ctx.fillRect(beamX, beamY, beamW, beamH);
+                ctx.shadowColor = "cyan";
+                ctx.shadowBlur = 20;
+                ctx.fillRect(beamX, beamY, beamW, beamH);
+                ctx.shadowBlur = 0;
+            }
+        }
+    }
+
     // CUBE 8: Fbt_7 (Secret/Dev)
     class Fbt7Cube extends BlueCube {
         constructor() {
