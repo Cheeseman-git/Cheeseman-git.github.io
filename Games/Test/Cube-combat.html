@@ -529,8 +529,6 @@
         <div id="screen-achievements" class="menu-screen">
             <div class="sub-title">ACHIEVEMENTS</div>
             <button class="btn btn-gray" style="width: 150px; position: absolute; top: 20px; left: 20px;" onclick="navTo('screen-main')">BACK (ESC)</button>
-            
-            <button class="btn btn-orange" style="width: 200px; position: absolute; top: 20px; right: 20px; font-size: 16px;" onclick="unlockAllAchievements()">DEBUG: UNLOCK ALL</button>
 
             <div class="achievements-list" id="achievements-container">
                 </div>
@@ -627,6 +625,40 @@
         { id: 7, name: "Cube Master", desc: "Unlock all other cubes", unlocks: "Master Cube", unlocked: false }
     ];
 
+    // --- SPECIAL PERMISSIONS / STORAGE SETUP ---
+    
+    // 1. Initialize keys if they don't exist (Defaults to 'false')
+    if (localStorage.getItem('debug_mode') === null) localStorage.setItem('debug_mode', 'false');
+    if (localStorage.getItem('dev') === null) localStorage.setItem('dev', 'false');
+    if (localStorage.getItem('tester') === null) localStorage.setItem('tester', 'false');
+
+    // 2. Read Values
+    const isDebugMode = localStorage.getItem('debug_mode') === 'true';
+    const isDev = localStorage.getItem('dev') === 'true';       // Placeholder for future use
+    const isTester = localStorage.getItem('tester') === 'true'; // Placeholder for future use
+
+    // 3. Apply Debug Logic
+    if (isDebugMode) {
+        console.log("Environment: DEBUG MODE ACTIVE. Unlocking all contents.");
+        ACHIEVEMENT_DATA.forEach(ach => {
+            ach.unlocked = true;
+            if(ach.maxProgress) ach.progress = ach.maxProgress;
+        });
+        // Note: We do not call saveGameData() here automatically. 
+        // This ensures that if you turn debug_mode off, your original legit save file 
+        // isn't permanently overwritten with completed data unless you trigger a save elsewhere.
+    }
+
+    if (isDev) {
+        console.log("Environment: DEVELOPER");
+        // Placeholder logic for Dev
+    }
+
+    if (isTester) {
+        console.log("Environment: TESTER");
+        // Placeholder logic for Tester
+    }
+    
     // --- ACHIEVEMENT SYSTEM ---
     
     const savedData = localStorage.getItem('cubeCombatData');
@@ -698,6 +730,8 @@
         womboComboHits: 0
     };
     let floatingTexts = []; // Store floating damage numbers
+    let particles = []; // Store visual effects
+    let shakeMagnitude = 0; // Screen shake intensity
     
     // --- GLOBAL GAME MODES ---
     let isRetroMode = false;
@@ -1011,7 +1045,78 @@
         cube.facingRight = state.facingRight;
     }
 
-    // --- GAME CLASSES ---
+    // --- EFFECT CLASSES ---
+
+    class Particle {
+        constructor(x, y, color, speed, life, type = 'spark') {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            this.life = life;
+            this.maxLife = life;
+            this.type = type;
+            this.size = Math.random() * 3 + 2;
+            this.gravity = 0.2;
+            
+            const angle = Math.random() * Math.PI * 2;
+            this.vx = Math.cos(angle) * speed;
+            this.vy = Math.sin(angle) * speed;
+            
+            if (type === 'beam_charge') {
+                this.gravity = 0;
+                this.vx = 0; 
+                this.vy = 0;
+            } else if (type === 'bubble') {
+                this.gravity = -0.05; // float up
+                this.vx = (Math.random() - 0.5) * 1;
+                this.vy = -Math.random() * 2;
+            }
+        }
+        
+        update() {
+            if (this.type === 'beam_charge') {
+                // Suck into center logic handled by spawner often, 
+                // but here we just fade.
+                this.size *= 0.9;
+            } else {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += this.gravity;
+            }
+            this.life--;
+            if (this.type !== 'bubble') this.size *= 0.95;
+        }
+        
+        draw(ctx) {
+            ctx.globalAlpha = this.life / this.maxLife;
+            ctx.fillStyle = this.color;
+            
+            if (this.type === 'square') {
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            } else if (this.type === 'bubble') {
+                 ctx.strokeStyle = this.color;
+                 ctx.lineWidth = 1;
+                 ctx.beginPath();
+                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                 ctx.stroke();
+            } else {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1.0;
+        }
+    }
+
+    function spawnParticles(x, y, color, count, type='spark') {
+        for(let i=0; i<count; i++) {
+            particles.push(new Particle(x, y, color, Math.random() * 5 + 2, 30, type));
+        }
+    }
+    
+    function triggerShake(amount) {
+        shakeMagnitude = amount;
+    }
 
     class FloatingText {
         constructor(x, y, text, color) {
@@ -1144,9 +1249,14 @@
             // SANDBOX LOGIC: SHOW TEXT
             if (gameMode === 'sandbox') {
                 floatingTexts.push(new FloatingText(this.x + Math.random()*20, this.y, Math.round(amount), "#FF0000"));
+                spawnParticles(this.x + this.w/2, this.y + this.h/2, "gray", 5, 'square');
                 return; // Don't actually take damage
             }
             
+            // VISUAL EFFECTS
+            spawnParticles(this.x + this.w/2, this.y + this.h/2, this.color, 10, 'square');
+            if (amount > 15) triggerShake(amount / 2);
+
             // WOMBO COMBO FAIL: Taking Damage
             if (this === blueCube) {
                 sessionStats.womboComboActive = false;
@@ -1156,6 +1266,7 @@
             if (this.hp <= 0) {
                 this.hp = 0;
                 this.dead = true;
+                spawnParticles(this.x + this.w/2, this.y + this.h/2, this.color, 40, 'square');
                 checkGameOver();
             }
             updateUI();
@@ -1272,6 +1383,9 @@
             const reach = 70;
             const hitX = this.facingRight ? this.x + this.w : this.x - reach;
 
+            // Visual Effect
+            spawnParticles(hitX + reach/2, this.y + this.h/2, "white", 5, 'spark');
+
             if (!redCube.dead && rectIntersect(hitX, this.y, reach, this.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
                 if (!redCube.isInvincible) {
                     // Apply Damage Multiplier
@@ -1296,6 +1410,18 @@
                 ctx.fillStyle = "rgba(128, 0, 128, 0.6)"; 
                 const reach = 70;
                 const hitX = this.facingRight ? this.x + this.w : this.x - reach;
+                
+                // Draw fancy arc
+                ctx.beginPath();
+                if(this.facingRight) {
+                    ctx.arc(this.x + this.w/2, this.y + this.h/2, reach, -Math.PI/2, Math.PI/2);
+                } else {
+                    ctx.arc(this.x + this.w/2, this.y + this.h/2, reach, Math.PI/2, -Math.PI/2);
+                }
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+                ctx.lineWidth = 5;
+                ctx.stroke();
+                
                 ctx.fillRect(hitX, this.y, reach, this.h);
             }
 
@@ -1330,6 +1456,19 @@
                 
                 if (this.beamState === 'WINDUP') {
                     this.color = (Math.floor(Date.now() / 100) % 2 === 0) ? "green" : "white";
+                    
+                    // Suck in particles
+                    if(Math.random() < 0.5) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const dist = 60;
+                        const px = this.x + this.w/2 + Math.cos(angle) * dist;
+                        const py = this.y + this.h/2 + Math.sin(angle) * dist;
+                        const p = new Particle(px, py, "#00FF00", 0, 10, 'beam_charge');
+                        p.vx = (this.x + this.w/2 - px) * 0.1;
+                        p.vy = (this.y + this.h/2 - py) * 0.1;
+                        particles.push(p);
+                    }
+
                     if (this.beamTimer <= 0) {
                         this.beamState = 'FIRING';
                         this.beamTimer = 15;
@@ -1353,7 +1492,11 @@
             const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
             const beamY = this.y + 15;
             
+            triggerShake(10);
+            spawnParticles(this.x + this.w/2, this.y + this.h/2, "#00FF00", 20, 'spark');
+
             if (rectIntersect(beamX, beamY, beamW, beamH, redCube.x, redCube.y, redCube.w, redCube.h)) {
+                spawnParticles(redCube.x + redCube.w/2, redCube.y + redCube.h/2, "#00FF00", 15, 'spark');
                 redCube.takeDamage(25 * this.damageMult);
                 redCube.vx = this.facingRight ? 15 : -15;
                 if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
@@ -1370,7 +1513,17 @@
                 ctx.fillStyle = "#00FF00";
                 const beamW = 600;
                 const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
+                
+                // Glowy beam
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = "#00FF00";
                 ctx.fillRect(beamX, this.y + 15, beamW, 30);
+                
+                // Inner core
+                ctx.fillStyle = "white";
+                ctx.fillRect(beamX, this.y + 22, beamW, 16);
+                
+                ctx.shadowBlur = 0;
             }
         }
     }
@@ -1411,6 +1564,7 @@
             if (this.isBlocking) {
                 // Negate damage, drain energy
                 this.blockEnergy -= 20;
+                spawnParticles(this.x + this.w/2, this.y + this.h/2, "cyan", 5, 'spark');
                 if (this.blockEnergy < 0) this.blockEnergy = 0;
             } else {
                 super.takeDamage(amount);
@@ -1431,6 +1585,12 @@
                 ctx.lineWidth = 4;
                 ctx.beginPath();
                 ctx.arc(this.x + this.w/2, this.y + this.h/2, 45, 0, Math.PI*2);
+                ctx.stroke();
+                
+                // Ripple effect (visual trick)
+                ctx.strokeStyle = `rgba(0, 255, 255, ${Math.random() * 0.5})`;
+                ctx.beginPath();
+                ctx.arc(this.x + this.w/2, this.y + this.h/2, 50 + Math.random()*5, 0, Math.PI*2);
                 ctx.stroke();
             }
         }
@@ -1496,6 +1656,8 @@
                 redCube.vy = -10;
                 redCube.state = 'STUNNED'; // Mini stun
                 redCube.stateTimer = 20;
+                spawnParticles(redCube.x + redCube.w/2, redCube.y + redCube.h/2, "yellow", 10, 'spark');
+                triggerShake(8);
                 if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
             } else {
                 sessionStats.womboComboActive = false;
@@ -1505,8 +1667,10 @@
         fireBeam() {
             const beamW = 600;
             const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
+            triggerShake(10);
             if (rectIntersect(beamX, this.y + 15, beamW, 30, redCube.x, redCube.y, redCube.w, redCube.h)) {
                 redCube.takeDamage(25 * this.damageMult);
+                spawnParticles(redCube.x + redCube.w/2, redCube.y + redCube.h/2, "yellow", 10, 'spark');
                 if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
             } else {
                 sessionStats.womboComboActive = false;
@@ -1520,7 +1684,15 @@
                 ctx.fillStyle = "yellow";
                 const beamW = 600;
                 const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
+                
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "yellow";
                 ctx.fillRect(beamX, this.y + 15, beamW, 30);
+                
+                ctx.fillStyle = "white";
+                ctx.fillRect(beamX, this.y + 22, beamW, 16);
+                
+                ctx.shadowBlur = 0;
             }
         }
     }
@@ -1587,6 +1759,17 @@
                 ctx.moveTo(this.x + this.w/2, this.y + this.h/2);
                 ctx.lineTo(redCube.x + redCube.w/2, redCube.y + redCube.h/2);
                 ctx.stroke();
+                
+                // Electric effect
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.w/2, this.y + this.h/2);
+                const midX = (this.x + redCube.x) / 2 + (Math.random() - 0.5) * 50;
+                const midY = (this.y + redCube.y) / 2 + (Math.random() - 0.5) * 50;
+                ctx.lineTo(midX, midY);
+                ctx.lineTo(redCube.x + redCube.w/2, redCube.y + redCube.h/2);
+                ctx.stroke();
             }
         }
     }
@@ -1603,6 +1786,7 @@
             // Dash Vars
             this.dashActive = false;
             this.dashTimer = 0;
+            this.dashHit = false; // Added to track hit for combo logic
             
             // Drone Vars
             this.droneActive = false;
@@ -1643,7 +1827,7 @@
                     // Hitscan check (simple)
                     if (Math.abs(this.droneX - redCube.x) < 50) {
                         redCube.takeDamage(10);
-                        // Visual effect handled in draw
+                        spawnParticles(redCube.x + redCube.w/2, redCube.y, "cyan", 5, 'spark');
                     }
                 }
 
@@ -1673,22 +1857,32 @@
                 this.vx = this.facingRight ? 20 : -20; // High speed
                 this.dashTimer--;
                 
+                // Dust trail
+                if (this.isGrounded) {
+                    spawnParticles(this.x + this.w/2, this.y + this.h, "#555", 1, 'square');
+                }
+
                 // Collision during dash
                 if (rectIntersect(this.x, this.y, this.w, this.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
                     redCube.takeDamage(20);
                     redCube.vx = this.facingRight ? 15 : -15; // Knockback
                     redCube.vy = -5;
+                    triggerShake(8);
                     
                     // Stop dash on impact
                     this.dashActive = false;
                     this.vx = this.facingRight ? -5 : 5; // Bounce back
+                    this.dashHit = true;
+
                     if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
                 }
 
                 if (this.dashTimer <= 0) {
                     this.dashActive = false;
-                    // Missed dash
-                    // sessionStats.womboComboActive = false; // Dash is hard, maybe don't punish for movement dash? But it's an attack. Let's punish.
+                    // Missed dash - Break Combo
+                    if (!this.dashHit) {
+                         sessionStats.womboComboActive = false;
+                    }
                 }
                 
                 // Gravity applies during dash (optional, but keeps it grounded)
@@ -1710,6 +1904,7 @@
             this.dashActive = true;
             this.dashTimer = 15; // Short burst
             this.slashCooldown = 60; // 1 second cooldown
+            this.dashHit = false; // Reset hit tracker
         }
 
         draw(ctx) {
@@ -1734,6 +1929,11 @@
                 if (this.droneFireTimer > 55) { // Show beam for first 5 frames of cycle
                     ctx.fillStyle = "rgba(0, 255, 255, 0.8)";
                     ctx.fillRect(this.droneX + 14, this.droneY + 10, 2, redCube.y - this.droneY);
+                    
+                    // Muzzle flash
+                    ctx.beginPath();
+                    ctx.arc(this.droneX + 15, this.droneY + 10, 5, 0, Math.PI*2);
+                    ctx.fill();
                 }
                 
                 // Connecting line (optional, high tech look)
@@ -1754,6 +1954,7 @@
             this.baseColor = "red";
             this.dashActive = false;
             this.dashTimer = 0;
+            this.dashHit = false;
             this.beamState = 'IDLE';
             this.beamTimer = 0;
         }
@@ -1772,6 +1973,17 @@
                 
                 if (this.beamState === 'WINDUP') {
                     this.color = (Math.floor(Date.now() / 100) % 2 === 0) ? "cyan" : "black";
+                     // Charge particles
+                    if(Math.random() < 0.5) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const dist = 60;
+                        const px = this.x + this.w/2 + Math.cos(angle) * dist;
+                        const py = this.y + this.h/2 + Math.sin(angle) * dist;
+                        const p = new Particle(px, py, "red", 0, 10, 'beam_charge');
+                        p.vx = (this.x + this.w/2 - px) * 0.1;
+                        p.vy = (this.y + this.h/2 - py) * 0.1;
+                        particles.push(p);
+                    }
                     if (this.beamTimer <= 0) {
                         this.beamState = 'FIRING';
                         this.beamTimer = 20;
@@ -1791,6 +2003,11 @@
                 this.dashTimer--;
                 this.vx = this.facingRight ? 20 : -20;
                 
+                 // Dust trail
+                if (this.isGrounded) {
+                    spawnParticles(this.x + this.w/2, this.y + this.h, "#555", 1, 'square');
+                }
+                
                 // Collision with Enemy
                 if (rectIntersect(this.x, this.y, this.w, this.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
                     redCube.takeDamage(20 * this.damageMult); // Vigilante dash is 20, seems fair
@@ -1798,12 +2015,17 @@
                     redCube.vy = -5;
                     this.dashActive = false; // Stop dash on impact
                     this.vx = this.facingRight ? -5 : 5; // Bounce back
+                    this.dashHit = true;
+                    triggerShake(5);
                     if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
                 }
 
                 if (this.dashTimer <= 0) {
                     this.dashActive = false;
                     this.vx = 0;
+                    if (!this.dashHit) {
+                        sessionStats.womboComboActive = false;
+                    }
                 }
                 
                 // Gravity during dash? AI RedCube doesn't seem to care, but let's add it for platforming
@@ -1837,6 +2059,7 @@
                 this.dashActive = true;
                 this.dashTimer = 15;
                 this.slashCooldown = 15; // Short cooldown (practically none)
+                this.dashHit = false;
             }
         }
         
@@ -1846,6 +2069,9 @@
             const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
             const beamY = this.y + (this.h/2) - (beamH/2);
             
+            triggerShake(8);
+            spawnParticles(this.x + this.w/2, this.y + this.h/2, "cyan", 15, 'spark');
+
             if (rectIntersect(beamX, beamY, beamW, beamH, redCube.x, redCube.y, redCube.w, redCube.h)) {
                 redCube.takeDamage(30 * this.damageMult);
                 if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
@@ -1876,10 +2102,14 @@
                 const beamH = 40;
                 const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
                 const beamY = this.y + (this.h/2) - (beamH/2);
-                ctx.fillRect(beamX, beamY, beamW, beamH);
+                
                 ctx.shadowColor = "cyan";
                 ctx.shadowBlur = 20;
                 ctx.fillRect(beamX, beamY, beamW, beamH);
+                
+                ctx.fillStyle = "white";
+                ctx.fillRect(beamX, beamY + 15, beamW, 10);
+                
                 ctx.shadowBlur = 0;
             }
         }
@@ -1941,6 +2171,11 @@
                 this.color = (Math.floor(Date.now() / 80) % 2 === 0) ? "#8B0000" : "black";
                 this.damageMult = 2.0; 
                 
+                // Rage particles
+                if(Math.random() < 0.2) {
+                    spawnParticles(this.x + Math.random()*this.w, this.y + Math.random()*this.h, "red", 1, 'spark');
+                }
+
                 if (this.hatredTimer <= 0) {
                     this.hatredActive = false;
                     this.color = this.baseColor;
@@ -2047,6 +2282,9 @@
             const reach = 120;
             const hitX = this.facingRight ? this.x + this.w : this.x - reach;
             
+            // Poison Particles
+            spawnParticles(hitX + reach/2, this.y + this.h/2, "#00FF00", 20, 'bubble');
+
             if (!redCube.dead && rectIntersect(hitX, this.y - 20, reach, this.h + 40, redCube.x, redCube.y, redCube.w, redCube.h)) {
                 if (!redCube.isInvincible) {
                     redCube.takeDamage(15 * this.damageMult);
@@ -2070,6 +2308,11 @@
                 const poison = this.poisonTargets[i];
                 poison.tickTimer--;
                 
+                // Visual bubble effect on poisoned target
+                if (Math.random() < 0.1) {
+                     spawnParticles(poison.target.x + poison.target.w/2, poison.target.y, "#00FF00", 1, 'bubble');
+                }
+
                 if (poison.tickTimer <= 0) {
                     poison.tickTimer = 60;
                     poison.ticksRemaining--;
@@ -2100,6 +2343,7 @@
                 redCube.invertControlsTimer = 180;
                 redCube.state = 'STUNNED';
                 redCube.stateTimer = 30;
+                triggerShake(5);
             }
             
             if (Math.random() < 0.4) {
@@ -2150,6 +2394,8 @@
             this.hatredActive = true;
             this.hatredTimer = 300; 
             this.hatredCooldown = 600;
+            triggerShake(5);
+            spawnParticles(this.x + this.w/2, this.y + this.h/2, "red", 30, 'spark');
         }
         
         // TERMINATION: Reality Shatter and Retro Transition
@@ -2158,6 +2404,7 @@
 
             // 1. Shatter Effect
             triggerShatter();
+            triggerShake(20);
 
             // 2. Start Sequence
             // Sequence: Retro(2s) -> Normal(1s) -> Retro(2s) -> Normal(1s) -> Retro(2s) -> Normal(1s) -> Retro(2s) -> Normal(End)
@@ -2461,6 +2708,8 @@
             this.minion.maxHp = 50;
             this.minion.hp = 50;
             this.minion.damageMult = 0.5;
+            
+            spawnParticles(this.minion.x, this.minion.y, "white", 10, 'square'); // Poof effect
 
             // OVERTIME BUFF
             if (this.overtimeActive) {
@@ -2571,6 +2820,10 @@
                 this.color = (Math.floor(Date.now() / 80) % 2 === 0) ? "#8B0000" : this.baseColor;
                 this.damageMult = 1.5;
                 
+                 if(Math.random() < 0.2) {
+                    spawnParticles(this.x + Math.random()*this.w, this.y + Math.random()*this.h, "red", 1, 'spark');
+                }
+
                 if (this.hatredTimer <= 0) {
                     this.hatredActive = false;
                     this.color = this.baseColor;
@@ -2586,6 +2839,19 @@
                 
                 if (this.beamState === 'WINDUP') {
                     this.color = (Math.floor(Date.now() / 100) % 2 === 0) ? this.baseColor : "white";
+                    
+                    // Charge particles
+                    if(Math.random() < 0.5) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const dist = 60;
+                        const px = this.x + this.w/2 + Math.cos(angle) * dist;
+                        const py = this.y + this.h/2 + Math.sin(angle) * dist;
+                        const p = new Particle(px, py, "#CCCCFF", 0, 10, 'beam_charge');
+                        p.vx = (this.x + this.w/2 - px) * 0.1;
+                        p.vy = (this.y + this.h/2 - py) * 0.1;
+                        particles.push(p);
+                    }
+                    
                     if (this.beamTimer <= 0) {
                         this.beamState = 'FIRING';
                         this.beamTimer = 15;
@@ -2690,6 +2956,8 @@
             const reach = 70;
             const hitX = this.facingRight ? this.x + this.w : this.x - reach;
             
+            spawnParticles(hitX + reach/2, this.y + this.h/2, "white", 5, 'spark');
+
             if (!redCube.dead && rectIntersect(hitX, this.y, reach, this.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
                 if (!redCube.isInvincible) {
                     redCube.takeDamage(35 * this.damageMult);
@@ -2706,6 +2974,8 @@
             this.hatredActive = true;
             this.hatredTimer = 300; // 5 seconds
             this.hatredCooldown = 600;
+            triggerShake(5);
+            spawnParticles(this.x + this.w/2, this.y + this.h/2, "red", 30, 'spark');
         }
         
         fireBeam() {
@@ -2713,6 +2983,8 @@
             const beamH = 30;
             const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
             const beamY = this.y + 15;
+            
+            triggerShake(10);
             
             if (rectIntersect(beamX, beamY, beamW, beamH, redCube.x, redCube.y, redCube.w, redCube.h)) {
                 redCube.takeDamage(50 * this.damageMult);
@@ -2731,6 +3003,8 @@
             const reach = 100;
             const hitX = this.facingRight ? this.x + this.w : this.x - reach;
             
+            spawnParticles(hitX + reach/2, this.y + this.h/2, "red", 15, 'bubble');
+
             if (!redCube.dead && rectIntersect(hitX, this.y - 20, reach, this.h + 40, redCube.x, redCube.y, redCube.w, redCube.h)) {
                 if (!redCube.isInvincible) {
                     redCube.takeDamage(20 * this.damageMult);
@@ -2762,6 +3036,7 @@
                     if (!poison.target.dead) {
                         poison.target.takeDamage(10);
                         poison.target.color = "#8B0000"; // Dark red for bleed
+                        spawnParticles(poison.target.x + poison.target.w/2, poison.target.y, "red", 2, 'bubble');
                         setTimeout(() => {
                             if (!poison.target.dead) {
                                 poison.target.color = poison.target.baseColor || COLORS.RED;
@@ -2820,7 +3095,14 @@
                 ctx.fillStyle = "#AAAAFF";
                 const beamW = 600;
                 const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
+                
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "#AAAAFF";
                 ctx.fillRect(beamX, this.y + 15, beamW, 30);
+                
+                ctx.fillStyle = "white";
+                ctx.fillRect(beamX, this.y + 22, beamW, 16);
+                ctx.shadowBlur = 0;
             }
             
             // BLEED SLASH visual
@@ -2909,6 +3191,11 @@
                 this.isInvincible = true; 
                 
                 this.dashTimer--;
+                
+                 // Dust trail
+                if (this.isGrounded) {
+                    spawnParticles(this.x + this.w/2, this.y + this.h, "#555", 1, 'square');
+                }
 
                 // Collision Logic
                 if (rectIntersect(this.x, this.y, this.w, this.h, blueCube.x, blueCube.y, blueCube.w, blueCube.h)) {
@@ -2916,6 +3203,7 @@
                     // Bounce back
                     this.vx = this.facingRight ? -5 : 5;
                     this.state = 'IDLE';
+                    triggerShake(5);
                 }
 
                 if (this.dashTimer <= 0) {
@@ -2925,11 +3213,25 @@
                     if (!sessionStats.womboComboActive) {
                         sessionStats.womboComboActive = true;
                         sessionStats.womboComboHits = 0;
+                        floatingTexts.push(new FloatingText(this.x, this.y, "DODGE!", "#00FF00"));
                     }
                 }
             }
             else if (this.state === 'BEAM_WINDUP') {
                 this.color = (Math.floor(Date.now() / 100) % 2 === 0) ? COLORS.CYAN : COLORS.BLACK;
+                
+                // Charge particles
+                if(Math.random() < 0.5) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = 60;
+                    const px = this.x + this.w/2 + Math.cos(angle) * dist;
+                    const py = this.y + this.h/2 + Math.sin(angle) * dist;
+                    const p = new Particle(px, py, "red", 0, 10, 'beam_charge');
+                    p.vx = (this.x + this.w/2 - px) * 0.1;
+                    p.vy = (this.y + this.h/2 - py) * 0.1;
+                    particles.push(p);
+                }
+
                 this.stateTimer--;
                 if (this.stateTimer <= 0) {
                     this.state = 'BEAM_FIRING';
@@ -3080,6 +3382,10 @@
             const beamH = 40;
             const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
             const beamY = this.y + (this.h/2) - (beamH/2);
+            
+            triggerShake(10);
+            spawnParticles(this.x + this.w/2, this.y + this.h/2, "cyan", 15, 'spark');
+
             if (rectIntersect(beamX, beamY, beamW, beamH, blueCube.x, blueCube.y, blueCube.w, blueCube.h)) {
                 this.hitPlayer(30, false);
                 sessionStats.beamStreak++;
@@ -3090,6 +3396,7 @@
                 if (!sessionStats.womboComboActive) {
                     sessionStats.womboComboActive = true;
                     sessionStats.womboComboHits = 0;
+                    floatingTexts.push(new FloatingText(this.x, this.y, "DODGE!", "#00FF00"));
                 }
             }
         }
@@ -3109,9 +3416,16 @@
                 this.state = 'STUNNED';
                 this.stateTimer = 90; 
                 this.vx = this.facingRight ? -10 : 10; 
+                
+                spawnParticles(blueCube.x + blueCube.w/2, blueCube.y + blueCube.h/2, "white", 20, 'spark');
+                triggerShake(5);
+
                 // Combo: Parry successful starts combo
-                sessionStats.womboComboActive = true;
-                sessionStats.womboComboHits = 0;
+                if (!sessionStats.womboComboActive) {
+                    sessionStats.womboComboActive = true;
+                    sessionStats.womboComboHits = 0;
+                    floatingTexts.push(new FloatingText(this.x, this.y, "COUNTER!", "#00FF00"));
+                }
                 return;
             }
             // Check Block (Magic Cube)
@@ -3141,10 +3455,14 @@
                 const beamH = 40;
                 const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
                 const beamY = this.y + (this.h/2) - (beamH/2);
-                ctx.fillRect(beamX, beamY, beamW, beamH);
+                
                 ctx.shadowBlur = 20;
                 ctx.shadowColor = "cyan";
                 ctx.fillRect(beamX, beamY, beamW, beamH);
+                
+                ctx.fillStyle = "white";
+                ctx.fillRect(beamX, beamY+15, beamW, 10);
+
                 ctx.shadowBlur = 0;
             }
         }
@@ -3178,6 +3496,8 @@
         sessionStats.beamStreak = 0;
         sessionStats.womboComboActive = false;
         sessionStats.womboComboHits = 0;
+        particles = [];
+        shakeMagnitude = 0;
 
         // FACTORY SPAWN BASED ON SELECTION
         if (gameMode === 'sandbox') {
@@ -3307,6 +3627,16 @@
         }
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         
+        // Apply Shake
+        ctx.save();
+        if (shakeMagnitude > 0) {
+            const dx = (Math.random() - 0.5) * shakeMagnitude;
+            const dy = (Math.random() - 0.5) * shakeMagnitude;
+            ctx.translate(dx, dy);
+            shakeMagnitude *= 0.9;
+            if(shakeMagnitude < 0.5) shakeMagnitude = 0;
+        }
+        
         // Draw Floor (Only normal mode)
         if (!isRetroMode) {
             ctx.fillStyle = "#333";
@@ -3349,6 +3679,13 @@
         redCube.draw(ctx);
         blueCube.draw(ctx);
         
+        // Update & Draw Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            particles[i].update();
+            particles[i].draw(ctx);
+            if (particles[i].life <= 0) particles.splice(i, 1);
+        }
+        
         // Shatter Effects Draw
         if (shatterActive) {
             ctx.save();
@@ -3369,6 +3706,9 @@
             });
             ctx.restore();
         }
+        
+        // Restore context from shake
+        ctx.restore();
 
         // Draw Retro UI if needed
         if (isRetroMode) {

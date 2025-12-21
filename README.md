@@ -27,7 +27,7 @@ Games Tab: 🟢
 
 Test branch: 🔵
 
-    Cube Combat: 🟡 (visual effects 🔴, balancing 🔴 (these 2 need to be done then they will be moved to game libery once they are done), sfx 🔴, art) Not much left :3
+    Cube Combat: 🟡 (balancing 🟡 (this is the last thing that needs to be done then they will be moved to game libery once they are done), sfx 🔴, art 🟨) Not much left :3
     Sketchy Caisno: 🟢
 
 
