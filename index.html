@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nexus Gaming Hub</title>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Google Fonts: Outfit for a modern gaming look -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
     <!-- Tailwind Config for Custom Colors/Fonts -->
     <script>
@@ -62,15 +64,18 @@
             width: 8px;
             height: 8px;
         }
+
         ::-webkit-scrollbar-track {
-            background: #09090b; 
+            background: #09090b;
         }
+
         ::-webkit-scrollbar-thumb {
-            background: #3f3f46; 
+            background: #3f3f46;
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
-            background: #6366f1; 
+            background: #6366f1;
         }
 
         /* Glassmorphism Utilities */
@@ -80,7 +85,7 @@
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        
+
         .glass-hover:hover {
             background: rgba(39, 39, 42, 0.8);
             border-color: rgba(99, 102, 241, 0.3);
@@ -91,6 +96,7 @@
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
+
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
@@ -100,7 +106,7 @@
         .game-active body {
             overflow: hidden;
         }
-        
+
         /* Mobile specific fixes */
         body {
             -webkit-tap-highlight-color: transparent;
@@ -110,59 +116,91 @@
         .playing-card {
             background: white;
             border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
             position: relative;
             user-select: none;
             transition: transform 0.2s;
         }
-        .playing-card.red { color: #ef4444; }
-        .playing-card.black { color: #1e293b; }
-        .playing-card:hover { transform: translateY(-2px); }
-        .playing-card.selected { border: 2px solid #fbbf24; transform: translateY(-4px); box-shadow: 0 0 10px #fbbf24; }
+
+        .playing-card.red {
+            color: #ef4444;
+        }
+
+        .playing-card.black {
+            color: #1e293b;
+        }
+
+        .playing-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .playing-card.selected {
+            border: 2px solid #fbbf24;
+            transform: translateY(-4px);
+            box-shadow: 0 0 10px #fbbf24;
+        }
     </style>
 </head>
-<body class="bg-nexus-base text-white h-screen flex flex-col md:flex-row overflow-hidden selection:bg-indigo-500 selection:text-white font-sans">
+
+<body
+    class="bg-nexus-base text-white h-screen flex flex-col md:flex-row overflow-hidden selection:bg-indigo-500 selection:text-white font-sans">
 
     <!-- BACKGROUND EFFECTS -->
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div class="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-[100px] animate-pulse-slow"></div>
-        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-600/10 rounded-full blur-[100px] animate-pulse-slow" style="animation-delay: 2s;"></div>
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-[100px] animate-pulse-slow">
+        </div>
+        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-600/10 rounded-full blur-[100px] animate-pulse-slow"
+            style="animation-delay: 2s;"></div>
     </div>
 
     <!-- SIDEBAR (DESKTOP) -->
     <aside class="hidden md:flex w-20 lg:w-72 flex-col glass z-20 border-r border-white/5 transition-all duration-300">
         <!-- Logo -->
         <div class="h-20 flex items-center justify-center lg:justify-start lg:px-8 border-b border-white/5">
-            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <div
+                class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 <i class="fa-solid fa-gamepad text-white text-lg"></i>
             </div>
-            <span class="ml-4 font-bold text-2xl tracking-tight hidden lg:block bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">NEXUS</span>
+            <span
+                class="ml-4 font-bold text-2xl tracking-tight hidden lg:block bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">NEXUS</span>
         </div>
 
         <!-- Nav Items -->
         <nav class="flex-1 py-8 px-4 space-y-2">
-            <button onclick="switchTab('home')" class="nav-item w-full flex items-center p-3.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group active" id="desk-nav-home">
+            <button onclick="switchTab('home')"
+                class="nav-item w-full flex items-center p-3.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group active"
+                id="desk-nav-home">
                 <i class="fa-solid fa-house text-xl w-6 text-center group-hover:text-indigo-400 transition-colors"></i>
                 <span class="ml-4 font-medium hidden lg:block">Home</span>
             </button>
 
-            <button onclick="switchTab('games')" class="nav-item w-full flex items-center p-3.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group" id="desk-nav-games">
+            <button onclick="switchTab('games')"
+                class="nav-item w-full flex items-center p-3.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+                id="desk-nav-games">
                 <i class="fa-solid fa-ghost text-xl w-6 text-center group-hover:text-pink-400 transition-colors"></i>
                 <span class="ml-4 font-medium hidden lg:block">Games</span>
             </button>
 
-            <button onclick="switchTab('community')" class="nav-item w-full flex items-center p-3.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group" id="desk-nav-community">
+            <button onclick="switchTab('community')"
+                class="nav-item w-full flex items-center p-3.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+                id="desk-nav-community">
                 <i class="fa-solid fa-users text-xl w-6 text-center group-hover:text-emerald-400 transition-colors"></i>
                 <span class="ml-4 font-medium hidden lg:block">Community</span>
             </button>
 
-            <button onclick="switchTab('socials')" class="nav-item w-full flex items-center p-3.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group" id="desk-nav-socials">
-                <i class="fa-solid fa-share-nodes text-xl w-6 text-center group-hover:text-cyan-400 transition-colors"></i>
+            <button onclick="switchTab('socials')"
+                class="nav-item w-full flex items-center p-3.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+                id="desk-nav-socials">
+                <i
+                    class="fa-solid fa-share-nodes text-xl w-6 text-center group-hover:text-cyan-400 transition-colors"></i>
                 <span class="ml-4 font-medium hidden lg:block">Socials</span>
             </button>
 
-            <button onclick="switchTab('credits')" class="nav-item w-full flex items-center p-3.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group" id="desk-nav-credits">
-                <i class="fa-solid fa-circle-info text-xl w-6 text-center group-hover:text-sky-400 transition-colors"></i>
+            <button onclick="switchTab('credits')"
+                class="nav-item w-full flex items-center p-3.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+                id="desk-nav-credits">
+                <i
+                    class="fa-solid fa-circle-info text-xl w-6 text-center group-hover:text-sky-400 transition-colors"></i>
                 <span class="ml-4 font-medium hidden lg:block">Credits</span>
             </button>
 
@@ -171,58 +209,75 @@
 
         <!-- User Profile -->
         <div class="p-4 border-t border-white/5">
-            <button onclick="switchTab('settings')" class="w-full flex items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
+            <button onclick="switchTab('settings')"
+                class="w-full flex items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
                 <div class="relative">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" class="w-10 h-10 rounded-lg bg-indigo-500/20">
-                    <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#18181b]"></div>
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User"
+                        class="w-10 h-10 rounded-lg bg-indigo-500/20">
+                    <div
+                        class="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#18181b]">
+                    </div>
                 </div>
                 <div class="ml-3 hidden lg:block text-left overflow-hidden">
                     <p class="text-sm font-bold text-white truncate">PlayerOne</p>
                     <p class="text-xs text-indigo-400 font-medium">Lvl 42 Premium</p>
                 </div>
-                <i class="fa-solid fa-gear ml-auto text-slate-500 hover:text-white transition-colors hidden lg:block"></i>
+                <i
+                    class="fa-solid fa-gear ml-auto text-slate-500 hover:text-white transition-colors hidden lg:block"></i>
             </button>
         </div>
     </aside>
 
     <!-- MOBILE HEADER -->
-    <header class="md:hidden h-16 glass fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 border-b border-white/5">
+    <header
+        class="md:hidden h-16 glass fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 border-b border-white/5">
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <div
+                class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 <i class="fa-solid fa-gamepad text-white text-sm"></i>
             </div>
             <span class="font-bold text-lg tracking-tight">NEXUS</span>
         </div>
         <button onclick="switchTab('settings')" class="w-8 h-8 rounded-full overflow-hidden border border-white/10">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" class="w-full h-full bg-indigo-500/20">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User"
+                class="w-full h-full bg-indigo-500/20">
         </button>
     </header>
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 relative overflow-y-auto overflow-x-hidden pt-16 pb-24 md:pt-0 md:pb-0 z-10" id="main-scroll">
-        
+
         <!-- VIEW: HOME -->
         <section id="view-home" class="p-6 lg:p-10 max-w-7xl mx-auto space-y-8 animate-fade-in">
             <!-- Hero Banner -->
-            <div class="relative w-full rounded-3xl overflow-hidden h-[50vh] min-h-[400px] shadow-2xl shadow-indigo-500/10 group">
-                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2670&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-1000 group-hover:scale-105"></div>
+            <div
+                class="relative w-full rounded-3xl overflow-hidden h-[50vh] min-h-[400px] shadow-2xl shadow-indigo-500/10 group">
+                <div
+                    class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2670&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-1000 group-hover:scale-105">
+                </div>
                 <div class="absolute inset-0 bg-gradient-to-t from-nexus-base via-nexus-base/80 to-transparent"></div>
-                
+
                 <div class="absolute bottom-0 left-0 p-6 md:p-12 w-full max-w-3xl">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 backdrop-blur-md mb-4">
+                    <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 backdrop-blur-md mb-4">
                         <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse mr-2"></span> BETA ACCESS
                     </span>
                     <h1 class="text-4xl md:text-6xl font-black text-white mb-4 leading-tight tracking-tight">
-                        Experience the <br> <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-400">Next Level</span>
+                        Experience the <br> <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-400">Next
+                            Level</span>
                     </h1>
                     <p class="text-slate-300 text-lg mb-8 max-w-xl leading-relaxed">
-                        Welcome to the reimagined Nexus Hub. Dive into a collection of arcade classics and experimental prototypes, all in one place.
+                        Welcome to the reimagined Nexus Hub. Dive into a collection of arcade classics and experimental
+                        prototypes, all in one place.
                     </p>
                     <div class="flex flex-wrap gap-4">
-                        <button onclick="switchTab('games')" class="px-8 py-4 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-all transform hover:scale-105 shadow-lg shadow-white/10 flex items-center">
+                        <button onclick="switchTab('games')"
+                            class="px-8 py-4 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-all transform hover:scale-105 shadow-lg shadow-white/10 flex items-center">
                             <i class="fa-solid fa-play mr-2"></i> Play Now
                         </button>
-                        <button onclick="switchTab('community')" class="px-8 py-4 glass text-white font-bold rounded-xl hover:bg-white/10 transition-all border border-white/10 backdrop-blur-md">
+                        <button onclick="switchTab('community')"
+                            class="px-8 py-4 glass text-white font-bold rounded-xl hover:bg-white/10 transition-all border border-white/10 backdrop-blur-md">
                             What's New
                         </button>
                     </div>
@@ -231,8 +286,10 @@
 
             <!-- Stats Row -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="glass p-5 rounded-2xl border border-white/5 flex flex-col justify-between h-32 hover:border-indigo-500/30 transition-colors">
-                    <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl mb-2">
+                <div
+                    class="glass p-5 rounded-2xl border border-white/5 flex flex-col justify-between h-32 hover:border-indigo-500/30 transition-colors">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl mb-2">
                         <i class="fa-solid fa-trophy"></i>
                     </div>
                     <div>
@@ -240,8 +297,10 @@
                         <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Trophies</p>
                     </div>
                 </div>
-                <div class="glass p-5 rounded-2xl border border-white/5 flex flex-col justify-between h-32 hover:border-emerald-500/30 transition-colors">
-                    <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mb-2">
+                <div
+                    class="glass p-5 rounded-2xl border border-white/5 flex flex-col justify-between h-32 hover:border-emerald-500/30 transition-colors">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mb-2">
                         <i class="fa-solid fa-clock"></i>
                     </div>
                     <div>
@@ -249,8 +308,10 @@
                         <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Hours</p>
                     </div>
                 </div>
-                <div class="glass p-5 rounded-2xl border border-white/5 flex flex-col justify-between h-32 hover:border-pink-500/30 transition-colors">
-                    <div class="w-10 h-10 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center text-xl mb-2">
+                <div
+                    class="glass p-5 rounded-2xl border border-white/5 flex flex-col justify-between h-32 hover:border-pink-500/30 transition-colors">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center text-xl mb-2">
                         <i class="fa-solid fa-fire"></i>
                     </div>
                     <div>
@@ -258,8 +319,10 @@
                         <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Streak</p>
                     </div>
                 </div>
-                <div class="glass p-5 rounded-2xl border border-white/5 flex flex-col justify-between h-32 hover:border-amber-500/30 transition-colors">
-                    <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl mb-2">
+                <div
+                    class="glass p-5 rounded-2xl border border-white/5 flex flex-col justify-between h-32 hover:border-amber-500/30 transition-colors">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl mb-2">
                         <i class="fa-solid fa-users"></i>
                     </div>
                     <div>
@@ -275,31 +338,20 @@
                     <h2 class="text-2xl font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-fire text-orange-500"></i> Trending Now
                     </h2>
-                    <button onclick="switchTab('games')" class="text-sm text-indigo-400 hover:text-indigo-300 font-medium">View All</button>
+                    <button onclick="switchTab('games')"
+                        class="text-sm text-indigo-400 hover:text-indigo-300 font-medium">View All</button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Game Card 1 -->
-                    <div onclick="launchGame('solitaire')" class="group cursor-pointer relative rounded-2xl overflow-hidden aspect-video">
-                        <img src="https://www.nomadfoods.com/wp-content/uploads/2018/08/placeholder-1-e1533569576673-960x960.png" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end">
-                            <h3 class="font-bold text-xl text-white group-hover:text-green-400 transition-colors">Cyber Solitaire</h3>
-                            <p class="text-slate-300 text-sm">Classic Card Game</p>
-                        </div>
-                    </div>
-                    <!-- Game Card 2 -->
-                    <div onclick="launchGame('snake')" class="group cursor-pointer relative rounded-2xl overflow-hidden aspect-video">
-                        <img src="https://www.nomadfoods.com/wp-content/uploads/2018/08/placeholder-1-e1533569576673-960x960.png" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end">
-                            <h3 class="font-bold text-xl text-white group-hover:text-emerald-400 transition-colors">Cyber Snake</h3>
-                            <p class="text-slate-300 text-sm">Arcade Retro</p>
-                        </div>
-                    </div>
-                    <!-- Game Card 3 -->
-                    <div onclick="launchGame('match')" class="group cursor-pointer relative rounded-2xl overflow-hidden aspect-video">
-                        <img src="https://www.nomadfoods.com/wp-content/uploads/2018/08/placeholder-1-e1533569576673-960x960.png" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end">
-                            <h3 class="font-bold text-xl text-white group-hover:text-purple-400 transition-colors">Cyber Match</h3>
-                            <p class="text-slate-300 text-sm">Memory Puzzle</p>
+                    <!-- Cube Combat -->
+                    <div onclick="launchGame('cubecombat')"
+                        class="group cursor-pointer relative rounded-2xl overflow-hidden aspect-video">
+                        <img src="Assets/Cube-combat.png"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end">
+                            <h3 class="font-bold text-xl text-white group-hover:text-indigo-400 transition-colors">Cube
+                                Combat</h3>
+                            <p class="text-slate-300 text-sm">Physics Arena</p>
                         </div>
                     </div>
                 </div>
@@ -315,178 +367,56 @@
                 </div>
                 <div class="relative">
                     <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                    <input type="text" placeholder="Search library..." class="pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white w-full md:w-64 focus:outline-none focus:border-indigo-500 transition-colors">
+                    <input type="text" placeholder="Search library..."
+                        class="pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white w-full md:w-64 focus:outline-none focus:border-indigo-500 transition-colors">
                 </div>
             </div>
 
             <!-- Tags -->
             <div class="flex gap-2 overflow-x-auto pb-4 mb-6 no-scrollbar">
-                <button class="px-4 py-2 bg-white text-black font-bold rounded-lg text-sm whitespace-nowrap">All Games</button>
-                <button class="px-4 py-2 bg-white/5 text-slate-300 hover:text-white font-medium rounded-lg text-sm whitespace-nowrap border border-white/5 transition-colors">Arcade</button>
-                <button class="px-4 py-2 bg-white/5 text-slate-300 hover:text-white font-medium rounded-lg text-sm whitespace-nowrap border border-white/5 transition-colors">Puzzle</button>
-                <button class="px-4 py-2 bg-white/5 text-slate-300 hover:text-white font-medium rounded-lg text-sm whitespace-nowrap border border-white/5 transition-colors">Card</button>
+                <button class="px-4 py-2 bg-white text-black font-bold rounded-lg text-sm whitespace-nowrap">All
+                    Games</button>
+                <button
+                    class="px-4 py-2 bg-white/5 text-slate-300 hover:text-white font-medium rounded-lg text-sm whitespace-nowrap border border-white/5 transition-colors">Arcade</button>
+                <button
+                    class="px-4 py-2 bg-white/5 text-slate-300 hover:text-white font-medium rounded-lg text-sm whitespace-nowrap border border-white/5 transition-colors">Puzzle</button>
+                <button
+                    class="px-4 py-2 bg-white/5 text-slate-300 hover:text-white font-medium rounded-lg text-sm whitespace-nowrap border border-white/5 transition-colors">Card</button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                
-                <!-- Game 1: Solitaire (NEW) -->
-                <div class="glass p-4 rounded-2xl border border-white/5 hover:border-green-500/50 transition-all group hover:-translate-y-1">
-                    <div class="h-40 rounded-xl bg-gradient-to-br from-green-600 to-emerald-800 relative overflow-hidden mb-4 flex items-center justify-center">
-                        <i class="fa-solid fa-diamond text-6xl text-white/20 absolute -right-4 -bottom-4 rotate-12"></i>
-                        <div class="flex gap-1 relative z-10 transform -rotate-6">
-                            <div class="w-12 h-16 bg-white rounded flex items-center justify-center text-red-500 text-xl font-bold shadow-lg">A♥</div>
-                            <div class="w-12 h-16 bg-white rounded flex items-center justify-center text-black text-xl font-bold shadow-lg -ml-4 mt-2">K♠</div>
-                        </div>
+            <div class="space-y-4 max-w-2xl mx-auto">
+                <button onclick="launchGame('cubecombat')"
+                    class="group w-full flex items-center p-4 rounded-xl bg-white/5 hover:bg-indigo-500/10 hover:border-indigo-500/30 border border-white/5 transition-all duration-200 text-left relative overflow-hidden">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     </div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h3 class="font-bold text-lg text-white">Cyber Solitaire</h3>
-                            <p class="text-xs text-slate-400">Card • Classic</p>
-                        </div>
-                        <div class="w-8 h-8 rounded bg-green-500/20 text-green-400 flex items-center justify-center text-xs font-bold">1P</div>
+                    <div
+                        class="relative z-10 w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform duration-200 shadow-lg group-hover:shadow-indigo-500/20">
+                        <i class="fa-solid fa-cube text-xl"></i>
                     </div>
-                    <button onclick="launchGame('solitaire')" class="w-full mt-4 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-play"></i> Play
-                    </button>
-                </div>
-
-                <!-- Game 2: High-Low (NEW) -->
-                <div class="glass p-4 rounded-2xl border border-white/5 hover:border-yellow-500/50 transition-all group hover:-translate-y-1">
-                    <div class="h-40 rounded-xl bg-gradient-to-br from-yellow-600 to-orange-800 relative overflow-hidden mb-4 flex items-center justify-center">
-                        <i class="fa-solid fa-arrow-up text-6xl text-white/20 absolute left-2 top-2"></i>
-                        <i class="fa-solid fa-arrow-down-up-across-line text-5xl text-white drop-shadow-lg z-10"></i>
+                    <div class="relative z-10 ml-4">
+                        <p class="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors">Cube
+                            Combat</p>
+                        <p class="text-xs text-slate-400 group-hover:text-indigo-400/60 uppercase tracking-wide">Physics
+                            Arena</p>
                     </div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h3 class="font-bold text-lg text-white">Neon High-Low</h3>
-                            <p class="text-xs text-slate-400">Card • Luck</p>
-                        </div>
-                        <div class="w-8 h-8 rounded bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-xs font-bold">∞</div>
-                    </div>
-                    <button onclick="launchGame('highlow')" class="w-full mt-4 py-2.5 bg-yellow-600 hover:bg-yellow-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-play"></i> Play
-                    </button>
-                </div>
-
-                <!-- Game 3: TTT -->
-                <div class="glass p-4 rounded-2xl border border-white/5 hover:border-indigo-500/50 transition-all group hover:-translate-y-1">
-                    <div class="h-40 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-800 relative overflow-hidden mb-4 flex items-center justify-center">
-                        <i class="fa-solid fa-gamepad text-6xl text-white/20 absolute -right-4 -bottom-4 rotate-12"></i>
-                        <i class="fa-solid fa-x text-5xl text-white drop-shadow-lg z-10"></i>
-                    </div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h3 class="font-bold text-lg text-white">Neon Tic-Tac-Toe</h3>
-                            <p class="text-xs text-slate-400">Puzzle • Strategy</p>
-                        </div>
-                        <div class="w-8 h-8 rounded bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs font-bold">AI</div>
-                    </div>
-                    <button onclick="launchGame('tictactoe')" class="w-full mt-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-play"></i> Play
-                    </button>
-                </div>
-
-                <!-- Game 4: Snake -->
-                <div class="glass p-4 rounded-2xl border border-white/5 hover:border-emerald-500/50 transition-all group hover:-translate-y-1">
-                    <div class="h-40 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-800 relative overflow-hidden mb-4 flex items-center justify-center">
-                        <i class="fa-solid fa-worm text-6xl text-white/20 absolute -left-4 -top-4 rotate-12"></i>
-                        <i class="fa-solid fa-square text-5xl text-white drop-shadow-lg z-10"></i>
-                    </div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h3 class="font-bold text-lg text-white">Cyber Snake</h3>
-                            <p class="text-xs text-slate-400">Arcade • Classic</p>
-                        </div>
-                        <div class="w-8 h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">1P</div>
-                    </div>
-                    <button onclick="launchGame('snake')" class="w-full mt-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-play"></i> Play
-                    </button>
-                </div>
-
-                <!-- Game 5: Reflex -->
-                <div class="glass p-4 rounded-2xl border border-white/5 hover:border-orange-500/50 transition-all group hover:-translate-y-1">
-                    <div class="h-40 rounded-xl bg-gradient-to-br from-orange-600 to-red-800 relative overflow-hidden mb-4 flex items-center justify-center">
-                        <i class="fa-solid fa-stopwatch text-6xl text-white/20 absolute right-2 top-2"></i>
-                        <i class="fa-solid fa-bolt text-5xl text-white drop-shadow-lg z-10"></i>
-                    </div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h3 class="font-bold text-lg text-white">Reflex Tester</h3>
-                            <p class="text-xs text-slate-400">Tool • Speed</p>
-                        </div>
-                        <div class="w-8 h-8 rounded bg-orange-500/20 text-orange-400 flex items-center justify-center text-xs font-bold">∞</div>
-                    </div>
-                    <button onclick="launchGame('reflex')" class="w-full mt-4 py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-play"></i> Play
-                    </button>
-                </div>
-
-                <!-- Game 6: Neon Breaker -->
-                <div class="glass p-4 rounded-2xl border border-white/5 hover:border-blue-500/50 transition-all group hover:-translate-y-1">
-                    <div class="h-40 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-800 relative overflow-hidden mb-4 flex items-center justify-center">
-                        <i class="fa-solid fa-shield-halved text-6xl text-white/20 absolute -left-2 -bottom-2"></i>
-                        <i class="fa-solid fa-bars text-5xl text-white drop-shadow-lg z-10 rotate-90"></i>
-                    </div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h3 class="font-bold text-lg text-white">Neon Breaker</h3>
-                            <p class="text-xs text-slate-400">Arcade • Action</p>
-                        </div>
-                        <div class="w-8 h-8 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold">1P</div>
-                    </div>
-                    <button onclick="launchGame('breaker')" class="w-full mt-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-play"></i> Play
-                    </button>
-                </div>
-
-                <!-- Game 7: Cyber Match -->
-                <div class="glass p-4 rounded-2xl border border-white/5 hover:border-purple-500/50 transition-all group hover:-translate-y-1">
-                    <div class="h-40 rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-800 relative overflow-hidden mb-4 flex items-center justify-center">
-                        <i class="fa-solid fa-brain text-6xl text-white/20 absolute right-0 bottom-0"></i>
-                        <i class="fa-solid fa-layer-group text-5xl text-white drop-shadow-lg z-10"></i>
-                    </div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h3 class="font-bold text-lg text-white">Cyber Match</h3>
-                            <p class="text-xs text-slate-400">Puzzle • Memory</p>
-                        </div>
-                        <div class="w-8 h-8 rounded bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs font-bold">1P</div>
-                    </div>
-                    <button onclick="launchGame('match')" class="w-full mt-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-play"></i> Play
-                    </button>
-                </div>
-
-                <!-- Test Branch -->
-                <div class="glass p-4 rounded-2xl border border-white/5 hover:border-slate-500/50 transition-all group hover:-translate-y-1">
-                    <div class="h-40 rounded-xl bg-slate-800 border-2 border-dashed border-slate-700 relative overflow-hidden mb-4 flex items-center justify-center">
-                        <i class="fa-solid fa-flask text-4xl text-slate-500"></i>
-                    </div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h3 class="font-bold text-lg text-white">Test Branch</h3>
-                            <p class="text-xs text-slate-400">Dev • Unstable</p>
-                        </div>
-                        <div class="w-8 h-8 rounded bg-slate-700 text-slate-400 flex items-center justify-center text-xs font-bold">DEV</div>
-                    </div>
-                    <button onclick="window.location.href='Games/Test/Testbranch.html'" class="w-full mt-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-code-branch"></i> Access
-                    </button>
-                </div>
+                    <i
+                        class="fa-solid fa-play ml-auto text-white/20 group-hover:text-indigo-400 transition-colors text-xl"></i>
+                </button>
             </div>
         </section>
 
         <!-- VIEW: COMMUNITY -->
         <section id="view-community" class="hidden p-6 lg:p-10 max-w-4xl mx-auto min-h-full animate-fade-in">
             <h1 class="text-4xl font-bold text-white mb-8">Announcements</h1>
-            
+
             <!-- Marquee -->
             <div class="glass rounded-xl overflow-hidden mb-8 border border-white/10">
                 <div class="px-4 py-3 bg-indigo-600/20 border-b border-indigo-500/20 flex items-center gap-3">
                     <span class="relative flex h-3 w-3">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
                     </span>
                     <span class="text-xs font-bold text-indigo-300 uppercase tracking-wider">Live Feed</span>
                 </div>
@@ -501,12 +431,14 @@
             </div>
 
             <!-- Pinned -->
-            <div id="pinned-announcement" class="hidden relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border border-indigo-500/30 p-6 md:p-8 mb-8">
+            <div id="pinned-announcement"
+                class="hidden relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border border-indigo-500/30 p-6 md:p-8 mb-8">
                 <div class="absolute top-0 right-0 p-4 opacity-10">
                     <i class="fa-solid fa-thumbtack text-8xl text-white"></i>
                 </div>
                 <div class="relative z-10">
-                    <div class="inline-block px-3 py-1 rounded-full bg-indigo-500 text-white text-xs font-bold mb-3">PINNED</div>
+                    <div class="inline-block px-3 py-1 rounded-full bg-indigo-500 text-white text-xs font-bold mb-3">
+                        PINNED</div>
                     <h2 id="pinned-title" class="text-2xl font-bold text-white mb-2"></h2>
                     <p id="pinned-msg" class="text-indigo-100 mb-4 leading-relaxed"></p>
                     <p id="pinned-time" class="text-xs text-indigo-300 font-mono"></p>
@@ -526,22 +458,28 @@
         <!-- VIEW: SOCIALS (NEW) -->
         <section id="view-socials" class="hidden p-6 lg:p-10 max-w-5xl mx-auto min-h-full animate-fade-in">
             <h1 class="text-4xl font-bold text-white mb-8">Social Hub</h1>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- Main Discord Promo -->
-                <div class="md:col-span-2 glass rounded-3xl p-8 relative overflow-hidden group border border-indigo-500/30">
-                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 transition-opacity duration-500 group-hover:opacity-100 opacity-50"></div>
+                <div
+                    class="md:col-span-2 glass rounded-3xl p-8 relative overflow-hidden group border border-indigo-500/30">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 transition-opacity duration-500 group-hover:opacity-100 opacity-50">
+                    </div>
                     <div class="absolute right-0 bottom-0 opacity-10 transform translate-x-10 translate-y-10">
                         <i class="fa-brands fa-discord text-9xl text-indigo-400"></i>
                     </div>
-                    
+
                     <div class="relative z-10">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold mb-4">
+                        <div
+                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold mb-4">
                             <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span> 1 MEMBER(S) ONLINE
                         </div>
                         <h2 class="text-3xl font-bold text-white mb-4">Join the Nexus Discord</h2>
-                        <p class="text-slate-300 mb-8 max-w-md">Connect with other players, get exclusive dev updates, share your high scores, and participate in weekly community events.</p>
-                        <button class="px-6 py-3 bg-[#5865F2] hover:bg-[#4752c4] text-white font-bold rounded-xl transition-all transform group-hover:scale-105 flex items-center gap-2 shadow-lg shadow-[#5865F2]/20">
+                        <p class="text-slate-300 mb-8 max-w-md">Connect with other players, get exclusive dev updates,
+                            share your high scores, and participate in weekly community events.</p>
+                        <button
+                            class="px-6 py-3 bg-[#5865F2] hover:bg-[#4752c4] text-white font-bold rounded-xl transition-all transform group-hover:scale-105 flex items-center gap-2 shadow-lg shadow-[#5865F2]/20">
                             <i class="fa-brands fa-discord"></i> Join Server
                         </button>
                     </div>
@@ -550,15 +488,19 @@
                 <!-- Newsletter/Updates -->
                 <div class="glass rounded-3xl p-8 flex flex-col justify-between border border-white/5">
                     <div>
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white text-xl mb-4 shadow-lg shadow-pink-500/20">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white text-xl mb-4 shadow-lg shadow-pink-500/20">
                             <i class="fa-solid fa-paper-plane"></i>
                         </div>
                         <h3 class="text-xl font-bold text-white mb-2">Weekly Digest</h3>
-                        <p class="text-slate-400 text-sm mb-6">Get the latest game releases and patch notes delivered to your inbox.</p>
+                        <p class="text-slate-400 text-sm mb-6">Get the latest game releases and patch notes delivered to
+                            your inbox.</p>
                     </div>
                     <form class="space-y-3" onsubmit="event.preventDefault(); alert('Subscribed!')">
-                        <input type="email" placeholder="Enter your email" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-pink-500 transition-colors">
-                        <button class="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors text-sm border border-white/5">
+                        <input type="email" placeholder="Enter your email"
+                            class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-pink-500 transition-colors">
+                        <button
+                            class="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors text-sm border border-white/5">
                             Subscribe
                         </button>
                     </form>
@@ -572,8 +514,10 @@
             <!-- Social Grid -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <!-- Twitter/X -->
-                <a href="#" class="glass p-6 rounded-2xl border border-white/5 hover:bg-white/5 transition-all group hover:-translate-y-1 text-center">
-                    <div class="w-12 h-12 mx-auto rounded-full bg-slate-800 flex items-center justify-center text-white text-xl mb-3 group-hover:scale-110 transition-transform">
+                <a href="#"
+                    class="glass p-6 rounded-2xl border border-white/5 hover:bg-white/5 transition-all group hover:-translate-y-1 text-center">
+                    <div
+                        class="w-12 h-12 mx-auto rounded-full bg-slate-800 flex items-center justify-center text-white text-xl mb-3 group-hover:scale-110 transition-transform">
                         <i class="fa-brands fa-x-twitter"></i>
                     </div>
                     <h3 class="font-bold text-white">Twitter</h3>
@@ -581,8 +525,10 @@
                 </a>
 
                 <!-- YouTube -->
-                <a href="#" class="glass p-6 rounded-2xl border border-white/5 hover:bg-white/5 transition-all group hover:-translate-y-1 text-center">
-                    <div class="w-12 h-12 mx-auto rounded-full bg-red-600/10 flex items-center justify-center text-red-500 text-xl mb-3 group-hover:scale-110 transition-transform">
+                <a href="#"
+                    class="glass p-6 rounded-2xl border border-white/5 hover:bg-white/5 transition-all group hover:-translate-y-1 text-center">
+                    <div
+                        class="w-12 h-12 mx-auto rounded-full bg-red-600/10 flex items-center justify-center text-red-500 text-xl mb-3 group-hover:scale-110 transition-transform">
                         <i class="fa-brands fa-youtube"></i>
                     </div>
                     <h3 class="font-bold text-white">YouTube</h3>
@@ -590,8 +536,10 @@
                 </a>
 
                 <!-- Instagram -->
-                <a href="#" class="glass p-6 rounded-2xl border border-white/5 hover:bg-white/5 transition-all group hover:-translate-y-1 text-center">
-                    <div class="w-12 h-12 mx-auto rounded-full bg-gradient-to-tr from-yellow-500 via-red-500 to-purple-500 flex items-center justify-center text-white text-xl mb-3 group-hover:scale-110 transition-transform shadow-lg shadow-red-500/20">
+                <a href="#"
+                    class="glass p-6 rounded-2xl border border-white/5 hover:bg-white/5 transition-all group hover:-translate-y-1 text-center">
+                    <div
+                        class="w-12 h-12 mx-auto rounded-full bg-gradient-to-tr from-yellow-500 via-red-500 to-purple-500 flex items-center justify-center text-white text-xl mb-3 group-hover:scale-110 transition-transform shadow-lg shadow-red-500/20">
                         <i class="fa-brands fa-instagram"></i>
                     </div>
                     <h3 class="font-bold text-white">Instagram</h3>
@@ -599,8 +547,10 @@
                 </a>
 
                 <!-- GitHub -->
-                <a href="#" class="glass p-6 rounded-2xl border border-white/5 hover:bg-white/5 transition-all group hover:-translate-y-1 text-center">
-                    <div class="w-12 h-12 mx-auto rounded-full bg-slate-700/50 flex items-center justify-center text-white text-xl mb-3 group-hover:scale-110 transition-transform">
+                <a href="#"
+                    class="glass p-6 rounded-2xl border border-white/5 hover:bg-white/5 transition-all group hover:-translate-y-1 text-center">
+                    <div
+                        class="w-12 h-12 mx-auto rounded-full bg-slate-700/50 flex items-center justify-center text-white text-xl mb-3 group-hover:scale-110 transition-transform">
                         <i class="fa-brands fa-github"></i>
                     </div>
                     <h3 class="font-bold text-white">GitHub</h3>
@@ -609,9 +559,11 @@
             </div>
 
             <!-- Team Contact -->
-            <div class="mt-12 glass rounded-2xl p-6 border border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div
+                class="mt-12 glass rounded-2xl p-6 border border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <div
+                        class="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
                         <i class="fa-solid fa-envelope"></i>
                     </div>
                     <div>
@@ -619,7 +571,8 @@
                         <p class="text-sm text-slate-400">Need help with your account or found a bug?</p>
                     </div>
                 </div>
-                <button class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium transition-colors whitespace-nowrap">
+                <button
+                    class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium transition-colors whitespace-nowrap">
                     Email Support
                 </button>
             </div>
@@ -633,7 +586,9 @@
                 <!-- Display Section -->
                 <div class="glass rounded-2xl p-6 border border-white/5">
                     <h2 class="text-xl font-bold text-white mb-6 flex items-center">
-                        <span class="w-8 h-8 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center mr-3 text-sm"><i class="fa-solid fa-display"></i></span>
+                        <span
+                            class="w-8 h-8 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center mr-3 text-sm"><i
+                                class="fa-solid fa-display"></i></span>
                         Display
                     </h2>
                     <div class="space-y-6">
@@ -644,7 +599,9 @@
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" value="" class="sr-only peer">
-                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                <div
+                                    class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600">
+                                </div>
                             </label>
                         </div>
                         <div class="flex items-center justify-between">
@@ -654,7 +611,9 @@
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" value="" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                <div
+                                    class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600">
+                                </div>
                             </label>
                         </div>
                     </div>
@@ -663,7 +622,9 @@
                 <!-- Audio Section -->
                 <div class="glass rounded-2xl p-6 border border-white/5">
                     <h2 class="text-xl font-bold text-white mb-6 flex items-center">
-                        <span class="w-8 h-8 rounded bg-pink-500/20 text-pink-400 flex items-center justify-center mr-3 text-sm"><i class="fa-solid fa-volume-high"></i></span>
+                        <span
+                            class="w-8 h-8 rounded bg-pink-500/20 text-pink-400 flex items-center justify-center mr-3 text-sm"><i
+                                class="fa-solid fa-volume-high"></i></span>
                         Audio
                     </h2>
                     <div class="space-y-6">
@@ -672,7 +633,8 @@
                                 <span class="text-white font-medium">Master Volume</span>
                                 <span class="text-indigo-400 font-mono">80%</span>
                             </div>
-                            <input type="range" value="80" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                            <input type="range" value="80"
+                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
                         </div>
                     </div>
                 </div>
@@ -696,10 +658,10 @@
                     <ul class="list-disc list-inside text-slate-300 text-sm space-y-1">
                         <li>Tailwind CSS (CDN)</li>
                         <li>Font Awesome Icons</li>
-                    <li>Google Fonts – Outfit</li>
-                    <li>Google firebase</li>
-                    <li>GitHub pages</li>
-                    <li>Unsplash background images</li>
+                        <li>Google Fonts – Outfit</li>
+                        <li>Google firebase</li>
+                        <li>GitHub pages</li>
+                        <li>Unsplash background images</li>
                     </ul>
                 </div>
 
@@ -715,24 +677,34 @@
     </main>
 
     <!-- MOBILE BOTTOM NAVIGATION (Only visible on small screens) -->
-    <div class="md:hidden fixed bottom-0 left-0 right-0 h-20 glass border-t border-white/10 z-50 flex justify-around items-center px-2 pb-2">
-        <button onclick="switchTab('home')" class="mobile-nav-btn flex flex-col items-center justify-center w-14 h-16 rounded-xl text-slate-400 active:text-indigo-400 transition-colors active" data-target="home">
+    <div
+        class="md:hidden fixed bottom-0 left-0 right-0 h-20 glass border-t border-white/10 z-50 flex justify-around items-center px-2 pb-2">
+        <button onclick="switchTab('home')"
+            class="mobile-nav-btn flex flex-col items-center justify-center w-14 h-16 rounded-xl text-slate-400 active:text-indigo-400 transition-colors active"
+            data-target="home">
             <i class="fa-solid fa-house text-xl mb-1"></i>
             <span class="text-[10px] font-medium">Home</span>
         </button>
-        <button onclick="switchTab('games')" class="mobile-nav-btn flex flex-col items-center justify-center w-14 h-16 rounded-xl text-slate-400 active:text-indigo-400 transition-colors" data-target="games">
+        <button onclick="switchTab('games')"
+            class="mobile-nav-btn flex flex-col items-center justify-center w-14 h-16 rounded-xl text-slate-400 active:text-indigo-400 transition-colors"
+            data-target="games">
             <i class="fa-solid fa-ghost text-xl mb-1"></i>
             <span class="text-[10px] font-medium">Games</span>
         </button>
-        <button onclick="window.location.href='store.html'" class="flex flex-col items-center justify-center w-14 h-16 rounded-xl text-slate-400 active:text-indigo-400 transition-colors">
+        <button onclick="window.location.href='store.html'"
+            class="flex flex-col items-center justify-center w-14 h-16 rounded-xl text-slate-400 active:text-indigo-400 transition-colors">
             <i class="fa-solid fa-bag-shopping text-xl mb-1"></i>
             <span class="text-[10px] font-medium">Store</span>
         </button>
-        <button onclick="switchTab('socials')" class="mobile-nav-btn flex flex-col items-center justify-center w-14 h-16 rounded-xl text-slate-400 active:text-indigo-400 transition-colors" data-target="socials">
+        <button onclick="switchTab('socials')"
+            class="mobile-nav-btn flex flex-col items-center justify-center w-14 h-16 rounded-xl text-slate-400 active:text-indigo-400 transition-colors"
+            data-target="socials">
             <i class="fa-solid fa-share-nodes text-xl mb-1"></i>
             <span class="text-[10px] font-medium">Socials</span>
         </button>
-        <button onclick="switchTab('community')" class="mobile-nav-btn flex flex-col items-center justify-center w-14 h-16 rounded-xl text-slate-400 active:text-indigo-400 transition-colors" data-target="community">
+        <button onclick="switchTab('community')"
+            class="mobile-nav-btn flex flex-col items-center justify-center w-14 h-16 rounded-xl text-slate-400 active:text-indigo-400 transition-colors"
+            data-target="community">
             <i class="fa-solid fa-users text-xl mb-1"></i>
             <span class="text-[10px] font-medium">Comm</span>
         </button>
@@ -745,53 +717,74 @@
             <h2 id="active-game-title" class="text-xl font-bold text-white tracking-wider flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> GAME TITLE
             </h2>
-            <button onclick="closeGame()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-red-500/20 hover:text-red-500 flex items-center justify-center transition-all">
+            <button onclick="closeGame()"
+                class="w-10 h-10 rounded-full bg-white/10 hover:bg-red-500/20 hover:text-red-500 flex items-center justify-center transition-all">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
         <!-- Game Area -->
         <div class="flex-1 flex items-center justify-center p-4 overflow-hidden relative">
-            
-            <div class="relative bg-slate-900 rounded-xl shadow-2xl border border-white/10 overflow-hidden max-w-full max-h-full">
+
+            <div
+                class="relative bg-slate-900 rounded-xl shadow-2xl border border-white/10 overflow-hidden max-w-full max-h-full">
                 <!-- Canvas for Snake/Reflex/Breaker -->
-                <canvas id="game-canvas" width="400" height="400" class="hidden max-w-full max-h-[70vh] cursor-crosshair object-contain"></canvas>
+                <canvas id="game-canvas" width="400" height="400"
+                    class="hidden max-w-full max-h-[70vh] cursor-crosshair object-contain"></canvas>
+
+                <!-- Iframe for External Games (Cube Combat) -->
+                <iframe id="game-iframe" class="hidden w-full h-[80vh] min-w-[80vw] bg-transparent border-0" allowfullscreen></iframe>
 
                 <!-- DOM Board for Tic Tac Toe -->
-                <div id="ttt-board" class="hidden grid-cols-3 gap-3 bg-slate-800 p-4 w-[min(90vw,400px)] h-[min(90vw,400px)]">
+                <div id="ttt-board"
+                    class="hidden grid-cols-3 gap-3 bg-slate-800 p-4 w-[min(90vw,400px)] h-[min(90vw,400px)]">
                     <!-- Cells generated by JS -->
                 </div>
 
                 <!-- DOM Board for Memory Match -->
-                <div id="memory-board" class="hidden grid-cols-4 gap-2 bg-slate-800 p-4 w-[min(90vw,400px)] h-[min(90vw,400px)]">
+                <div id="memory-board"
+                    class="hidden grid-cols-4 gap-2 bg-slate-800 p-4 w-[min(90vw,400px)] h-[min(90vw,400px)]">
                     <!-- Cards generated by JS -->
                 </div>
 
                 <!-- DOM Board for High-Low -->
-                <div id="highlow-board" class="hidden flex-col items-center justify-center gap-8 bg-slate-800 p-8 w-[min(90vw,400px)] h-[min(90vw,400px)]">
-                     <div id="hl-card-display" class="w-32 h-48 bg-white rounded-xl shadow-2xl flex flex-col items-center justify-center text-4xl font-bold transition-all transform hover:scale-105">
+                <div id="highlow-board"
+                    class="hidden flex-col items-center justify-center gap-8 bg-slate-800 p-8 w-[min(90vw,400px)] h-[min(90vw,400px)]">
+                    <div id="hl-card-display"
+                        class="w-32 h-48 bg-white rounded-xl shadow-2xl flex flex-col items-center justify-center text-4xl font-bold transition-all transform hover:scale-105">
                         <!-- Card content -->
-                     </div>
-                     <div class="flex gap-4 w-full">
-                        <button id="hl-lower" class="flex-1 py-3 bg-red-500 hover:bg-red-600 rounded-lg font-bold text-white transition-colors">LOWER <i class="fa-solid fa-arrow-down ml-1"></i></button>
-                        <button id="hl-higher" class="flex-1 py-3 bg-green-500 hover:bg-green-600 rounded-lg font-bold text-white transition-colors">HIGHER <i class="fa-solid fa-arrow-up ml-1"></i></button>
-                     </div>
-                     <div class="text-xl font-bold text-slate-300">Score: <span id="hl-score" class="text-white">0</span></div>
+                    </div>
+                    <div class="flex gap-4 w-full">
+                        <button id="hl-lower"
+                            class="flex-1 py-3 bg-red-500 hover:bg-red-600 rounded-lg font-bold text-white transition-colors">LOWER
+                            <i class="fa-solid fa-arrow-down ml-1"></i></button>
+                        <button id="hl-higher"
+                            class="flex-1 py-3 bg-green-500 hover:bg-green-600 rounded-lg font-bold text-white transition-colors">HIGHER
+                            <i class="fa-solid fa-arrow-up ml-1"></i></button>
+                    </div>
+                    <div class="text-xl font-bold text-slate-300">Score: <span id="hl-score" class="text-white">0</span>
+                    </div>
                 </div>
 
                 <!-- DOM Board for Solitaire -->
-                <div id="solitaire-board" class="hidden flex-col bg-slate-800 p-2 w-[min(95vw,600px)] h-[min(140vw,600px)] relative">
+                <div id="solitaire-board"
+                    class="hidden flex-col bg-slate-800 p-2 w-[min(95vw,600px)] h-[min(140vw,600px)] relative">
                     <!-- Top Row: Foundations & Stock -->
                     <div class="flex justify-between h-24 mb-4">
                         <div class="flex gap-2" id="sol-foundations">
                             <!-- 4 Foundation Piles -->
-                            <div class="w-16 h-24 border-2 border-slate-600 rounded-md flex items-center justify-center text-slate-600" data-type="foundation" data-id="0"><i class="fa-solid fa-heart"></i></div>
-                            <div class="w-16 h-24 border-2 border-slate-600 rounded-md flex items-center justify-center text-slate-600" data-type="foundation" data-id="1"><i class="fa-solid fa-diamond"></i></div>
-                            <div class="w-16 h-24 border-2 border-slate-600 rounded-md flex items-center justify-center text-slate-600" data-type="foundation" data-id="2"><i class="fa-solid fa-clover"></i></div>
-                            <div class="w-16 h-24 border-2 border-slate-600 rounded-md flex items-center justify-center text-slate-600" data-type="foundation" data-id="3"><i class="fa-solid fa-spa"></i></div>
+                            <div class="w-16 h-24 border-2 border-slate-600 rounded-md flex items-center justify-center text-slate-600"
+                                data-type="foundation" data-id="0"><i class="fa-solid fa-heart"></i></div>
+                            <div class="w-16 h-24 border-2 border-slate-600 rounded-md flex items-center justify-center text-slate-600"
+                                data-type="foundation" data-id="1"><i class="fa-solid fa-diamond"></i></div>
+                            <div class="w-16 h-24 border-2 border-slate-600 rounded-md flex items-center justify-center text-slate-600"
+                                data-type="foundation" data-id="2"><i class="fa-solid fa-clover"></i></div>
+                            <div class="w-16 h-24 border-2 border-slate-600 rounded-md flex items-center justify-center text-slate-600"
+                                data-type="foundation" data-id="3"><i class="fa-solid fa-spa"></i></div>
                         </div>
                         <div class="flex gap-2">
-                            <div id="sol-stock" class="w-16 h-24 bg-blue-900 border-2 border-white rounded-md flex items-center justify-center cursor-pointer shadow-lg hover:bg-blue-800 transition-colors">
+                            <div id="sol-stock"
+                                class="w-16 h-24 bg-blue-900 border-2 border-white rounded-md flex items-center justify-center cursor-pointer shadow-lg hover:bg-blue-800 transition-colors">
                                 <i class="fa-solid fa-rotate text-white text-2xl"></i>
                             </div>
                             <div id="sol-talon" class="w-16 h-24 border border-slate-600 rounded-md relative"></div>
@@ -804,12 +797,19 @@
                 </div>
 
                 <!-- Start/Game Over Screen -->
-                <div id="game-ui-layer" class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20 backdrop-blur-sm p-6 text-center">
-                    <h3 id="game-status-title" class="text-4xl font-black text-white mb-2 italic tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">READY</h3>
+                <div id="game-ui-layer"
+                    class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20 backdrop-blur-sm p-6 text-center">
+                    <h3 id="game-status-title"
+                        class="text-4xl font-black text-white mb-2 italic tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
+                        READY</h3>
                     <p id="game-status-desc" class="text-slate-300 mb-8 max-w-xs">Press start to begin the session.</p>
-                    <button id="start-btn" class="group relative px-8 py-4 bg-indigo-600 font-bold text-white rounded-xl overflow-hidden transition-all hover:scale-105 active:scale-95">
-                        <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_infinite]"></div>
-                        <span class="relative flex items-center gap-2">START GAME <i class="fa-solid fa-play text-xs"></i></span>
+                    <button id="start-btn"
+                        class="group relative px-8 py-4 bg-indigo-600 font-bold text-white rounded-xl overflow-hidden transition-all hover:scale-105 active:scale-95">
+                        <div
+                            class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_infinite]">
+                        </div>
+                        <span class="relative flex items-center gap-2">START GAME <i
+                                class="fa-solid fa-play text-xs"></i></span>
                     </button>
                 </div>
             </div>
@@ -819,7 +819,8 @@
         <!-- Controls Hint -->
         <div class="p-6 text-center text-slate-500 text-sm border-t border-white/10 bg-black">
             <p id="game-controls-hint" class="flex justify-center items-center gap-4">
-                <span class="flex gap-1"><i class="fa-solid fa-arrow-up border border-slate-700 p-1 rounded"></i><i class="fa-solid fa-arrow-down border border-slate-700 p-1 rounded"></i></span> to move
+                <span class="flex gap-1"><i class="fa-solid fa-arrow-up border border-slate-700 p-1 rounded"></i><i
+                        class="fa-solid fa-arrow-down border border-slate-700 p-1 rounded"></i></span> to move
             </p>
         </div>
     </div>
@@ -831,16 +832,16 @@
             // Hide all views
             ['home', 'games', 'community', 'settings', 'credits', 'socials'].forEach(id => {
                 const el = document.getElementById(`view-${id}`);
-                if(el) el.classList.add('hidden');
+                if (el) el.classList.add('hidden');
             });
-            
+
             // Show selected view
             const view = document.getElementById(`view-${tabId}`);
-            if(view) view.classList.remove('hidden');
-            
+            if (view) view.classList.remove('hidden');
+
             // Reset scroll
             const mainScroll = document.getElementById('main-scroll');
-            if(mainScroll) mainScroll.scrollTop = 0;
+            if (mainScroll) mainScroll.scrollTop = 0;
 
             // Update Desktop Nav State
             document.querySelectorAll('.nav-item').forEach(el => {
@@ -848,7 +849,7 @@
                 el.classList.add('text-slate-400');
             });
             const deskBtn = document.getElementById(`desk-nav-${tabId}`);
-            if(deskBtn) {
+            if (deskBtn) {
                 deskBtn.classList.add('bg-white/10', 'text-white');
                 deskBtn.classList.remove('text-slate-400');
             }
@@ -857,7 +858,7 @@
             document.querySelectorAll('.mobile-nav-btn').forEach(el => {
                 el.classList.remove('text-indigo-400');
                 el.classList.add('text-slate-400');
-                if(el.dataset.target === tabId) {
+                if (el.dataset.target === tabId) {
                     el.classList.add('text-indigo-400');
                     el.classList.remove('text-slate-400');
                 }
@@ -873,6 +874,7 @@
         const memoryBoard = document.getElementById('memory-board');
         const highlowBoard = document.getElementById('highlow-board');
         const solBoard = document.getElementById('solitaire-board');
+        const iframe = document.getElementById('game-iframe');
         
         const overlay = document.getElementById('game-overlay');
         const uiLayer = document.getElementById('game-ui-layer');
@@ -891,7 +893,7 @@
             statusTitle.className = "text-4xl font-black text-white mb-2 italic tracking-widest";
             statusDesc.textContent = "Press start to begin.";
             startBtn.classList.remove('hidden');
-            
+
             // Reset Displays
             canvas.classList.add('hidden');
             tttBoard.classList.add('hidden');
@@ -900,6 +902,8 @@
             highlowBoard.classList.remove('flex');
             solBoard.classList.add('hidden');
             solBoard.classList.remove('flex');
+            iframe.classList.add('hidden');
+            iframe.src = '';
 
             if (gameType === 'tictactoe') {
                 titleEl.innerHTML = '<i class="fa-solid fa-x text-indigo-400 mr-2"></i> NEON TIC-TAC-TOE';
@@ -912,19 +916,19 @@
                 hintEl.innerHTML = 'Use Arrow Keys or Swipe to change direction';
                 canvas.classList.remove('hidden');
                 ctx.fillStyle = '#0f172a';
-                ctx.fillRect(0,0,400,400);
+                ctx.fillRect(0, 0, 400, 400);
             } else if (gameType === 'reflex') {
                 titleEl.innerHTML = '<i class="fa-solid fa-bolt text-orange-400 mr-2"></i> REFLEX TESTER';
                 hintEl.innerHTML = 'Wait for green, then click FAST!';
                 canvas.classList.remove('hidden');
                 ctx.fillStyle = '#0f172a';
-                ctx.fillRect(0,0,400,400);
+                ctx.fillRect(0, 0, 400, 400);
             } else if (gameType === 'breaker') {
                 titleEl.innerHTML = '<i class="fa-solid fa-shield-halved text-blue-400 mr-2"></i> NEON BREAKER';
                 hintEl.innerHTML = 'Use Arrow Keys or Touch to move paddle';
                 canvas.classList.remove('hidden');
                 ctx.fillStyle = '#0f172a';
-                ctx.fillRect(0,0,400,400);
+                ctx.fillRect(0, 0, 400, 400);
             } else if (gameType === 'match') {
                 titleEl.innerHTML = '<i class="fa-solid fa-layer-group text-purple-400 mr-2"></i> CYBER MATCH';
                 hintEl.innerHTML = 'Tap cards to find pairs';
@@ -942,6 +946,16 @@
                 hintEl.innerHTML = 'Tap to Move • Tap Deck to Deal';
                 solBoard.classList.remove('hidden');
                 solBoard.classList.add('flex');
+            } else if (gameType === 'cubecombat') {
+                titleEl.innerHTML = '<i class="fa-solid fa-cube text-indigo-400 mr-2"></i> CUBE COMBAT';
+                hintEl.innerHTML = 'Physics Arena';
+                iframe.classList.remove('hidden');
+                iframe.src = 'Games/Cube-combat.html';
+                // Hide Start Button for iframe games as they usually have their own menu
+                startBtn.classList.add('hidden');
+                statusTitle.textContent = ""; 
+                statusDesc.textContent = "";
+                uiLayer.classList.add('hidden'); // Hide UI layer immediately
             }
         }
 
@@ -950,6 +964,10 @@
             overlay.classList.remove('flex');
             clearInterval(gameInterval);
             activeGame = null;
+            if(iframe) {
+                iframe.classList.add('hidden');
+                iframe.src = '';
+            }
         }
 
         startBtn.addEventListener('click', () => {
@@ -965,22 +983,22 @@
 
         // --- SNAKE GAME LOGIC ---
         function startSnake() {
-            let snake = [{x: 10, y: 10}];
-            let food = {x: 15, y: 15};
+            let snake = [{ x: 10, y: 10 }];
+            let food = { x: 15, y: 15 };
             let dx = 0;
             let dy = 0;
             let score = 0;
             let gridSize = 20;
             let tileCount = 20; // 400px / 20px
             let speed = 100;
-            
+
             draw();
-            
+
             const handleKey = (e) => {
-                if(e.key === 'ArrowUp' && dy === 0) { dx=0; dy=-1; }
-                if(e.key === 'ArrowDown' && dy === 0) { dx=0; dy=1; }
-                if(e.key === 'ArrowLeft' && dx === 0) { dx=-1; dy=0; }
-                if(e.key === 'ArrowRight' && dx === 0) { dx=1; dy=0; }
+                if (e.key === 'ArrowUp' && dy === 0) { dx = 0; dy = -1; }
+                if (e.key === 'ArrowDown' && dy === 0) { dx = 0; dy = 1; }
+                if (e.key === 'ArrowLeft' && dx === 0) { dx = -1; dy = 0; }
+                if (e.key === 'ArrowRight' && dx === 0) { dx = 1; dy = 0; }
             };
             document.addEventListener('keydown', handleKey);
 
@@ -989,72 +1007,72 @@
             overlay.addEventListener('touchstart', e => {
                 touchStartX = e.changedTouches[0].screenX;
                 touchStartY = e.changedTouches[0].screenY;
-            }, {passive: true});
-            
+            }, { passive: true });
+
             overlay.addEventListener('touchend', e => {
                 let touchEndX = e.changedTouches[0].screenX;
                 let touchEndY = e.changedTouches[0].screenY;
                 handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
-            }, {passive: true});
+            }, { passive: true });
 
             function handleSwipe(sx, sy, ex, ey) {
                 let xDiff = ex - sx;
                 let yDiff = ey - sy;
-                if(Math.abs(xDiff) > Math.abs(yDiff)) {
-                    if(xDiff > 0 && dx === 0) { dx=1; dy=0; }
-                    else if(xDiff < 0 && dx === 0) { dx=-1; dy=0; }
+                if (Math.abs(xDiff) > Math.abs(yDiff)) {
+                    if (xDiff > 0 && dx === 0) { dx = 1; dy = 0; }
+                    else if (xDiff < 0 && dx === 0) { dx = -1; dy = 0; }
                 } else {
-                    if(yDiff > 0 && dy === 0) { dx=0; dy=1; }
-                    else if(yDiff < 0 && dy === 0) { dx=0; dy=-1; }
+                    if (yDiff > 0 && dy === 0) { dx = 0; dy = 1; }
+                    else if (yDiff < 0 && dy === 0) { dx = 0; dy = -1; }
                 }
             }
 
             function gameLoop() {
-                const head = {x: snake[0].x + dx, y: snake[0].y + dy};
-                if(head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+                if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
                     gameOver(`Score: ${score}`);
                     return;
                 }
-                for(let i=0; i<snake.length; i++){
-                    if(head.x === snake[i].x && head.y === snake[i].y && snake.length > 1) {
+                for (let i = 0; i < snake.length; i++) {
+                    if (head.x === snake[i].x && head.y === snake[i].y && snake.length > 1) {
                         gameOver(`Score: ${score}`);
                         return;
                     }
                 }
                 snake.unshift(head);
-                if(head.x === food.x && head.y === food.y) {
+                if (head.x === food.x && head.y === food.y) {
                     score++;
                     food = {
                         x: Math.floor(Math.random() * tileCount),
                         y: Math.floor(Math.random() * tileCount)
                     };
                 } else {
-                    if(dx !== 0 || dy !== 0) snake.pop();
+                    if (dx !== 0 || dy !== 0) snake.pop();
                 }
                 draw();
             }
 
             function draw() {
                 ctx.fillStyle = '#0f172a';
-                ctx.fillRect(0,0,400,400);
+                ctx.fillRect(0, 0, 400, 400);
                 ctx.strokeStyle = '#1e293b';
                 ctx.lineWidth = 1;
-                for(let i=0; i<tileCount; i++) {
-                    ctx.beginPath(); ctx.moveTo(i*gridSize,0); ctx.lineTo(i*gridSize,400); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(0,i*gridSize); ctx.lineTo(400,i*gridSize); ctx.stroke();
+                for (let i = 0; i < tileCount; i++) {
+                    ctx.beginPath(); ctx.moveTo(i * gridSize, 0); ctx.lineTo(i * gridSize, 400); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, i * gridSize); ctx.lineTo(400, i * gridSize); ctx.stroke();
                 }
                 ctx.fillStyle = '#10b981';
                 ctx.shadowColor = '#10b981';
                 ctx.shadowBlur = 10;
-                for(let i=0; i<snake.length; i++) {
-                    if(i===0) ctx.fillStyle = '#34d399';
+                for (let i = 0; i < snake.length; i++) {
+                    if (i === 0) ctx.fillStyle = '#34d399';
                     else ctx.fillStyle = '#10b981';
-                    ctx.fillRect(snake[i].x*gridSize + 1, snake[i].y*gridSize + 1, gridSize-2, gridSize-2);
+                    ctx.fillRect(snake[i].x * gridSize + 1, snake[i].y * gridSize + 1, gridSize - 2, gridSize - 2);
                 }
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = '#ef4444';
                 ctx.beginPath();
-                ctx.arc(food.x*gridSize + gridSize/2, food.y*gridSize + gridSize/2, gridSize/3, 0, Math.PI*2);
+                ctx.arc(food.x * gridSize + gridSize / 2, food.y * gridSize + gridSize / 2, gridSize / 3, 0, Math.PI * 2);
                 ctx.fill();
             }
 
@@ -1074,25 +1092,25 @@
         // --- TIC TAC TOE LOGIC ---
         function initTicTacToe(playable) {
             tttBoard.innerHTML = '';
-            let board = ['','','','','','','','',''];
+            let board = ['', '', '', '', '', '', '', '', ''];
             let currentPlayer = 'X';
             let gameActive = playable;
 
-            for(let i=0; i<9; i++) {
+            for (let i = 0; i < 9; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'bg-slate-700/50 rounded-lg flex items-center justify-center text-4xl font-bold cursor-pointer hover:bg-slate-600 transition-colors h-full w-full aspect-square border-2 border-slate-600';
-                if(playable) {
+                if (playable) {
                     cell.addEventListener('click', () => handleCellClick(cell, i));
                 }
                 tttBoard.appendChild(cell);
             }
 
             function handleCellClick(cell, index) {
-                if(board[index] === '' && gameActive) {
+                if (board[index] === '' && gameActive) {
                     board[index] = currentPlayer;
                     cell.textContent = currentPlayer;
                     cell.classList.add(currentPlayer === 'X' ? 'text-indigo-400' : 'text-pink-400');
-                    if(checkWin()) {
+                    if (checkWin()) {
                         gameActive = false;
                         setTimeout(() => endTTT(false), 500);
                     } else if (!board.includes('')) {
@@ -1100,21 +1118,21 @@
                         setTimeout(() => endTTT(true), 500);
                     } else {
                         currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-                        if(currentPlayer === 'O') setTimeout(aiMove, 300);
+                        if (currentPlayer === 'O') setTimeout(aiMove, 300);
                     }
                 }
             }
 
             function aiMove() {
-                if(!gameActive) return;
+                if (!gameActive) return;
                 let available = board.map((v, i) => v === '' ? i : null).filter(v => v !== null);
-                if(available.length > 0) {
+                if (available.length > 0) {
                     let move = available[Math.floor(Math.random() * available.length)];
                     board[move] = 'O';
                     const cells = tttBoard.children;
                     cells[move].textContent = 'O';
                     cells[move].classList.add('text-pink-400');
-                    if(checkWin()) {
+                    if (checkWin()) {
                         gameActive = false;
                         setTimeout(() => endTTT(false), 500);
                     } else if (!board.includes('')) {
@@ -1126,7 +1144,7 @@
             }
 
             function checkWin() {
-                const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+                const wins = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
                 return wins.some(condition => {
                     return condition.every(index => board[index] === currentPlayer);
                 });
@@ -1134,7 +1152,7 @@
 
             function endTTT(draw) {
                 uiLayer.classList.remove('hidden');
-                if(draw) {
+                if (draw) {
                     statusTitle.textContent = "DRAW";
                     statusTitle.className = "text-4xl font-black text-slate-400 mb-2";
                 } else {
@@ -1149,10 +1167,10 @@
 
         // --- REFLEX TESTER LOGIC ---
         function startReflex() {
-            let state = 'waiting'; 
+            let state = 'waiting';
             let startTime = 0;
             ctx.fillStyle = '#ef4444';
-            ctx.fillRect(0,0,400,400);
+            ctx.fillRect(0, 0, 400, 400);
             ctx.fillStyle = 'white';
             ctx.font = 'bold 30px Arial';
             ctx.textAlign = 'center';
@@ -1160,17 +1178,17 @@
 
             const randomDelay = 2000 + Math.random() * 3000;
             const timeout = setTimeout(() => {
-                if(activeGame !== 'reflex') return;
+                if (activeGame !== 'reflex') return;
                 state = 'ready';
                 startTime = Date.now();
                 ctx.fillStyle = '#10b981';
-                ctx.fillRect(0,0,400,400);
+                ctx.fillRect(0, 0, 400, 400);
                 ctx.fillStyle = 'white';
                 ctx.fillText("CLICK NOW!", 200, 200);
             }, randomDelay);
 
             const clickHandler = () => {
-                if(state === 'waiting') {
+                if (state === 'waiting') {
                     clearTimeout(timeout);
                     finishReflex("Too Early!", true);
                 } else if (state === 'ready') {
@@ -1194,10 +1212,10 @@
 
         // --- NEON BREAKER LOGIC ---
         function startBreaker() {
-            let paddleH = 10, paddleW = 75, paddleX = (canvas.width-paddleW)/2;
+            let paddleH = 10, paddleW = 75, paddleX = (canvas.width - paddleW) / 2;
             let rightPressed = false, leftPressed = false;
             let ballRadius = 8;
-            let x = canvas.width/2, y = canvas.height-30;
+            let x = canvas.width / 2, y = canvas.height - 30;
             let dx = 3, dy = -3;
             let brickRowCount = 5, brickColumnCount = 6;
             let brickWidth = 55, brickHeight = 20, brickPadding = 10;
@@ -1205,9 +1223,9 @@
             let score = 0;
 
             let bricks = [];
-            for(let c=0; c<brickColumnCount; c++) {
+            for (let c = 0; c < brickColumnCount; c++) {
                 bricks[c] = [];
-                for(let r=0; r<brickRowCount; r++) {
+                for (let r = 0; r < brickRowCount; r++) {
                     bricks[c][r] = { x: 0, y: 0, status: 1 };
                 }
             }
@@ -1216,29 +1234,29 @@
             document.addEventListener("keyup", keyUpHandler, false);
 
             function keyDownHandler(e) {
-                if(e.key == "Right" || e.key == "ArrowRight") rightPressed = true;
-                else if(e.key == "Left" || e.key == "ArrowLeft") leftPressed = true;
+                if (e.key == "Right" || e.key == "ArrowRight") rightPressed = true;
+                else if (e.key == "Left" || e.key == "ArrowLeft") leftPressed = true;
             }
             function keyUpHandler(e) {
-                if(e.key == "Right" || e.key == "ArrowRight") rightPressed = false;
-                else if(e.key == "Left" || e.key == "ArrowLeft") leftPressed = false;
+                if (e.key == "Right" || e.key == "ArrowRight") rightPressed = false;
+                else if (e.key == "Left" || e.key == "ArrowLeft") leftPressed = false;
             }
             canvas.addEventListener('touchmove', e => {
                 e.preventDefault();
                 let touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
-                paddleX = touchX - paddleW/2;
-            }, {passive: false});
+                paddleX = touchX - paddleW / 2;
+            }, { passive: false });
 
             function collisionDetection() {
-                for(let c=0; c<brickColumnCount; c++) {
-                    for(let r=0; r<brickRowCount; r++) {
+                for (let c = 0; c < brickColumnCount; c++) {
+                    for (let r = 0; r < brickRowCount; r++) {
                         let b = bricks[c][r];
-                        if(b.status == 1) {
-                            if(x > b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
+                        if (b.status == 1) {
+                            if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
                                 dy = -dy;
                                 b.status = 0;
                                 score++;
-                                if(score == brickRowCount*brickColumnCount) endGame("YOU WIN!", false);
+                                if (score == brickRowCount * brickColumnCount) endGame("YOU WIN!", false);
                             }
                         }
                     }
@@ -1248,51 +1266,51 @@
             function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = '#0f172a';
-                ctx.fillRect(0,0,canvas.width,canvas.height);
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                for(let c=0; c<brickColumnCount; c++) {
-                    for(let r=0; r<brickRowCount; r++) {
-                        if(bricks[c][r].status == 1) {
-                            let brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
-                            let brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
+                for (let c = 0; c < brickColumnCount; c++) {
+                    for (let r = 0; r < brickRowCount; r++) {
+                        if (bricks[c][r].status == 1) {
+                            let brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
+                            let brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
                             bricks[c][r].x = brickX;
                             bricks[c][r].y = brickY;
                             ctx.beginPath();
                             ctx.rect(brickX, brickY, brickWidth, brickHeight);
-                            ctx.fillStyle = `hsl(${c*60}, 70%, 60%)`;
+                            ctx.fillStyle = `hsl(${c * 60}, 70%, 60%)`;
                             ctx.fill();
                             ctx.closePath();
                         }
                     }
                 }
                 ctx.beginPath();
-                ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+                ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
                 ctx.fillStyle = "#ffffff";
                 ctx.fill();
                 ctx.closePath();
                 ctx.beginPath();
-                ctx.rect(paddleX, canvas.height-paddleH-5, paddleW, paddleH);
+                ctx.rect(paddleX, canvas.height - paddleH - 5, paddleW, paddleH);
                 ctx.fillStyle = "#3b82f6";
                 ctx.fill();
                 ctx.closePath();
                 ctx.font = "16px Arial";
                 ctx.fillStyle = "#ffffff";
-                ctx.fillText("Score: "+score, 8, 20);
+                ctx.fillText("Score: " + score, 8, 20);
 
                 collisionDetection();
 
-                if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) dx = -dx;
-                if(y + dy < ballRadius) dy = -dy;
-                else if(y + dy > canvas.height-ballRadius-10) {
-                    if(x > paddleX && x < paddleX + paddleW) dy = -dy;
+                if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) dx = -dx;
+                if (y + dy < ballRadius) dy = -dy;
+                else if (y + dy > canvas.height - ballRadius - 10) {
+                    if (x > paddleX && x < paddleX + paddleW) dy = -dy;
                     else {
                         endGame("GAME OVER", true);
                         return;
                     }
                 }
 
-                if(rightPressed && paddleX < canvas.width-paddleW) paddleX += 5;
-                else if(leftPressed && paddleX > 0) paddleX -= 5;
+                if (rightPressed && paddleX < canvas.width - paddleW) paddleX += 5;
+                else if (leftPressed && paddleX > 0) paddleX -= 5;
 
                 x += dx;
                 y += dy;
@@ -1331,16 +1349,16 @@
                 card.className = 'bg-slate-700/50 rounded-lg flex items-center justify-center text-3xl transition-all duration-300 transform perspective-1000 h-full w-full aspect-square border-2 border-slate-600 cursor-pointer hover:bg-slate-600';
                 card.innerHTML = `<i class="fa-solid fa-question text-slate-500"></i>`;
                 card.dataset.icon = icon;
-                
+
                 if (playable) {
                     card.addEventListener('click', () => {
-                        if(locked || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+                        if (locked || card.classList.contains('flipped') || card.classList.contains('matched')) return;
                         card.classList.add('flipped', 'bg-indigo-600', 'border-indigo-400');
                         card.classList.remove('bg-slate-700/50', 'border-slate-600');
                         card.innerHTML = `<i class="fa-solid ${icon} text-white animate-bounce"></i>`;
                         flippedCards.push(card);
 
-                        if(flippedCards.length === 2) {
+                        if (flippedCards.length === 2) {
                             locked = true;
                             checkForMatch();
                         }
@@ -1351,13 +1369,13 @@
 
             function checkForMatch() {
                 const [c1, c2] = flippedCards;
-                if(c1.dataset.icon === c2.dataset.icon) {
+                if (c1.dataset.icon === c2.dataset.icon) {
                     c1.classList.add('matched', 'bg-emerald-600', 'border-emerald-400');
                     c2.classList.add('matched', 'bg-emerald-600', 'border-emerald-400');
                     matchedPairs++;
                     flippedCards = [];
                     locked = false;
-                    if(matchedPairs === 8) {
+                    if (matchedPairs === 8) {
                         setTimeout(() => {
                             uiLayer.classList.remove('hidden');
                             statusTitle.textContent = "COMPLETED!";
@@ -1384,28 +1402,28 @@
         // --- HIGH-LOW LOGIC ---
         function initHighLow(playable) {
             let deck = [], score = 0, currentCard = null;
-            const suits = ['♥','♦','♣','♠'];
-            const values = [2,3,4,5,6,7,8,9,10,11,12,13,14]; // 11=J, 12=Q, 13=K, 14=A
-            
+            const suits = ['♥', '♦', '♣', '♠'];
+            const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; // 11=J, 12=Q, 13=K, 14=A
+
             function createDeck() {
                 deck = [];
-                for(let s of suits) {
-                    for(let v of values) {
+                for (let s of suits) {
+                    for (let v of values) {
                         let display = v;
-                        if(v==11) display='J'; if(v==12) display='Q'; if(v==13) display='K'; if(v==14) display='A';
-                        let color = (s=='♥'||s=='♦') ? 'text-red-500' : 'text-black';
+                        if (v == 11) display = 'J'; if (v == 12) display = 'Q'; if (v == 13) display = 'K'; if (v == 14) display = 'A';
+                        let color = (s == '♥' || s == '♦') ? 'text-red-500' : 'text-black';
                         deck.push({ val: v, display: display, suit: s, color: color });
                     }
                 }
                 for (let i = deck.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
-                   
+
                     [deck[i], deck[j]] = [deck[j], deck[i]];
                 }
             }
 
             function drawCard() {
-                if(deck.length === 0) createDeck();
+                if (deck.length === 0) createDeck();
                 return deck.pop();
             }
 
@@ -1416,16 +1434,16 @@
             }
 
             function handleGuess(isHigher) {
-                if(!playable) return;
+                if (!playable) return;
                 const nextCard = drawCard();
                 let win = false;
-                if(isHigher && nextCard.val >= currentCard.val) win = true;
-                if(!isHigher && nextCard.val <= currentCard.val) win = true;
+                if (isHigher && nextCard.val >= currentCard.val) win = true;
+                if (!isHigher && nextCard.val <= currentCard.val) win = true;
 
                 currentCard = nextCard;
                 updateUI();
 
-                if(win) {
+                if (win) {
                     score++;
                     document.getElementById('hl-score').textContent = score;
                 } else {
@@ -1442,7 +1460,7 @@
 
             createDeck();
             currentCard = drawCard();
-            if(playable) updateUI();
+            if (playable) updateUI();
             else {
                 document.getElementById('hl-card-display').innerHTML = `<div class="text-red-500 flex flex-col items-center"><span>A</span><span class="text-6xl">♥</span></div>`;
             }
@@ -1455,7 +1473,7 @@
             btnHigh.parentNode.replaceChild(newHigh, btnHigh);
             btnLow.parentNode.replaceChild(newLow, btnLow);
 
-            if(playable) {
+            if (playable) {
                 newHigh.addEventListener('click', () => handleGuess(true));
                 newLow.addEventListener('click', () => handleGuess(false));
             }
@@ -1463,19 +1481,19 @@
 
         // --- SOLITAIRE LOGIC ---
         function initSolitaire() {
-            let deck = [], tableau = [[],[],[],[],[],[],[]], foundations = [[],[],[],[]], stock = [], talon = [];
+            let deck = [], tableau = [[], [], [], [], [], [], []], foundations = [[], [], [], []], stock = [], talon = [];
             let selectedCard = null;
 
-            const suits = ['♥','♦','♣','♠']; // R, R, B, B
-            const values = [1,2,3,4,5,6,7,8,9,10,11,12,13]; 
+            const suits = ['♥', '♦', '♣', '♠']; // R, R, B, B
+            const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
             function createDeck() {
                 deck = [];
-                for(let s of suits) {
-                    for(let v of values) {
+                for (let s of suits) {
+                    for (let v of values) {
                         let display = v;
-                        if(v==1) display='A'; if(v==11) display='J'; if(v==12) display='Q'; if(v==13) display='K';
-                        let color = (s=='♥'||s=='♦') ? 'red' : 'black';
+                        if (v == 1) display = 'A'; if (v == 11) display = 'J'; if (v == 12) display = 'Q'; if (v == 13) display = 'K';
+                        let color = (s == '♥' || s == '♦') ? 'red' : 'black';
                         deck.push({ val: v, display: display, suit: s, color: color, id: Math.random().toString(36).substr(2, 9), faceUp: false });
                     }
                 }
@@ -1487,10 +1505,10 @@
 
             function deal() {
                 createDeck();
-                for(let i=0; i<7; i++) {
-                    for(let j=0; j<=i; j++) {
+                for (let i = 0; i < 7; i++) {
+                    for (let j = 0; j <= i; j++) {
                         let card = deck.pop();
-                        if(j===i) card.faceUp = true;
+                        if (j === i) card.faceUp = true;
                         tableau[i].push(card);
                     }
                 }
@@ -1499,8 +1517,8 @@
             }
 
             function getCardHTML(card) {
-                if(!card) return '';
-                if(!card.faceUp) return `<div class="playing-card w-full h-24 bg-blue-800 border-2 border-white rounded-md flex items-center justify-center"><i class="fa-solid fa-gamepad text-blue-900 opacity-50"></i></div>`;
+                if (!card) return '';
+                if (!card.faceUp) return `<div class="playing-card w-full h-24 bg-blue-800 border-2 border-white rounded-md flex items-center justify-center"><i class="fa-solid fa-gamepad text-blue-900 opacity-50"></i></div>`;
                 const isSel = selectedCard && selectedCard.id === card.id ? 'selected' : '';
                 return `<div class="playing-card ${card.color} ${isSel} w-full h-24 flex flex-col items-center justify-center text-xl font-bold cursor-pointer" onclick="solCardClick('${card.id}')">
                     <span class="text-xs absolute top-1 left-1">${card.display}</span>
@@ -1510,15 +1528,15 @@
 
             function render() {
                 // Stock/Talon
-                const talonHTML = talon.length > 0 ? getCardHTML({...talon[talon.length-1], faceUp: true}) : '';
+                const talonHTML = talon.length > 0 ? getCardHTML({ ...talon[talon.length - 1], faceUp: true }) : '';
                 document.getElementById('sol-talon').innerHTML = talonHTML;
 
                 // Foundations
-                for(let i=0; i<4; i++) {
+                for (let i = 0; i < 4; i++) {
                     const fd = foundations[i];
                     const el = document.querySelector(`[data-type="foundation"][data-id="${i}"]`);
-                    if(fd.length > 0) el.innerHTML = getCardHTML(fd[fd.length-1]);
-                    else el.innerHTML = `<i class="fa-solid fa-${['heart','diamond','clover','spa'][i]} opacity-20"></i>`;
+                    if (fd.length > 0) el.innerHTML = getCardHTML(fd[fd.length - 1]);
+                    else el.innerHTML = `<i class="fa-solid fa-${['heart', 'diamond', 'clover', 'spa'][i]} opacity-20"></i>`;
                 }
 
                 // Tableau
@@ -1527,8 +1545,8 @@
                 tableau.forEach((col, cIdx) => {
                     const colDiv = document.createElement('div');
                     colDiv.className = 'flex-1 mx-1 flex flex-col relative min-h-[200px] cursor-pointer';
-                    colDiv.onclick = (e) => { if(e.target === colDiv) solColumnClick(cIdx); };
-                    
+                    colDiv.onclick = (e) => { if (e.target === colDiv) solColumnClick(cIdx); };
+
                     col.forEach((card, rIdx) => {
                         const cardDiv = document.createElement('div');
                         cardDiv.style.position = 'absolute';
@@ -1544,33 +1562,33 @@
             window.solCardClick = (id) => {
                 // Find card
                 let loc = findCard(id);
-                if(!loc) return;
-                
+                if (!loc) return;
+
                 // If in Talon
-                if(loc.place === 'talon') {
+                if (loc.place === 'talon') {
                     handleSelection(loc.card, 'talon');
                     return;
                 }
                 // If in Tableau
-                if(loc.place === 'tableau') {
+                if (loc.place === 'tableau') {
                     // Only face up can be selected
-                    if(loc.card.faceUp) handleSelection(loc.card, 'tableau', loc.colIdx);
-                    else if(loc.isLast) {
+                    if (loc.card.faceUp) handleSelection(loc.card, 'tableau', loc.colIdx);
+                    else if (loc.isLast) {
                         // Flip if last
-                         loc.card.faceUp = true;
-                         render();
+                        loc.card.faceUp = true;
+                        render();
                     }
                 }
             };
 
             window.solColumnClick = (colIdx) => {
-                if(selectedCard) {
+                if (selectedCard) {
                     tryMove(selectedCard, 'tableau', colIdx);
                 }
             };
 
             document.getElementById('sol-stock').onclick = () => {
-                if(stock.length > 0) {
+                if (stock.length > 0) {
                     let c = stock.pop();
                     c.faceUp = true;
                     talon.push(c);
@@ -1584,11 +1602,11 @@
             };
 
             function findCard(id) {
-                if(talon.length && talon[talon.length-1].id === id) return {place: 'talon', card: talon[talon.length-1]};
-                for(let i=0; i<7; i++) {
+                if (talon.length && talon[talon.length - 1].id === id) return { place: 'talon', card: talon[talon.length - 1] };
+                for (let i = 0; i < 7; i++) {
                     let col = tableau[i];
-                    for(let j=0; j<col.length; j++) {
-                        if(col[j].id === id) return {place: 'tableau', colIdx: i, rowIdx: j, card: col[j], isLast: j===col.length-1};
+                    for (let j = 0; j < col.length; j++) {
+                        if (col[j].id === id) return { place: 'tableau', colIdx: i, rowIdx: j, card: col[j], isLast: j === col.length - 1 };
                     }
                 }
                 return null;
@@ -1596,22 +1614,22 @@
 
             function handleSelection(card, place, colIdx) {
                 // If already selected, deselect
-                if(selectedCard && selectedCard.id === card.id) {
+                if (selectedCard && selectedCard.id === card.id) {
                     selectedCard = null;
                     render();
                     return;
                 }
 
                 // If another selected, try to move to this card
-                if(selectedCard) {
-                    if(place === 'tableau') tryMove(selectedCard, 'tableau', colIdx);
+                if (selectedCard) {
+                    if (place === 'tableau') tryMove(selectedCard, 'tableau', colIdx);
                     // Cannot move TO talon
                     return;
                 }
 
                 // Select logic
                 // Try auto move to foundation first
-                if(tryAutoFoundation(card, place, colIdx)) return;
+                if (tryAutoFoundation(card, place, colIdx)) return;
 
                 // Else select it
                 selectedCard = card;
@@ -1619,18 +1637,18 @@
             }
 
             function tryAutoFoundation(card, place, colIdx) {
-                for(let i=0; i<4; i++) {
+                for (let i = 0; i < 4; i++) {
                     let fd = foundations[i];
                     // Empty foundation needs Ace
-                    if(fd.length === 0) {
-                        if(card.val === 1) {
+                    if (fd.length === 0) {
+                        if (card.val === 1) {
                             doMove(card, place, colIdx, 'foundation', i);
                             return true;
                         }
                     } else {
                         // Needs same suit, +1 value
-                        let top = fd[fd.length-1];
-                        if(top.suit === card.suit && card.val === top.val + 1) {
+                        let top = fd[fd.length - 1];
+                        if (top.suit === card.suit && card.val === top.val + 1) {
                             doMove(card, place, colIdx, 'foundation', i);
                             return true;
                         }
@@ -1640,15 +1658,15 @@
             }
 
             function tryMove(card, toPlace, toIdx) {
-                if(toPlace === 'tableau') {
+                if (toPlace === 'tableau') {
                     let destCol = tableau[toIdx];
                     // If empty, only King
-                    if(destCol.length === 0) {
-                        if(card.val === 13) doMove(card, findCard(card.id).place, findCard(card.id).colIdx, 'tableau', toIdx);
+                    if (destCol.length === 0) {
+                        if (card.val === 13) doMove(card, findCard(card.id).place, findCard(card.id).colIdx, 'tableau', toIdx);
                     } else {
-                        let top = destCol[destCol.length-1];
+                        let top = destCol[destCol.length - 1];
                         // Opp color, -1 value
-                        if(top.color !== card.color && top.val === card.val + 1) {
+                        if (top.color !== card.color && top.val === card.val + 1) {
                             doMove(card, findCard(card.id).place, findCard(card.id).colIdx, 'tableau', toIdx);
                         }
                     }
@@ -1660,21 +1678,21 @@
             function doMove(card, fromPlace, fromIdx, toPlace, toIdx) {
                 // Remove from Source
                 let movingCards = [];
-                if(fromPlace === 'talon') {
+                if (fromPlace === 'talon') {
                     movingCards.push(talon.pop());
                 } else if (fromPlace === 'tableau') {
                     let col = tableau[fromIdx];
                     let cIdx = col.findIndex(c => c.id === card.id);
                     movingCards = col.splice(cIdx);
                     // Flip new top
-                    if(col.length > 0) col[col.length-1].faceUp = true;
+                    if (col.length > 0) col[col.length - 1].faceUp = true;
                 }
 
                 // Add to Dest
-                if(toPlace === 'foundation') {
+                if (toPlace === 'foundation') {
                     foundations[toIdx].push(movingCards[0]);
                     // Check Win
-                    if(foundations.every(f => f.length === 13)) {
+                    if (foundations.every(f => f.length === 13)) {
                         setTimeout(() => {
                             uiLayer.classList.remove('hidden');
                             statusTitle.textContent = "YOU WIN!";
@@ -1723,41 +1741,41 @@
         function timeAgo(ts) {
             const sec = Math.floor((Date.now() - ts) / 1000);
             if (sec < 60) return "Just now";
-            const min = Math.floor(sec/60);
+            const min = Math.floor(sec / 60);
             if (min < 60) return `${min}m ago`;
-            const hr = Math.floor(min/60);
+            const hr = Math.floor(min / 60);
             if (hr < 24) return `${hr}h ago`;
-            return `${Math.floor(hr/24)}d ago`;
+            return `${Math.floor(hr / 24)}d ago`;
         }
 
         const catStyle = {
-            "alert":      { bg: "bg-red-500/10 border-red-500/20", icon: "fa-triangle-exclamation text-red-500", label: "Alert" },
-            "update":     { bg: "bg-blue-500/10 border-blue-500/20", icon: "fa-bullhorn text-blue-500", label: "Update" },
+            "alert": { bg: "bg-red-500/10 border-red-500/20", icon: "fa-triangle-exclamation text-red-500", label: "Alert" },
+            "update": { bg: "bg-blue-500/10 border-blue-500/20", icon: "fa-bullhorn text-blue-500", label: "Update" },
             "maintenance": { bg: "bg-yellow-500/10 border-yellow-500/20", icon: "fa-screwdriver-wrench text-yellow-500", label: "Maintenance" }
         };
 
         onValue(ref(db, "scrolling_text/value"), snap => {
             const text = snap.val() || "Welcome to Nexus Hub!";
-            if(marqueeEl) marqueeEl.textContent = text;
+            if (marqueeEl) marqueeEl.textContent = text;
         });
 
         onValue(ref(db, "pinned"), snap => {
             const data = snap.val();
             if (!data) {
-                if(pinnedEl) pinnedEl.classList.add("hidden");
+                if (pinnedEl) pinnedEl.classList.add("hidden");
                 return;
             }
             const key = Object.keys(data)[0];
             const ann = data[key];
-            if(pinnedTitle) pinnedTitle.textContent = ann.title;
-            if(pinnedMsg) pinnedMsg.textContent = ann.message;
-            if(pinnedTime) pinnedTime.textContent = timeAgo(ann.timestamp);
-            if(pinnedEl) pinnedEl.classList.remove("hidden");
+            if (pinnedTitle) pinnedTitle.textContent = ann.title;
+            if (pinnedMsg) pinnedMsg.textContent = ann.message;
+            if (pinnedTime) pinnedTime.textContent = timeAgo(ann.timestamp);
+            if (pinnedEl) pinnedEl.classList.remove("hidden");
         });
 
         onValue(ref(db, "announcements"), snap => {
             const data = snap.val();
-            if(listEl) listEl.innerHTML = "";
+            if (listEl) listEl.innerHTML = "";
             if (!data) return;
 
             const arr = Object.keys(data)
@@ -1788,9 +1806,10 @@
                     const icon = item.querySelector(".fa-chevron-down");
                     icon.classList.toggle("rotate-180");
                 });
-                if(listEl) listEl.appendChild(item);
+                if (listEl) listEl.appendChild(item);
             });
         });
     </script>
 </body>
+
 </html>

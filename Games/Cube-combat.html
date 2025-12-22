@@ -553,175 +553,339 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #777;
         }
+
+        /* SIDEBAR LAYOUT */
+        .main-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .sidebar {
+            width: 250px;
+            height: 600px;
+            background: #222;
+            border: 2px solid #555;
+            display: none;
+            /* Hidden by default, shown in game */
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            color: white;
+            justify-content: flex-start;
+        }
+
+        .sidebar.p1 {
+            border-color: blue;
+        }
+
+        .sidebar.p2 {
+            border-color: red;
+        }
+
+        .sb-header-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .sb-icon {
+            width: 60px;
+            height: 60px;
+            border: 2px solid white;
+            margin-right: 15px;
+            background: blue;
+            /* dynamic */
+        }
+
+        .sb-name {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .sb-health-container {
+            width: 100%;
+            height: 30px;
+            background: #555;
+            margin-bottom: 20px;
+            border: 2px solid #fff;
+            position: relative;
+        }
+
+        .sb-health-bar {
+            height: 100%;
+            background: blue;
+            /* dynamic */
+            width: 100%;
+            transition: width 0.2s;
+        }
+
+        .sb-stat-box {
+            background: #333;
+            border: 1px solid #777;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sb-stat-label {
+            font-size: 16px;
+            color: #ccc;
+            margin: 0;
+            text-align: left;
+        }
+
+        .sb-stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-align: right;
+        }
+
+        /* Hide old HUD if we are replacing it, but for now I'll just hide the top bars via CSS or remove them in HTML */
+        .hud {
+            display: none !important;
+        }
     </style>
 </head>
 
 <body>
 
-    <div id="game-container">
-        <div id="overtime-overlay" class="rainbow-overlay"></div>
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div class="main-wrapper">
+        <!-- P1 SIDEBAR -->
+        <div id="p1-sidebar" class="sidebar p1">
+            <div class="sb-header-row">
+                <div id="p1-sb-icon" class="sb-icon"></div>
+                <div id="p1-sb-name" class="sb-name">P1</div>
+            </div>
 
-        <div id="demo-label" class="rainbow-text hidden">WIP: Unfinished and Unpolished</div>
+            <div class="sb-health-container">
+                <div id="p1-sb-health" class="sb-health-bar"></div>
+            </div>
 
-        <div id="achievement-toast">
-            <div class="toast-icon">🏆</div>
-            <div class="toast-text">
-                <div class="toast-title">ACHIEVEMENT UNLOCKED</div>
-                <div id="toast-message">First Blood</div>
+            <div class="sb-stat-box" id="p1-cd1-box">
+                <div class="sb-stat-label">Slash Cooldown</div>
+                <div id="p1-sb-cd1" class="sb-stat-value">READY</div>
+            </div>
+            <div class="sb-stat-box" id="p1-cd2-box">
+                <div class="sb-stat-label">Parry Cooldown</div>
+                <div id="p1-sb-cd2" class="sb-stat-value">READY</div>
+            </div>
+
+            <div class="sb-stat-box" id="p1-cd3-box" style="display:none;">
+                <div class="sb-stat-label">Slot 3</div>
+                <div id="p1-sb-cd3" class="sb-stat-value">READY</div>
+            </div>
+            <div class="sb-stat-box" id="p1-cd4-box" style="display:none;">
+                <div class="sb-stat-label">Slot 4</div>
+                <div id="p1-sb-cd4" class="sb-stat-value">READY</div>
+            </div>
+
+            <!-- COMBO BOX MOVED HERE -->
+            <div id="p1-combo-sidebar" class="sb-stat-box" style="display:none; border-color: gold;">
+                <div class="sb-stat-label" style="color:gold;">COMBO</div>
+                <div id="p1-combo-val" class="sb-stat-value" style="color:gold;">0</div>
             </div>
         </div>
 
-        <!-- SANDBOX MENU -->
-        <div id="sandbox-menu">
-            <div class="sb-header">Sandbox Control Panel</div>
-            <div style="text-align:center; margin-bottom:10px; color:#aaa; font-style:italic;">Press 'R' to toggle this
-                menu</div>
-            <div class="sb-content">
-                <div class="sb-list" id="sb-cube-list">
-                    <!-- Populated by JS -->
-                </div>
-                <div class="sb-details" id="sb-details-pane">
-                    <!-- Populated by JS -->
+        <div id="game-container">
+            <div id="overtime-overlay" class="rainbow-overlay"></div>
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+            <div id="achievement-toast">
+                <div class="toast-icon">🏆</div>
+                <div class="toast-text">
+                    <div class="toast-title">ACHIEVEMENT UNLOCKED</div>
+                    <div id="toast-message">First Blood</div>
                 </div>
             </div>
-            <button class="btn btn-gray" style="width:100%; margin-top:10px; padding:10px;"
-                onclick="toggleSandboxMenu()">CLOSE MENU</button>
-        </div>
 
-        <div id="ui-layer">
-            <div class="hud" id="hud">
-                <div>
-                    <div style="color: blue" id="p1-name-display">P1 (Blue)</div>
-                    <div class="health-bar-container">
-                        <div id="p1-health" class="health-bar"></div>
-                        <!-- Minion Health Overlay -->
-                        <div id="p1-minion-health" class="health-bar"
-                            style="background-color: #888; position: absolute; top: 0; left: 0; width: 0%; display: none;">
+            <!-- SANDBOX MENU -->
+            <div id="sandbox-menu">
+                <div class="sb-header">Sandbox Control Panel</div>
+                <div style="text-align:center; margin-bottom:10px; color:#aaa; font-style:italic;">Press 'R' to toggle
+                    this
+                    menu</div>
+                <div class="sb-content">
+                    <div class="sb-list" id="sb-cube-list">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div class="sb-details" id="sb-details-pane">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                <button class="btn btn-gray" style="width:100%; margin-top:10px; padding:10px;"
+                    onclick="toggleSandboxMenu()">CLOSE MENU</button>
+            </div>
+
+            <!-- OLD UI LAYER REMOVED/HIDDEN via CSS .hud display:none -->
+            <div id="ui-layer">
+                <div class="hud" id="hud">
+                    <!-- Old HUD content kept for structure but hidden -->
+                    <div>
+                        <div style="color: blue" id="p1-name-display">P1 (Blue)</div>
+                        <div class="health-bar-container">
+                            <div id="p1-health" class="health-bar"></div>
+                            <div id="p1-minion-health" class="health-bar"
+                                style="background-color: #888; position: absolute; top: 0; left: 0; width: 0%; display: none;">
+                            </div>
                         </div>
+                        <div id="p1-combo" class="combo-box">0</div>
                     </div>
-                    <!-- COMBO BOX -->
-                    <div id="p1-combo" class="combo-box">0</div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="color: red" id="p2-name">AI (Red)</div>
-                    <div class="health-bar-container">
-                        <div id="p2-health" class="health-bar"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="menu-overlay">
-
-            <div id="screen-main" class="menu-screen active">
-                <div class="menu-title">CUBE COMBAT</div>
-
-                <button class="btn btn-green" onclick="navTo('screen-modes')">START GAME</button>
-                <button class="btn btn-blue" onclick="prepareGame(null, 'screen-main')">COLLECTED CUBES</button>
-                <button class="btn btn-pink"
-                    onclick="navTo('screen-achievements'); renderAchievements()">ACHIEVEMENTS</button>
-                <button class="btn btn-red" onclick="confirmResetProgress()">RESET PROGRESS</button>
-                <button class="btn btn-gray" onclick="quitGame()">QUIT</button>
-            </div>
-
-            <div id="screen-modes" class="menu-screen">
-                <div class="sub-title">SELECT GAME MODE</div>
-
-                <button class="btn btn-red" onclick="prepareGame('ai', 'screen-modes')">PLAYER VS AI</button>
-                <button class="btn btn-blue" onclick="navTo('screen-pvp-submenu')">PLAYER VS PLAYER</button>
-                <div style="height: 20px;"></div>
-                <button class="btn btn-gray" onclick="navTo('screen-main')">BACK</button>
-            </div>
-
-            <div id="screen-pvp-submenu" class="menu-screen">
-                <div class="sub-title">PLAYER VS PLAYER</div>
-
-                <button class="btn btn-blue" onclick="prepareGame('pvp', 'screen-pvp-submenu')">LOCAL
-                    MULTIPLAYER</button>
-                <button class="btn btn-cyan" onclick="prepareGame('p2p_setup', 'screen-pvp-submenu')">P2P
-                    MULTIPLAYER</button>
-                <div style="height: 20px;"></div>
-                <button class="btn btn-gray" onclick="navTo('screen-modes')">BACK</button>
-            </div>
-
-            <div id="screen-p2p-lobby" class="menu-screen">
-                <div class="sub-title">P2P LOBBY</div>
-
-                <div id="p2p-status-msg" class="p2p-status">Select Host or Join</div>
-
-                <div id="p2p-host-section" style="display:none; text-align:center;">
-                    <div style="color:#aaa; font-size:14px;">Share this ID with your friend:</div>
-                    <input type="text" id="host-id-display" class="p2p-input" readonly value="Generating ID..."
-                        onclick="this.select()">
-                    <div style="color: #00aa00; margin-top:5px;">Waiting for connection...</div>
-                </div>
-
-                <div id="p2p-join-section" style="display:none; text-align:center;">
-                    <div style="color:#aaa; font-size:14px;">Enter Host ID:</div>
-                    <input type="text" id="join-id-input" class="p2p-input" placeholder="Paste ID here">
-                    <button class="btn btn-green" style="width:200px; margin: 10px auto;"
-                        onclick="connectToHost()">CONNECT</button>
-                </div>
-
-                <div id="p2p-buttons">
-                    <button class="btn btn-orange" onclick="initP2PHost()">HOST GAME</button>
-                    <button class="btn btn-cyan" onclick="initP2PJoin()">JOIN GAME</button>
-                </div>
-
-                <div style="height: 20px;"></div>
-                <button class="btn btn-gray" onclick="resetP2P(); navTo('screen-pvp-submenu')">BACK</button>
-            </div>
-
-            <div id="screen-cubes" class="menu-screen">
-                <div class="sub-title">COLLECTED CUBES</div>
-                <button class="btn btn-gray" style="width: 150px; position: absolute; top: 20px; left: 20px;"
-                    onclick="handleCubeBack()">BACK (ESC)</button>
-
-                <!-- ACTION BUTTON: Appears when selecting for a game -->
-                <button id="btn-confirm-selection" class="btn btn-green"
-                    style="width: 200px; position: absolute; bottom: 20px; right: 20px; display: none;"
-                    onclick="confirmSelection()">FIGHT!</button>
-
-                <!-- SANDBOX BUTTON -->
-                <button class="btn btn-orange" style="width: 200px; position: absolute; top: 20px; right: 20px;"
-                    onclick="startGame('sandbox')">SANDBOX MODE</button>
-
-                <div class="cubes-layout">
-                    <div class="cubes-grid" id="cubes-grid-container">
-                    </div>
-                    <div class="cube-details" id="cube-details-panel">
-                        <div style="text-align: center; margin-top: 50px; color: #aaa;">Select a cube to view details
+                    <div style="text-align: right;">
+                        <div style="color: red" id="p2-name">AI (Red)</div>
+                        <div class="health-bar-container">
+                            <div id="p2-health" class="health-bar"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="screen-achievements" class="menu-screen">
-                <div class="sub-title">ACHIEVEMENTS</div>
-                <button class="btn btn-gray" style="width: 150px; position: absolute; top: 20px; left: 20px;"
-                    onclick="navTo('screen-main')">BACK (ESC)</button>
+            <div id="menu-overlay">
 
-                <div class="achievements-list" id="achievements-container">
+                <div id="screen-main" class="menu-screen active">
+                    <div class="menu-title">CUBE COMBAT</div>
+
+                    <button class="btn btn-green" onclick="navTo('screen-modes')">START GAME</button>
+                    <button class="btn btn-blue" onclick="prepareGame(null, 'screen-main')">COLLECTED CUBES</button>
+                    <button class="btn btn-pink"
+                        onclick="navTo('screen-achievements'); renderAchievements()">ACHIEVEMENTS</button>
+                    <button class="btn btn-red" onclick="confirmResetProgress()">RESET PROGRESS</button>
+                    <button class="btn btn-gray" onclick="quitGame()">QUIT</button>
+                </div>
+
+                <div id="screen-modes" class="menu-screen">
+                    <div class="sub-title">SELECT GAME MODE</div>
+
+                    <button class="btn btn-red" onclick="prepareGame('ai', 'screen-modes')">PLAYER VS AI</button>
+                    <button class="btn btn-blue" onclick="navTo('screen-pvp-submenu')">PLAYER VS PLAYER</button>
+                    <div style="height: 20px;"></div>
+                    <button class="btn btn-gray" onclick="navTo('screen-main')">BACK</button>
+                </div>
+
+                <div id="screen-pvp-submenu" class="menu-screen">
+                    <div class="sub-title">PLAYER VS PLAYER</div>
+
+                    <button class="btn btn-blue" onclick="prepareGame('pvp', 'screen-pvp-submenu')">LOCAL
+                        MULTIPLAYER</button>
+                    <button class="btn btn-cyan" onclick="prepareGame('p2p_setup', 'screen-pvp-submenu')">P2P
+                        MULTIPLAYER</button>
+                    <div style="height: 20px;"></div>
+                    <button class="btn btn-gray" onclick="navTo('screen-modes')">BACK</button>
+                </div>
+
+                <div id="screen-p2p-lobby" class="menu-screen">
+                    <div class="sub-title">P2P LOBBY</div>
+
+                    <div id="p2p-status-msg" class="p2p-status">Select Host or Join</div>
+
+                    <div id="p2p-host-section" style="display:none; text-align:center;">
+                        <div style="color:#aaa; font-size:14px;">Share this ID with your friend:</div>
+                        <input type="text" id="host-id-display" class="p2p-input" readonly value="Generating ID..."
+                            onclick="this.select()">
+                        <div style="color: #00aa00; margin-top:5px;">Waiting for connection...</div>
+                    </div>
+
+                    <div id="p2p-join-section" style="display:none; text-align:center;">
+                        <div style="color:#aaa; font-size:14px;">Enter Host ID:</div>
+                        <input type="text" id="join-id-input" class="p2p-input" placeholder="Paste ID here">
+                        <button class="btn btn-green" style="width:200px; margin: 10px auto;"
+                            onclick="connectToHost()">CONNECT</button>
+                    </div>
+
+                    <div id="p2p-buttons">
+                        <button class="btn btn-orange" onclick="initP2PHost()">HOST GAME</button>
+                        <button class="btn btn-cyan" onclick="initP2PJoin()">JOIN GAME</button>
+                    </div>
+
+                    <div style="height: 20px;"></div>
+                    <button class="btn btn-gray" onclick="resetP2P(); navTo('screen-pvp-submenu')">BACK</button>
+                </div>
+
+                <div id="screen-cubes" class="menu-screen">
+                    <div class="sub-title">COLLECTED CUBES</div>
+                    <button class="btn btn-gray" style="width: 150px; position: absolute; top: 20px; left: 20px;"
+                        onclick="handleCubeBack()">BACK (ESC)</button>
+
+                    <!-- ACTION BUTTON: Appears when selecting for a game -->
+                    <button id="btn-confirm-selection" class="btn btn-green"
+                        style="width: 200px; position: absolute; bottom: 20px; right: 20px; display: none;"
+                        onclick="confirmSelection()">FIGHT!</button>
+
+                    <!-- SANDBOX BUTTON -->
+                    <button class="btn btn-orange" style="width: 200px; position: absolute; top: 20px; right: 20px;"
+                        onclick="startGame('sandbox')">SANDBOX MODE</button>
+
+                    <div class="cubes-layout">
+                        <div class="cubes-grid" id="cubes-grid-container">
+                        </div>
+                        <div class="cube-details" id="cube-details-panel">
+                            <div style="text-align: center; margin-top: 50px; color: #aaa;">Select a cube to view
+                                details
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="screen-achievements" class="menu-screen">
+                    <div class="sub-title">ACHIEVEMENTS</div>
+                    <button class="btn btn-gray" style="width: 150px; position: absolute; top: 20px; left: 20px;"
+                        onclick="navTo('screen-main')">BACK (ESC)</button>
+
+                    <div class="achievements-list" id="achievements-container">
+                    </div>
+                </div>
+
+                <div id="game-over-screen" class="hidden"
+                    style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20;">
+                    <div id="winner-text" style="font-size: 50px; margin-bottom: 30px; font-weight:bold; color: white;">
+                        WINNER</div>
+
+                    <button id="restart-btn" class="btn btn-green" onclick="requestRestart()">RESTART (R)</button>
+
+                    <div id="waiting-msg"
+                        style="display:none; color: yellow; font-size: 24px; margin: 10px; font-weight: bold; text-shadow: 1px 1px 0 #000;">
+                        WAITING FOR HOST TO RESTART...</div>
+
+                    <button class="btn btn-gray" onclick="showMainMenu()">MAIN MENU</button>
+                </div>
+
+            </div>
+        </div><!-- End game-container -->
+
+        <!-- P2 SIDEBAR -->
+        <div id="p2-sidebar" class="sidebar p2">
+            <div class="sb-header-row">
+                <div id="p2-sb-name" class="sb-name">P2</div>
+                <div id="p2-sb-icon" class="sb-icon" style="background:red; margin-right:0; margin-left:15px;"></div>
+            </div>
+
+            <div class="sb-health-container">
+                <div id="p2-sb-health" class="sb-health-bar" style="background:red;"></div>
+            </div>
+
+            <div id="p2-role-ai">
+                <div class="sb-stat-box">
+                    <div class="sb-stat-label">Action Status</div>
+                    <div id="p2-sb-status" class="sb-stat-value">--</div>
                 </div>
             </div>
 
-            <div id="game-over-screen" class="hidden"
-                style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20;">
-                <div id="winner-text" style="font-size: 50px; margin-bottom: 30px; font-weight:bold; color: white;">
-                    WINNER</div>
-
-                <button id="restart-btn" class="btn btn-green" onclick="requestRestart()">RESTART (R)</button>
-
-                <div id="waiting-msg"
-                    style="display:none; color: yellow; font-size: 24px; margin: 10px; font-weight: bold; text-shadow: 1px 1px 0 #000;">
-                    WAITING FOR HOST TO RESTART...</div>
-
-                <button class="btn btn-gray" onclick="showMainMenu()">MAIN MENU</button>
+            <div id="p2-role-human" style="display:none;">
+                <div class="sb-stat-box">
+                    <div class="sb-stat-label">Dash (K)</div>
+                    <div id="p2-sb-cd1" class="sb-stat-value">READY</div>
+                </div>
+                <div class="sb-stat-box">
+                    <div class="sb-stat-label">Laser (L)</div>
+                    <div id="p2-sb-cd2" class="sb-stat-value">READY</div>
+                </div>
             </div>
-
         </div>
-    </div>
+
+    </div><!-- End main-wrapper -->
 
     <script>
 
@@ -930,8 +1094,6 @@
         function navTo(screenId) {
             document.querySelectorAll('.menu-screen').forEach(el => el.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
-            if (screenId === 'screen-main') document.getElementById('demo-label').classList.add('hidden');
-            else document.getElementById('demo-label').classList.remove('hidden');
         }
 
         // New Flow: Select Mode -> Select Character
@@ -1565,7 +1727,7 @@
                 if (!redCube.dead && rectIntersect(hitX, this.y, reach, this.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
                     if (!redCube.isInvincible) {
                         // Apply Damage Multiplier
-                        redCube.takeDamage(25 * this.damageMult);
+                        redCube.takeDamage(20 * this.damageMult);
                         redCube.vx = this.facingRight ? 10 : -10;
                         redCube.vy = -5;
                         // Combo Logic: Hit
@@ -1673,7 +1835,7 @@
 
                 if (rectIntersect(beamX, beamY, beamW, beamH, redCube.x, redCube.y, redCube.w, redCube.h)) {
                     spawnParticles(redCube.x + redCube.w / 2, redCube.y + redCube.h / 2, "#00FF00", 15, 'spark');
-                    redCube.takeDamage(25 * this.damageMult);
+                    redCube.takeDamage(20 * this.damageMult);
                     redCube.vx = this.facingRight ? 15 : -15;
                     if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
                 } else {
@@ -1726,7 +1888,7 @@
                 // Block Logic (Override F from Base)
                 if (keys['KeyF'] && this.blockEnergy > 0) {
                     this.isBlocking = true;
-                    this.blockEnergy -= 1.5;
+                    this.blockEnergy -= 2.0;
                     this.vx = 0;
                     this.color = "#FFC0CB";
                     // Disable slash while blocking
@@ -1846,7 +2008,7 @@
                 const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
                 triggerShake(10);
                 if (rectIntersect(beamX, this.y + 15, beamW, 30, redCube.x, redCube.y, redCube.w, redCube.h)) {
-                    redCube.takeDamage(25 * this.damageMult);
+                    redCube.takeDamage(20 * this.damageMult);
                     spawnParticles(redCube.x + redCube.w / 2, redCube.y + redCube.h / 2, "yellow", 10, 'spark');
                     if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
                 } else {
@@ -1885,6 +2047,7 @@
                 this.pullActive = false;
                 this.pullTimer = 0;
                 this.pullCooldown = 0;
+                this.pullWindup = 0; // NEW
             }
 
             update() {
@@ -1894,6 +2057,17 @@
                 }
                 if (IS_TESTER) this.pullCooldown = 0;
                 if (this.pullCooldown > 0) this.pullCooldown--;
+
+                // PULL WINDUP
+                if (this.pullWindup > 0) {
+                    this.pullWindup--;
+                    this.vx = 0;
+                    this.color = (Math.floor(Date.now() / 50) % 2 === 0) ? "purple" : "indigo";
+                    if (this.pullWindup <= 0) {
+                        this.executePull();
+                    }
+                    return;
+                }
 
                 if (this.pullActive) {
                     this.pullTimer--;
@@ -1918,18 +2092,33 @@
                     return;
                 }
 
-                if (keys['KeyF'] && this.pullCooldown <= 0) {
-                    this.pullActive = true;
-                    this.pullTimer = 30;
-                    this.pullCooldown = 120;
+                // Trigger Pull
+                if (keys['KeyF'] && this.pullCooldown <= 0 && this.pullWindup <= 0 && !this.pullActive) {
+                    this.pullWindup = 20; // 0.3s Windup
                 }
 
                 super.update();
             }
 
+            executePull() {
+                this.pullActive = true;
+                this.pullTimer = 30;
+                this.pullCooldown = 120;
+                this.color = "purple";
+            }
+
             draw(ctx) {
                 super.draw(ctx);
                 if (isRetroMode) return;
+
+                // Windup Indicator
+                if (this.pullWindup > 0) {
+                    ctx.strokeStyle = "rgba(128, 0, 128, 0.5)";
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.w / 2, this.y + this.h / 2, 100 - this.pullWindup * 3, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
                 if (this.pullActive) {
                     ctx.strokeStyle = "purple";
                     ctx.lineWidth = 5;
@@ -2008,7 +2197,7 @@
                         this.droneFireTimer = 60; // Fire every 1 second
                         // Hitscan check (simple)
                         if (Math.abs(this.droneX - redCube.x) < 50) {
-                            redCube.takeDamage(10);
+                            redCube.takeDamage(5);
                             spawnParticles(redCube.x + redCube.w / 2, redCube.y, "cyan", 5, 'spark');
                         }
                     }
@@ -2046,7 +2235,7 @@
 
                     // Collision during dash
                     if (rectIntersect(this.x, this.y, this.w, this.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
-                        redCube.takeDamage(20);
+                        redCube.takeDamage(15);
                         redCube.vx = this.facingRight ? 15 : -15; // Knockback
                         redCube.vy = -5;
                         triggerShake(8);
@@ -2136,6 +2325,8 @@
                 this.baseColor = "red";
                 this.dashActive = false;
                 this.dashTimer = 0;
+                this.dashWindup = 0; // NEW: Windup timer
+                this.dashCooldown = 0; // NEW: Cooldown
                 this.dashHit = false;
                 this.beamState = 'IDLE';
                 this.beamTimer = 0;
@@ -2143,6 +2334,11 @@
 
             update() {
                 if (this.dead) return;
+
+                // Cooldown Management
+                if (IS_TESTER) this.dashCooldown = 0;
+                if (this.dashCooldown > 0) this.dashCooldown--;
+
                 if (isRetroMode) {
                     super.update();
                     return;
@@ -2180,6 +2376,18 @@
                     return; // Skip normal movement
                 }
 
+                // DASH WINDUP LOGIC
+                if (this.dashWindup > 0) {
+                    this.dashWindup--;
+                    this.vx = 0; // Roots player
+                    this.color = (Math.floor(Date.now() / 50) % 2 === 0) ? "#500000" : "red"; // Flash dark red
+
+                    if (this.dashWindup <= 0) {
+                        this.executeDash();
+                    }
+                    return;
+                }
+
                 // DASH LOGIC
                 if (this.dashActive) {
                     this.dashTimer--;
@@ -2192,7 +2400,7 @@
 
                     // Collision with Enemy
                     if (rectIntersect(this.x, this.y, this.w, this.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
-                        redCube.takeDamage(20 * this.damageMult); // Vigilante dash is 20, seems fair
+                        redCube.takeDamage(15 * this.damageMult); // Reduced to 15 (Standard Dash Dmg)
                         redCube.vx = this.facingRight ? 15 : -15;
                         redCube.vy = -5;
                         this.dashActive = false; // Stop dash on impact
@@ -2210,7 +2418,7 @@
                         }
                     }
 
-                    // Gravity during dash? AI RedCube doesn't seem to care, but let's add it for platforming
+                    // Platforming physics during dash
                     this.vy += GRAVITY;
                     this.y += this.vy;
                     if (this.y + this.h >= FLOOR_Y) {
@@ -2235,14 +2443,23 @@
                 super.update();
             }
 
-            // Override Space Action
+            // Override Space Action - Starts WINDUP instead of instant dash
             performSlash() {
-                if (!this.dashActive) {
-                    this.dashActive = true;
-                    this.dashTimer = 15;
-                    this.slashCooldown = 15; // Short cooldown (practically none)
-                    this.dashHit = false;
+                if (!this.dashActive && this.dashWindup <= 0 && this.dashCooldown <= 0) {
+                    this.dashWindup = 15; // 0.25s telegraph
+                    // Play a charge sound or effect here if we had audio
+                    spawnParticles(this.x + this.w / 2, this.y + this.h / 2, "#FF4444", 5, 'spark');
                 }
+            }
+
+            executeDash() {
+                this.dashActive = true;
+                this.dashTimer = 15;
+                this.dashCooldown = 90; // 1.5s cooldown (was 15/instant)
+                this.dashHit = false;
+                this.color = "red";
+                // Boom effect
+                spawnParticles(this.x + (this.facingRight ? 0 : this.w), this.y + this.h / 2, "white", 10, 'spark');
             }
 
             fireBeam() {
@@ -2255,7 +2472,7 @@
                 spawnParticles(this.x + this.w / 2, this.y + this.h / 2, "cyan", 15, 'spark');
 
                 if (rectIntersect(beamX, beamY, beamW, beamH, redCube.x, redCube.y, redCube.w, redCube.h)) {
-                    redCube.takeDamage(30 * this.damageMult);
+                    redCube.takeDamage(25 * this.damageMult); // Reduced from 30 -> 25
                     if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
                 } else {
                     sessionStats.womboComboActive = false;
@@ -2270,6 +2487,14 @@
             draw(ctx) {
                 super.draw(ctx);
                 if (isRetroMode) return;
+
+                // Draw Windup Indicator
+                if (this.dashWindup > 0) {
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+                    ctx.fillRect(this.x, this.y, this.w, this.h);
+                    ctx.strokeStyle = "white";
+                    ctx.strokeRect(this.x - 5, this.y - 5, this.w + 10, this.h + 10);
+                }
 
                 // Dash Ghost
                 if (this.dashActive) {
@@ -2293,6 +2518,13 @@
                     ctx.fillRect(beamX, beamY + 15, beamW, 10);
 
                     ctx.shadowBlur = 0;
+                }
+
+                // Cooldown text
+                if (this.dashCooldown > 0) {
+                    ctx.fillStyle = "gray";
+                    ctx.font = "12px Arial";
+                    ctx.fillText(Math.ceil(this.dashCooldown / 60), this.x + 15, this.y - 10);
                 }
             }
         }
@@ -3381,7 +3613,21 @@
                 if (isRetroMode) return;
 
                 // State Machine for Attacks
-                if (this.state === 'DASHING') {
+                if (this.state === 'DASH_WINDUP') {
+                    this.stateTimer--;
+                    this.vx = 0;
+                    // Visual telegraph
+                    this.color = (Math.floor(Date.now() / 50) % 2 === 0) ? "#500000" : COLORS.RED;
+
+                    if (this.stateTimer <= 0) {
+                        this.state = 'DASHING';
+                        this.dashTimer = 15;
+                        this.isInvincible = true;
+                        this.color = COLORS.RED;
+                        spawnParticles(this.x + (this.facingRight ? 0 : this.w), this.y + this.h / 2, "white", 10, 'spark');
+                    }
+                }
+                else if (this.state === 'DASHING') {
                     // Dash Logic (Vigilante Style)
                     this.vx = this.facingRight ? 20 : -20;
                     this.isInvincible = true;
@@ -3395,7 +3641,7 @@
 
                     // Collision Logic
                     if (rectIntersect(this.x, this.y, this.w, this.h, blueCube.x, blueCube.y, blueCube.w, blueCube.h)) {
-                        this.hitPlayer(20, true); // 20 damage (Vigilante val)
+                        this.hitPlayer(15, true); // Reduced to 15
                         // Bounce back
                         this.vx = this.facingRight ? -5 : 5;
                         this.state = 'IDLE';
@@ -3561,10 +3807,9 @@
             }
 
             startCharge() {
-                // Replaced with Dash logic
-                this.state = 'DASHING';
-                this.dashTimer = 15; // Short duration
-                // No windup
+                this.state = 'DASH_WINDUP'; // Start with Windup
+                this.stateTimer = 15; // 15 frames windup
+                this.vx = 0;
             }
 
             startBeam() {
@@ -3727,52 +3972,187 @@
         }
 
         function updateUI() {
-            // If in retro mode, UI is drawn in gameLoop to canvas directly
-            if (isRetroMode) {
-                document.getElementById('ui-layer').style.display = 'none';
-                return;
-            } else {
-                document.getElementById('ui-layer').style.display = 'flex';
+            // Hide old UI layer always
+            document.getElementById('ui-layer').style.display = 'none';
+
+            // --- P1 SIDEBAR ---
+            const p1Name = document.getElementById('p1-sb-name');
+            const p1Icon = document.getElementById('p1-sb-icon');
+            const p1Health = document.getElementById('p1-sb-health');
+            const p1CD1 = document.getElementById('p1-sb-cd1');
+            const p1CD2 = document.getElementById('p1-sb-cd2');
+
+            // Name & Icon
+            // Get formatted name from class or CUBE_DATA
+            let p1DisplayName = "P1";
+            const p1Data = CUBE_DATA.find(c => c.id === selectedCubeId);
+            if (p1Data) p1DisplayName = p1Data.name;
+            else p1DisplayName = blueCube.constructor.name.replace('Cube', '');
+
+            p1Name.innerText = "P1 (" + p1DisplayName + ")";
+            p1Icon.style.backgroundColor = blueCube.color;
+
+            // Health
+            const p1Pct = Math.max(0, (blueCube.hp / blueCube.maxHp) * 100);
+            p1Health.style.width = p1Pct + '%';
+            p1Health.style.backgroundColor = blueCube.color;
+
+            // Skills / Cooldowns
+            let cdData = [
+                { label: "Slash", val: blueCube.slashCooldown },
+                { label: "Parry", val: blueCube.parryCooldown }
+            ];
+
+            if (blueCube instanceof Bobbythe124Cube) {
+                cdData = [
+                    { label: "Silence", val: blueCube.silenceCooldown },
+                    { label: "Hatred", val: blueCube.hatredCooldown },
+                    { label: "Beam", val: (blueCube.beamState !== 'IDLE' ? 1 : 0), isBool: true, activeText: "BUSY" },
+                    { label: "Bleed", val: blueCube.bleedCooldown }
+                ];
+            } else if (blueCube instanceof Fbt7Cube) {
+                cdData = [
+                    { label: "Delete", val: blueCube.deleteCooldown },
+                    { label: "404", val: blueCube.error404Cooldown, active: blueCube.error404Active },
+                    { label: "Hatred", val: blueCube.hatredCooldown, active: blueCube.hatredActive },
+                    { label: "Term.", val: blueCube.terminationCooldown }
+                ];
+            } else if (blueCube instanceof AngrySniperCube) {
+                cdData = [
+                    { label: "Dash", val: blueCube.dashTimer, isBool: (blueCube.state === 'DASHING'), activeText: "DASHING" },
+                    { label: "Laser", val: blueCube.stateTimer, isBool: (blueCube.state === 'BEAM_WINDUP' || blueCube.state === 'BEAM_FIRING'), activeText: "FIRING" }
+                ];
+            } else if (blueCube instanceof GoldCube) {
+                cdData = [
+                    { label: "Overtime", val: blueCube.overtimeCooldown, active: blueCube.overtimeActive },
+                    { label: "Recall", val: 0 } // No CD var for recall usually
+                ];
+                if (blueCube.masterState === 'MINION_MODE' && blueCube.minion) {
+                    // Show Minion Cooldowns? Or just "Minion Active"
+                    // Let's show Minion basic stats
+                    cdData = [
+                        { label: "Mn.Slash", val: blueCube.minion.slashCooldown || 0 },
+                        { label: "Mn.Parry", val: blueCube.minion.parryCooldown || 0 }
+                    ];
+                }
             }
 
-            const p1Pct = (blueCube.hp / blueCube.maxHp) * 100;
-            // P2 bar is full gray in sandbox
-            const p2Pct = (gameMode === 'sandbox') ? 100 : (redCube.hp / redCube.maxHp) * 100;
+            // Update P1 Slots
+            const updateSlot = (idBox, idVal, data) => {
+                const box = document.getElementById(idBox);
+                const valEl = document.getElementById(idVal);
+                if (!data) {
+                    box.style.display = 'none';
+                } else {
+                    box.style.display = 'flex';
+                    // Update Label
+                    box.querySelector('.sb-stat-label').innerText = data.label;
 
-            document.getElementById('p1-health').style.width = p1Pct + '%';
-            document.getElementById('p2-health').style.width = p2Pct + '%';
+                    // Update Value
+                    let text = "READY";
+                    let color = "#00FF00";
 
-            // Check for minion overlay
-            const minionBar = document.getElementById('p1-minion-health');
-            if (blueCube instanceof GoldCube && blueCube.masterState === 'MINION_MODE' && blueCube.minion) {
-                minionBar.style.display = 'block';
-                const mPct = (blueCube.minion.hp / blueCube.minion.maxHp) * 100;
-                minionBar.style.width = mPct + '%';
-            } else {
-                minionBar.style.display = 'none';
-            }
+                    if (data.active) {
+                        text = "ACTIVE";
+                        color = "orange";
+                    } else if (data.isBool) {
+                        if (data.val) { text = data.activeText || "BUSY"; color = "orange"; }
+                    } else {
+                        if (data.val > 0) {
+                            text = Math.ceil(data.val / 60) + "s";
+                            color = "#ccc";
+                        }
+                    }
+                    valEl.innerText = text;
+                    valEl.style.color = color;
+                }
+            };
 
-            let name = "AI (Red)";
-            if (gameMode === 'pvp') name = "P2 (Local)";
-            if (gameMode === 'p2p') name = "P2 (Online)";
-            if (gameMode === 'sandbox') {
-                name = "Dummy (Gray)";
-                document.getElementById('p2-health').style.backgroundColor = "gray";
-            } else {
-                document.getElementById('p2-health').style.backgroundColor = "red";
-            }
-            document.getElementById('p2-name').innerText = name;
+            updateSlot('p1-cd1-box', 'p1-sb-cd1', cdData[0]);
+            updateSlot('p1-cd2-box', 'p1-sb-cd2', cdData[1]);
+            updateSlot('p1-cd3-box', 'p1-sb-cd3', cdData[2]);
+            updateSlot('p1-cd4-box', 'p1-sb-cd4', cdData[3]);
 
-            document.getElementById('p1-name-display').innerText = blueCube.constructor.name.replace('Cube', '') + " (P1)";
 
-            // Combo UI
-            const comboEl = document.getElementById('p1-combo');
+            // Dynamic Border Color P1
+            document.getElementById('p1-sidebar').style.borderColor = blueCube.color;
+
+            // Combo
+            const p1ComboSb = document.getElementById('p1-combo-sidebar');
+            const p1ComboVal = document.getElementById('p1-combo-val');
             if (sessionStats.womboComboActive) {
-                comboEl.style.display = 'flex';
-                comboEl.innerText = sessionStats.womboComboHits;
+                p1ComboSb.style.display = 'block';
+                p1ComboVal.innerText = sessionStats.womboComboHits;
             } else {
-                comboEl.style.display = 'none';
+                p1ComboSb.style.display = 'none';
             }
+
+
+            // --- P2 SIDEBAR ---
+            const p2Name = document.getElementById('p2-sb-name');
+            const p2Icon = document.getElementById('p2-sb-icon');
+            const p2Health = document.getElementById('p2-sb-health');
+            const p2Status = document.getElementById('p2-sb-status');
+
+            // Name
+            let p2DisplayName = "AI (Red)";
+            if (gameMode === 'pvp') p2DisplayName = "P2 (Local)";
+            if (gameMode === 'p2p') p2DisplayName = "P2 (Online)";
+            if (gameMode === 'sandbox') p2DisplayName = "Dummy";
+
+            p2Name.innerText = p2DisplayName;
+            p2Icon.style.backgroundColor = redCube.color;
+            if (redCube.dead) p2Icon.style.backgroundColor = "black";
+
+            // Dynamic Border Color P2
+            document.getElementById('p2-sidebar').style.borderColor = redCube.color;
+
+            // Health
+            const p2Pct = Math.max(0, (redCube.hp / redCube.maxHp) * 100);
+            p2Health.style.width = p2Pct + '%';
+            p2Health.style.backgroundColor = (gameMode === 'sandbox') ? "gray" : "red";
+
+            // Status / Cooldowns (P2)
+            const p2AiBox = document.getElementById('p2-role-ai');
+            const p2HumanBox = document.getElementById('p2-role-human');
+
+            if (gameMode === 'pvp') {
+                // Human View
+                p2AiBox.style.display = 'none';
+                p2HumanBox.style.display = 'flex';
+                p2HumanBox.style.flexDirection = 'column';
+                p2HumanBox.style.gap = '10px';
+
+                // Map RedCube Skills (Dash / Laser)
+                // Dash (K)
+                const dashValEl = document.getElementById('p2-sb-cd1');
+                const isDashing = (redCube.state && redCube.state.includes('DASH'));
+                dashValEl.innerText = isDashing ? "ACTIVE" : "READY";
+                dashValEl.style.color = isDashing ? "orange" : "#00FF00";
+
+                // Laser (L)
+                const laserValEl = document.getElementById('p2-sb-cd2');
+                const isLaser = (redCube.state && redCube.state.includes('BEAM'));
+                laserValEl.innerText = isLaser ? "FIRING" : "READY";
+                laserValEl.style.color = isLaser ? "orange" : "#00FF00";
+
+            } else {
+                // AI View
+                p2AiBox.style.display = 'block';
+                p2HumanBox.style.display = 'none';
+
+                let statusText = "Idle";
+                if (redCube.dead) statusText = "DEAD";
+                else if (redCube.state === 'STUNNED') statusText = "STUNNED";
+                else if (redCube.state === 'DASHING' || redCube.state === 'BEAM_FIRING') statusText = "ATTACKING";
+                else if (redCube.state === 'DASH_WINDUP' || redCube.state === 'BEAM_WINDUP') statusText = "CHARGING";
+
+                p2Status.innerText = statusText;
+                if (statusText === 'STUNNED' || statusText === 'DEAD') p2Status.style.color = "red";
+                else if (statusText === 'ATTACKING') p2Status.style.color = "orange";
+                else p2Status.style.color = "white";
+            }
+
         }
 
         function checkGameOver() {
@@ -3950,7 +4330,7 @@
             gameMode = mode;
             gameState = 'playing';
             document.getElementById('menu-overlay').classList.add('hidden');
-            document.getElementById('demo-label').classList.remove('hidden');
+            document.querySelectorAll('.sidebar').forEach(el => el.style.display = 'flex');
 
             initGame();
 
@@ -4006,9 +4386,20 @@
             gameState = 'menu';
             if (conn) { conn.close(); resetP2P(); }
             if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
+
             document.getElementById('menu-overlay').classList.remove('hidden');
+            document.getElementById('menu-overlay').style.display = 'flex';
             document.getElementById('game-over-screen').classList.add('hidden');
-            document.getElementById('demo-label').classList.add('hidden');
+
+            // Hide Sidebars
+            document.querySelectorAll('.sidebar').forEach(el => el.style.display = 'none');
+
+            const bgMusic = document.getElementById('bg-music');
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            }
+
             navTo('screen-main');
         }
 
@@ -4027,8 +4418,26 @@
             const list = document.getElementById('sb-cube-list');
             list.innerHTML = "";
 
-            CUBE_DATA.forEach(cube => {
-                if (cube.id === 9 && !ACHIEVEMENT_DATA.find(a => a.id === 6).unlocked) return; // Hide Master unless unlocked? Or show all for testing? Let's show all in sandbox.
+            // Custom Sort: Regular -> Master (9) -> Dev (8, 10)
+            const sortedCubes = [...CUBE_DATA].sort((a, b) => {
+                // Helper to get priority
+                const getPriority = (c) => {
+                    if (c.dev) return 3; // Dev cubes last
+                    if (c.id === 9) return 2; // Master second to last
+                    return 1; // Others first
+                };
+
+                const pA = getPriority(a);
+                const pB = getPriority(b);
+
+                if (pA !== pB) return pA - pB;
+                return a.id - b.id;
+            });
+
+            sortedCubes.forEach(cube => {
+                // In sandbox we generally allow all, but maybe keep Master hidden if not unlocked? 
+                // The prompt implies just ordering, so we keep visibility same as before (which was checking ID 9 unlock)
+                if (cube.id === 9 && !ACHIEVEMENT_DATA.find(a => a.id === 6).unlocked) return;
 
                 const item = document.createElement('div');
                 item.className = 'sb-cube-item ' + (selectedCubeId === cube.id ? 'active' : '');
