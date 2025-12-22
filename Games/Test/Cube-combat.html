@@ -625,40 +625,29 @@
         { id: 7, name: "Cube Master", desc: "Unlock all other cubes", unlocks: "Master Cube", unlocked: false }
     ];
 
-    // --- SPECIAL PERMISSIONS / STORAGE SETUP ---
+    // --- SPECIAL SETTINGS (Dev/Debug/Tester) ---
+    // These keys will appear in your Local Storage. Edit them to 'true' to activate.
     
-    // 1. Initialize keys if they don't exist (Defaults to 'false')
-    if (localStorage.getItem('debug_mode') === null) localStorage.setItem('debug_mode', 'false');
-    if (localStorage.getItem('dev') === null) localStorage.setItem('dev', 'false');
-    if (localStorage.getItem('tester') === null) localStorage.setItem('tester', 'false');
+    // 1. Initialize keys if they don't exist yet so you can see them in your extension
+    if (localStorage.getItem('cc_debugMode') === null) localStorage.setItem('cc_debugMode', 'false');
+    if (localStorage.getItem('cc_dev') === null)       localStorage.setItem('cc_dev', 'false');
+    if (localStorage.getItem('cc_tester') === null)    localStorage.setItem('cc_tester', 'false');
 
-    // 2. Read Values
-    const isDebugMode = localStorage.getItem('debug_mode') === 'true';
-    const isDev = localStorage.getItem('dev') === 'true';       // Placeholder for future use
-    const isTester = localStorage.getItem('tester') === 'true'; // Placeholder for future use
+    // 2. Read values
+    const IS_DEBUG_MODE = localStorage.getItem('cc_debugMode') === 'true';
+    const IS_DEV = localStorage.getItem('cc_dev') === 'true';       // Placeholder for now
+    const IS_TESTER = localStorage.getItem('cc_tester') === 'true'; // Placeholder for now
 
     // 3. Apply Debug Logic
-    if (isDebugMode) {
-        console.log("Environment: DEBUG MODE ACTIVE. Unlocking all contents.");
-        ACHIEVEMENT_DATA.forEach(ach => {
-            ach.unlocked = true;
-            if(ach.maxProgress) ach.progress = ach.maxProgress;
-        });
-        // Note: We do not call saveGameData() here automatically. 
-        // This ensures that if you turn debug_mode off, your original legit save file 
-        // isn't permanently overwritten with completed data unless you trigger a save elsewhere.
+    if (IS_DEBUG_MODE) {
+        console.log("DEBUG MODE ACTIVE: Unlocking all achievements...");
+        // Call unlock with 'true' to silence the alert
+        setTimeout(() => unlockAllAchievements(true), 100); 
     }
 
-    if (isDev) {
-        console.log("Environment: DEVELOPER");
-        // Placeholder logic for Dev
-    }
+    if (IS_DEV) console.log("Welcome Developer.");
+    if (IS_TESTER) console.log("Tester Access Granted.");
 
-    if (isTester) {
-        console.log("Environment: TESTER");
-        // Placeholder logic for Tester
-    }
-    
     // --- ACHIEVEMENT SYSTEM ---
     
     const savedData = localStorage.getItem('cubeCombatData');
@@ -695,14 +684,18 @@
         }
     }
 
-    function unlockAllAchievements() {
+    function unlockAllAchievements(silent = false) {
         ACHIEVEMENT_DATA.forEach(ach => {
             ach.unlocked = true;
             if(ach.maxProgress) ach.progress = ach.maxProgress;
         });
         saveGameData();
         renderAchievements();
-        alert("All achievements unlocked for testing!");
+        
+        // Only show alert if called manually (not via auto-debug)
+        if (!silent) {
+            alert("All achievements unlocked via Debug Mode!");
+        }
     }
 
     function unlockAchievement(id) {
