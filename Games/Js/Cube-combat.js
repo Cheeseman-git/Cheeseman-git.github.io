@@ -1,4 +1,4 @@
-﻿// UPDATED CUBE DATA WITH SANDBOX STATS
+// UPDATED CUBE DATA WITH SANDBOX STATS
 const CUBE_DATA = [
     {
         id: 1, name: "Sword Master", color: "blue", hp: 100, attacks: "Slash, Parry",
@@ -368,7 +368,7 @@ let gameState = 'menu';
 let winner = null;
 let animationId = null;
 
-const keys = {};
+let keys = {};
 window.addEventListener('keydown', e => {
     keys[e.code] = true;
     if (e.code === 'Escape') {
@@ -389,21 +389,44 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => keys[e.code] = false);
 
 // --- P2P LOGIC ---
+const PEER_CONFIG = {
+    debug: 2,
+    config: {
+        'iceServers': [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+        ]
+    }
+};
+
 function initP2PHost() {
     resetP2P();
     document.getElementById('p2p-buttons').style.display = 'none';
     document.getElementById('p2p-host-section').style.display = 'block';
-    document.getElementById('p2p-status-msg').innerText = "Initializing Peer...";
-    peer = new Peer();
-    peer.on('open', (id) => {
-        document.getElementById('host-id-display').value = id;
-        document.getElementById('p2p-status-msg').innerText = "Wait for Player 2 to join...";
-        p2pRole = 'host';
-    });
-    peer.on('connection', (c) => {
-        conn = c;
-        setupConnection();
-    });
+    updateP2PStatus("Initializing Peer...", "yellow");
+
+    try {
+        peer = new Peer(null, PEER_CONFIG);
+
+        peer.on('open', (id) => {
+            document.getElementById('host-id-display').value = id;
+            updateP2PStatus("Waiting for Player 2 to join...", "#00aa00");
+            p2pRole = 'host';
+        });
+
+        peer.on('connection', (c) => {
+            conn = c;
+            setupConnection();
+        });
+
+        peer.on('error', (err) => {
+            console.error("Peer Error:", err);
+            updateP2PStatus("Error: " + err.type, "red");
+        });
+    } catch (e) {
+        updateP2PStatus("PeerJS Init Failed", "red");
+        console.error(e);
+    }
 }
 
 function initP2PJoin() {
@@ -411,33 +434,61 @@ function initP2PJoin() {
     document.getElementById('p2p-buttons').style.display = 'none';
     document.getElementById('p2p-join-section').style.display = 'block';
     p2pRole = 'client';
+    updateP2PStatus("Enter Host ID to connect", "white");
 }
 
 function connectToHost() {
     const hostId = document.getElementById('join-id-input').value.trim();
     if (!hostId) return alert("Please enter the Host ID");
-    document.getElementById('p2p-status-msg').innerText = "Connecting...";
-    peer = new Peer();
-    peer.on('open', () => {
-        conn = peer.connect(hostId);
-        setupConnection();
-    });
+
+    updateP2PStatus("Connecting...", "yellow");
+
+    try {
+        peer = new Peer(null, PEER_CONFIG);
+
+        peer.on('open', () => {
+            conn = peer.connect(hostId, { reliable: true });
+            setupConnection();
+        });
+
+        peer.on('error', (err) => {
+            console.error("Peer Error:", err);
+            updateP2PStatus("Connection Error: " + err.type, "red");
+        });
+    } catch (e) {
+        updateP2PStatus("PeerJS Init Failed", "red");
+        console.error(e);
+    }
+}
+
+function updateP2PStatus(msg, color) {
+    const el = document.getElementById('p2p-status-msg');
+    el.innerText = msg;
+    if (color) el.style.color = color;
 }
 
 function setupConnection() {
     conn.on('open', () => {
-        document.getElementById('p2p-status-msg').innerText = "Connected! Starting Game...";
-        if (p2pRole === 'host') {
-            setTimeout(() => {
-                conn.send({ type: 'START_GAME' });
-                startGame('p2p');
-            }, 1000);
+        updateP2PStatus("Connected! Syncing...", "#00FFFF");
+
+        // HANDSHAKE PROTOCOL
+        if (p2pRole === 'client') {
+            // Client sends READY first with their ID
+            conn.send({ type: 'READY', id: selectedCubeId });
         }
+        // Host waits for READY message
     });
+
     conn.on('data', (data) => handleNetworkData(data));
+
     conn.on('close', () => {
         alert("Connection lost");
         showMainMenu();
+    });
+
+    conn.on('error', (err) => {
+        console.error("Conn Error:", err);
+        alert("Connection Error");
     });
 }
 
@@ -455,27 +506,51 @@ function resetP2P() {
 }
 
 function handleNetworkData(data) {
-    if (data.type === 'INPUT') {
-        networkKeys = data.keys;
-    } else if (data.type === 'START_GAME') {
-        if (p2pRole === 'client') startGame('p2p');
-    } else if (data.type === 'STATE') {
-        if (gameState === 'playing') {
-            applyStateToCube(blueCube, data.p1);
-            applyStateToCube(redCube, data.p2);
-            updateUI();
-
-            // Sync global modes
-            isRetroMode = data.isRetroMode;
-            shatterActive = data.shatterActive;
-            if (data.shards) shatterShards = data.shards;
+    try {
+        if (data.type === 'INPUT') {
+            networkKeys = data.keys;
         }
-    } else if (data.type === 'GAMEOVER') {
-        gameState = 'gameover';
-        winner = data.winner;
-        showGameOver();
-    } else if (data.type === 'RESTART') {
-        restartGame(true);
+        else if (data.type === 'READY') {
+            if (p2pRole === 'host') {
+                updateP2PStatus("Player 2 Ready! Starting...", "#00FF00");
+                const p2Id = data.id || 1; // Default to 1 if missing
+                // Send Start Signal with BOTH IDs
+                const startMsg = {
+                    type: 'START_GAME',
+                    p1Id: selectedCubeId,
+                    p2Id: p2Id
+                };
+                conn.send(startMsg);
+                startGame('p2p', startMsg);
+            }
+        }
+        else if (data.type === 'START_GAME') {
+            if (p2pRole === 'client') {
+                startGame('p2p', data);
+            }
+        }
+        else if (data.type === 'STATE') {
+            if (gameState === 'playing' && blueCube && redCube) {
+                applyStateToCube(blueCube, data.p1);
+                applyStateToCube(redCube, data.p2);
+                updateUI();
+
+                // Sync global modes
+                isRetroMode = data.isRetroMode;
+                shatterActive = data.shatterActive;
+                if (data.shards) shatterShards = data.shards;
+            }
+        }
+        else if (data.type === 'GAMEOVER') {
+            gameState = 'gameover';
+            winner = data.winner;
+            showGameOver();
+        }
+        else if (data.type === 'RESTART') {
+            restartGame(true);
+        }
+    } catch (e) {
+        console.error("Network Data Error:", e);
     }
 }
 
@@ -604,6 +679,7 @@ class Entity {
         this.facingRight = true;
         this.invertControlsTimer = 0; // For Cube 6 mechanic
         this.damageMult = 1.0; // For weak minion logic
+        this.target = null;
     }
 
     update() {
@@ -769,11 +845,11 @@ class BlueCube extends Entity {
                 if (inputLeft) this.facingRight = false;
 
                 // Allow simple collision attack in retro mode
-                if (rectIntersect(this.x, this.y, this.w, this.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
+                if (rectIntersect(this.x, this.y, this.w, this.h, (this.target || redCube).x, (this.target || redCube).y, (this.target || redCube).w, (this.target || redCube).h)) {
                     if (this.slashCooldown <= 0) {
-                        redCube.takeDamage(10);
-                        redCube.vx = this.facingRight ? 10 : -10;
-                        redCube.vy = inputUp ? -10 : 10;
+                        (this.target || redCube).takeDamage(10);
+                        (this.target || redCube).vx = this.facingRight ? 10 : -10;
+                        (this.target || redCube).vy = inputUp ? -10 : 10;
                         this.slashCooldown = 30;
                     }
                 }
@@ -833,12 +909,12 @@ class BlueCube extends Entity {
         // Visual Effect
         spawnParticles(hitX + reach / 2, this.y + this.h / 2, "white", 5, 'spark');
 
-        if (!redCube.dead && rectIntersect(hitX, this.y, reach, this.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
-            if (!redCube.isInvincible) {
+        if (!(this.target || redCube).dead && rectIntersect(hitX, this.y, reach, this.h, (this.target || redCube).x, (this.target || redCube).y, (this.target || redCube).w, (this.target || redCube).h)) {
+            if (!(this.target || redCube).isInvincible) {
                 // Apply Damage Multiplier
-                redCube.takeDamage(20 * this.damageMult);
-                redCube.vx = this.facingRight ? 10 : -10;
-                redCube.vy = -5;
+                (this.target || redCube).takeDamage(20 * this.damageMult);
+                (this.target || redCube).vx = this.facingRight ? 10 : -10;
+                (this.target || redCube).vy = -5;
                 // Combo Logic: Hit
                 if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
             }
@@ -907,72 +983,72 @@ class GreenCube extends BlueCube {
                 // Suck in particles
                 if (Math.random() < 0.5) {
                     const angle = Math.random() * Math.PI * 2;
-const dist = 60;
-const px = this.x + this.w / 2 + Math.cos(angle) * dist;
-const py = this.y + this.h / 2 + Math.sin(angle) * dist;
-const p = new Particle(px, py, "#00FF00", 0, 10, 'beam_charge');
-p.vx = (this.x + this.w / 2 - px) * 0.1;
-p.vy = (this.y + this.h / 2 - py) * 0.1;
-particles.push(p);
+                    const dist = 60;
+                    const px = this.x + this.w / 2 + Math.cos(angle) * dist;
+                    const py = this.y + this.h / 2 + Math.sin(angle) * dist;
+                    const p = new Particle(px, py, "#00FF00", 0, 10, 'beam_charge');
+                    p.vx = (this.x + this.w / 2 - px) * 0.1;
+                    p.vy = (this.y + this.h / 2 - py) * 0.1;
+                    particles.push(p);
                 }
 
-if (this.beamTimer <= 0) {
-    this.beamState = 'FIRING';
-    this.beamTimer = 15;
-    this.fireBeam();
-}
+                if (this.beamTimer <= 0) {
+                    this.beamState = 'FIRING';
+                    this.beamTimer = 15;
+                    this.fireBeam();
+                }
             } else if (this.beamState === 'FIRING') {
-    this.color = "green";
-    if (this.beamTimer <= 0) this.beamState = 'IDLE';
-}
+                this.color = "green";
+                if (this.beamTimer <= 0) this.beamState = 'IDLE';
+            }
         } else {
-    if (keys['KeyF']) {
-        this.beamState = 'WINDUP';
-        this.beamTimer = 40;
+            if (keys['KeyF']) {
+                this.beamState = 'WINDUP';
+                this.beamTimer = 40;
+            }
+        }
     }
-}
-    }
 
-fireBeam() {
-    const beamW = 600;
-    const beamH = 30;
-    const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
-    const beamY = this.y + 15;
-
-    triggerShake(10);
-    spawnParticles(this.x + this.w / 2, this.y + this.h / 2, "#00FF00", 20, 'spark');
-
-    if (rectIntersect(beamX, beamY, beamW, beamH, redCube.x, redCube.y, redCube.w, redCube.h)) {
-        spawnParticles(redCube.x + redCube.w / 2, redCube.y + redCube.h / 2, "#00FF00", 15, 'spark');
-        redCube.takeDamage(20 * this.damageMult);
-        redCube.vx = this.facingRight ? 15 : -15;
-        if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
-    } else {
-        sessionStats.womboComboActive = false;
-    }
-}
-
-draw(ctx) {
-    super.draw(ctx);
-    if (isRetroMode) return;
-
-    if (this.beamState === 'FIRING') {
-        ctx.fillStyle = "#00FF00";
+    fireBeam() {
         const beamW = 600;
+        const beamH = 30;
         const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
+        const beamY = this.y + 15;
 
-        // Glowy beam
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = "#00FF00";
-        ctx.fillRect(beamX, this.y + 15, beamW, 30);
+        triggerShake(10);
+        spawnParticles(this.x + this.w / 2, this.y + this.h / 2, "#00FF00", 20, 'spark');
 
-        // Inner core
-        ctx.fillStyle = "white";
-        ctx.fillRect(beamX, this.y + 22, beamW, 16);
-
-        ctx.shadowBlur = 0;
+        if (rectIntersect(beamX, beamY, beamW, beamH, (this.target || redCube).x, (this.target || redCube).y, (this.target || redCube).w, (this.target || redCube).h)) {
+            spawnParticles((this.target || redCube).x + (this.target || redCube).w / 2, (this.target || redCube).y + (this.target || redCube).h / 2, "#00FF00", 15, 'spark');
+            (this.target || redCube).takeDamage(20 * this.damageMult);
+            (this.target || redCube).vx = this.facingRight ? 15 : -15;
+            if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
+        } else {
+            sessionStats.womboComboActive = false;
+        }
     }
-}
+
+    draw(ctx) {
+        super.draw(ctx);
+        if (isRetroMode) return;
+
+        if (this.beamState === 'FIRING') {
+            ctx.fillStyle = "#00FF00";
+            const beamW = 600;
+            const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
+
+            // Glowy beam
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#00FF00";
+            ctx.fillRect(beamX, this.y + 15, beamW, 30);
+
+            // Inner core
+            ctx.fillStyle = "white";
+            ctx.fillRect(beamX, this.y + 22, beamW, 16);
+
+            ctx.shadowBlur = 0;
+        }
+    }
 }
 
 // CUBE 4: MAGIC CUBE
@@ -1097,14 +1173,14 @@ class BrownCube extends BlueCube {
         const reach = 60;
         const hitX = this.facingRight ? this.x + this.w : this.x - reach;
 
-        if (rectIntersect(hitX, this.y + 20, reach, 30, redCube.x, redCube.y, redCube.w, redCube.h)) {
-            redCube.takeDamage(15 * this.damageMult);
+        if (rectIntersect(hitX, this.y + 20, reach, 30, (this.target || redCube).x, (this.target || redCube).y, (this.target || redCube).w, (this.target || redCube).h)) {
+            (this.target || redCube).takeDamage(15 * this.damageMult);
             // HIGH Knockback
-            redCube.vx = this.facingRight ? 25 : -25;
-            redCube.vy = -10;
-            redCube.state = 'STUNNED'; // Mini stun
-            redCube.stateTimer = 20;
-            spawnParticles(redCube.x + redCube.w / 2, redCube.y + redCube.h / 2, "yellow", 10, 'spark');
+            (this.target || redCube).vx = this.facingRight ? 25 : -25;
+            (this.target || redCube).vy = -10;
+            (this.target || redCube).state = 'STUNNED'; // Mini stun
+            (this.target || redCube).stateTimer = 20;
+            spawnParticles((this.target || redCube).x + (this.target || redCube).w / 2, (this.target || redCube).y + (this.target || redCube).h / 2, "yellow", 10, 'spark');
             triggerShake(8);
             if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
         } else {
@@ -1116,9 +1192,9 @@ class BrownCube extends BlueCube {
         const beamW = 600;
         const beamX = this.facingRight ? this.x + this.w : this.x - beamW;
         triggerShake(10);
-        if (rectIntersect(beamX, this.y + 15, beamW, 30, redCube.x, redCube.y, redCube.w, redCube.h)) {
-            redCube.takeDamage(20 * this.damageMult);
-            spawnParticles(redCube.x + redCube.w / 2, redCube.y + redCube.h / 2, "yellow", 10, 'spark');
+        if (rectIntersect(beamX, this.y + 15, beamW, 30, (this.target || redCube).x, (this.target || redCube).y, (this.target || redCube).w, (this.target || redCube).h)) {
+            (this.target || redCube).takeDamage(20 * this.damageMult);
+            spawnParticles((this.target || redCube).x + (this.target || redCube).w / 2, (this.target || redCube).y + (this.target || redCube).h / 2, "yellow", 10, 'spark');
             if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
         } else {
             sessionStats.womboComboActive = false;
@@ -1183,17 +1259,17 @@ class PurpleCube extends BlueCube {
             this.vx = 0;
 
             // Pull mechanics
-            const dx = this.x - redCube.x;
+            const dx = this.x - (this.target || redCube).x;
             const dist = Math.abs(dx);
 
             // If close enough, drag them
             if (dist < 500) {
-                redCube.vx = (dx > 0) ? 8 : -8;
+                (this.target || redCube).vx = (dx > 0) ? 8 : -8;
 
                 // Invert Controls Effect (3 seconds = ~180 frames)
                 // Apply if we actually "touch" them (get close)
                 if (dist < 80) {
-                    redCube.invertControlsTimer = 180;
+                    (this.target || redCube).invertControlsTimer = 180;
                 }
             }
 
@@ -1233,7 +1309,7 @@ class PurpleCube extends BlueCube {
             ctx.lineWidth = 5;
             ctx.beginPath();
             ctx.moveTo(this.x + this.w / 2, this.y + this.h / 2);
-            ctx.lineTo(redCube.x + redCube.w / 2, redCube.y + redCube.h / 2);
+            ctx.lineTo((this.target || redCube).x + (this.target || redCube).w / 2, (this.target || redCube).y + (this.target || redCube).h / 2);
             ctx.stroke();
 
             // Electric effect
@@ -1241,10 +1317,10 @@ class PurpleCube extends BlueCube {
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(this.x + this.w / 2, this.y + this.h / 2);
-            const midX = (this.x + redCube.x) / 2 + (Math.random() - 0.5) * 50;
-            const midY = (this.y + redCube.y) / 2 + (Math.random() - 0.5) * 50;
+            const midX = (this.x + (this.target || redCube).x) / 2 + (Math.random() - 0.5) * 50;
+            const midY = (this.y + (this.target || redCube).y) / 2 + (Math.random() - 0.5) * 50;
             ctx.lineTo(midX, midY);
-            ctx.lineTo(redCube.x + redCube.w / 2, redCube.y + redCube.h / 2);
+            ctx.lineTo((this.target || redCube).x + (this.target || redCube).w / 2, (this.target || redCube).y + (this.target || redCube).h / 2);
             ctx.stroke();
         }
     }
@@ -1293,8 +1369,8 @@ class VigilanteCube extends BlueCube {
             this.droneTimer--;
 
             // Drone Movement (Hover over enemy)
-            let targetX = redCube.x;
-            let targetY = redCube.y - 150;
+            let targetX = (this.target || redCube).x;
+            let targetY = (this.target || redCube).y - 150;
 
             // Smooth Lerp
             this.droneX += (targetX - this.droneX) * 0.1;
@@ -1305,9 +1381,9 @@ class VigilanteCube extends BlueCube {
             if (this.droneFireTimer <= 0) {
                 this.droneFireTimer = 60; // Fire every 1 second
                 // Hitscan check (simple)
-                if (Math.abs(this.droneX - redCube.x) < 50) {
-                    redCube.takeDamage(5);
-                    spawnParticles(redCube.x + redCube.w / 2, redCube.y, "cyan", 5, 'spark');
+                if (Math.abs(this.droneX - (this.target || redCube).x) < 50) {
+                    (this.target || redCube).takeDamage(5);
+                    spawnParticles((this.target || redCube).x + (this.target || redCube).w / 2, (this.target || redCube).y, "cyan", 5, 'spark');
                 }
             }
 
@@ -1343,10 +1419,10 @@ class VigilanteCube extends BlueCube {
             }
 
             // Collision during dash
-            if (rectIntersect(this.x, this.y, this.w, this.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
-                redCube.takeDamage(15);
-                redCube.vx = this.facingRight ? 15 : -15; // Knockback
-                redCube.vy = -5;
+            if (rectIntersect(this.x, this.y, this.w, this.h, (this.target || redCube).x, (this.target || redCube).y, (this.target || redCube).w, (this.target || redCube).h)) {
+                (this.target || redCube).takeDamage(15);
+                (this.target || redCube).vx = this.facingRight ? 15 : -15; // Knockback
+                (this.target || redCube).vy = -5;
                 triggerShake(8);
 
                 // Stop dash on impact
@@ -1408,7 +1484,7 @@ class VigilanteCube extends BlueCube {
             // Laser Beam (Flash)
             if (this.droneFireTimer > 55) { // Show beam for first 5 frames of cycle
                 ctx.fillStyle = "rgba(0, 255, 255, 0.8)";
-                ctx.fillRect(this.droneX + 14, this.droneY + 10, 2, redCube.y - this.droneY);
+                ctx.fillRect(this.droneX + 14, this.droneY + 10, 2, (this.target || redCube).y - this.droneY);
 
                 // Muzzle flash
                 ctx.beginPath();
@@ -1508,10 +1584,10 @@ class AngrySniperCube extends BlueCube {
             }
 
             // Collision with Enemy
-            if (rectIntersect(this.x, this.y, this.w, this.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
-                redCube.takeDamage(15 * this.damageMult); // Reduced to 15 (Standard Dash Dmg)
-                redCube.vx = this.facingRight ? 15 : -15;
-                redCube.vy = -5;
+            if (rectIntersect(this.x, this.y, this.w, this.h, (this.target || redCube).x, (this.target || redCube).y, (this.target || redCube).w, (this.target || redCube).h)) {
+                (this.target || redCube).takeDamage(15 * this.damageMult); // Reduced to 15 (Standard Dash Dmg)
+                (this.target || redCube).vx = this.facingRight ? 15 : -15;
+                (this.target || redCube).vy = -5;
                 this.dashActive = false; // Stop dash on impact
                 this.vx = this.facingRight ? -5 : 5; // Bounce back
                 this.dashHit = true;
@@ -1580,8 +1656,8 @@ class AngrySniperCube extends BlueCube {
         triggerShake(8);
         spawnParticles(this.x + this.w / 2, this.y + this.h / 2, "cyan", 15, 'spark');
 
-        if (rectIntersect(beamX, beamY, beamW, beamH, redCube.x, redCube.y, redCube.w, redCube.h)) {
-            redCube.takeDamage(25 * this.damageMult); // Reduced from 30 -> 25
+        if (rectIntersect(beamX, beamY, beamW, beamH, (this.target || redCube).x, (this.target || redCube).y, (this.target || redCube).w, (this.target || redCube).h)) {
+            (this.target || redCube).takeDamage(25 * this.damageMult); // Reduced from 30 -> 25
             if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
         } else {
             sessionStats.womboComboActive = false;
@@ -1717,8 +1793,8 @@ class Fbt7Cube extends BlueCube {
         // ERROR 404 effects
         if (this.error404Active) {
             this.error404Timer--;
-            if (redCube && !redCube.dead) {
-                redCube.stateTimer += 0.5;
+            if (redCube && !(this.target || redCube).dead) {
+                (this.target || redCube).stateTimer += 0.5;
             }
 
             if (this.error404Timer <= 0) {
@@ -1807,283 +1883,283 @@ class Fbt7Cube extends BlueCube {
     performDeleteSlash() {
         this.deleteSlashActive = true;
         this.deleteSlashTimer = 20;
-this.deleteCooldown = 90;
+        this.deleteCooldown = 90;
 
-const reach = 120;
-const hitX = this.facingRight ? this.x + this.w : this.x - reach;
-
-// Poison Particles
-spawnParticles(hitX + reach / 2, this.y + this.h / 2, "#00FF00", 20, 'bubble');
-
-if (!redCube.dead && rectIntersect(hitX, this.y - 20, reach, this.h + 40, redCube.x, redCube.y, redCube.w, redCube.h)) {
-    if (!redCube.isInvincible) {
-        redCube.takeDamage(15 * this.damageMult);
-        redCube.vx = this.facingRight ? 12 : -12;
-        redCube.vy = -8;
-
-        this.poisonTargets.push({
-            target: redCube,
-            ticksRemaining: 5,
-            tickTimer: 60
-        });
-        if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
-    }
-} else {
-    sessionStats.womboComboActive = false;
-}
-    }
-
-processPoisonDamage() {
-    for (let i = this.poisonTargets.length - 1; i >= 0; i--) {
-        const poison = this.poisonTargets[i];
-        poison.tickTimer--;
-
-        // Visual bubble effect on poisoned target
-        if (Math.random() < 0.1) {
-            spawnParticles(poison.target.x + poison.target.w / 2, poison.target.y, "#00FF00", 1, 'bubble');
-        }
-
-        if (poison.tickTimer <= 0) {
-            poison.tickTimer = 60;
-            poison.ticksRemaining--;
-
-            if (!poison.target.dead) {
-                poison.target.takeDamage(8);
-                poison.target.color = "#00FF00";
-                setTimeout(() => {
-                    if (!poison.target.dead) {
-                        poison.target.color = poison.target.baseColor || COLORS.RED;
-                    }
-                }, 100);
-            }
-
-            if (poison.ticksRemaining <= 0) {
-                this.poisonTargets.splice(i, 1);
-            }
-        }
-    }
-}
-
-performError404() {
-    this.error404Active = true;
-    this.error404Timer = 180;
-    this.error404Cooldown = 480;
-
-    if (!redCube.dead) {
-        redCube.invertControlsTimer = 180;
-        redCube.state = 'STUNNED';
-        redCube.stateTimer = 30;
-        triggerShake(5);
-    }
-
-    if (Math.random() < 0.4) {
-        this.spawnClone();
-    }
-}
-
-spawnClone() {
-    this.clone = {
-        x: this.facingRight ? this.x - 60 : this.x + 60,
-        y: this.y,
-        w: this.w,
-        h: this.h,
-        facingRight: this.facingRight,
-        hp: 50,
-        dead: false,
-        attackTimer: 60,
-        alpha: 0.6
-    };
-}
-
-updateClone() {
-    if (!this.clone || this.clone.dead) return;
-
-    const dx = redCube.x - this.clone.x;
-    if (Math.abs(dx) > 100) {
-        this.clone.x += dx > 0 ? 3 : -3;
-        this.clone.facingRight = dx > 0;
-    }
-
-    this.clone.attackTimer--;
-    if (this.clone.attackTimer <= 0) {
-        this.clone.attackTimer = 90;
-        const reach = 70;
-        const hitX = this.clone.facingRight ? this.clone.x + this.clone.w : this.clone.x - reach;
-
-        if (!redCube.dead && rectIntersect(hitX, this.clone.y, reach, this.clone.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
-            redCube.takeDamage(10);
-        }
-    }
-
-    if (!this.error404Active) {
-        this.clone = null;
-    }
-}
-
-activateHatred() {
-    this.hatredActive = true;
-    this.hatredTimer = 300;
-    this.hatredCooldown = 600;
-    triggerShake(5);
-    spawnParticles(this.x + this.w / 2, this.y + this.h / 2, "red", 30, 'spark');
-}
-
-// TERMINATION: Reality Shatter and Retro Transition
-performTermination() {
-    this.terminationCooldown = 1200; // Long cooldown
-
-    // 1. Shatter Effect
-    triggerShatter();
-    triggerShake(20);
-
-    // 2. Start Sequence
-    // Sequence: Retro(2s) -> Normal(1s) -> Retro(2s) -> Normal(1s) -> Retro(2s) -> Normal(1s) -> Retro(2s) -> Normal(End)
-    // Times in ms
-    const phase1 = 1000; // Wait for shatter anim
-    const retroDur = 2000;
-    const normalDur = 1000;
-
-    let time = phase1;
-
-    // Phase 1 Retro
-    setTimeout(() => { isRetroMode = true; }, time);
-    time += retroDur;
-
-    // Phase 1 Normal
-    setTimeout(() => { isRetroMode = false; triggerShatter(); }, time);
-    time += normalDur;
-
-    // Phase 2 Retro
-    setTimeout(() => { isRetroMode = true; }, time);
-    time += retroDur;
-
-    // Phase 2 Normal
-    setTimeout(() => { isRetroMode = false; triggerShatter(); }, time);
-    time += normalDur;
-
-    // Phase 3 Retro
-    setTimeout(() => { isRetroMode = true; }, time);
-    time += retroDur;
-
-    // Phase 3 Normal
-    setTimeout(() => { isRetroMode = false; triggerShatter(); }, time);
-    time += normalDur;
-
-    // Phase 4 Retro
-    setTimeout(() => { isRetroMode = true; }, time);
-    time += retroDur;
-
-    // Final Normal
-    setTimeout(() => { isRetroMode = false; triggerShatter(); }, time);
-}
-
-draw(ctx) {
-    if (this.dead) return;
-    if (isRetroMode) {
-        // Simple retro draw override
-        ctx.fillStyle = "black";
-        ctx.fillRect(this.x, this.y, this.w, this.h);
-        return;
-    }
-
-    // Draw main cube
-    ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, this.w, this.h);
-
-    // Hatred glow effect
-    if (this.hatredActive) {
-        ctx.shadowColor = "#FF0000";
-        ctx.shadowBlur = 20;
-        ctx.strokeStyle = "#FF0000";
-        ctx.lineWidth = 4;
-        ctx.strokeRect(this.x - 2, this.y - 2, this.w + 4, this.h + 4);
-        ctx.shadowBlur = 0;
-    } else {
-        ctx.strokeStyle = "#444";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(this.x, this.y, this.w, this.h);
-    }
-
-    // Eye
-    ctx.fillStyle = this.hatredActive ? "#FF0000" : "#00FF00";
-    const eyeX = this.facingRight ? this.x + 30 : this.x + 10;
-    ctx.fillRect(eyeX, this.y + 10, 10, 10);
-
-    // DELETE SLASH visual
-    if (this.deleteSlashActive) {
         const reach = 120;
         const hitX = this.facingRight ? this.x + this.w : this.x - reach;
 
-        // Poison green slash
-        ctx.fillStyle = "rgba(0, 255, 0, 0.6)";
-        ctx.fillRect(hitX, this.y - 20, reach, this.h + 40);
+        // Poison Particles
+        spawnParticles(hitX + reach / 2, this.y + this.h / 2, "#00FF00", 20, 'bubble');
 
-        // Dripping poison effect
-        for (let i = 0; i < 5; i++) {
-            ctx.fillStyle = "rgba(0, 180, 0, 0.8)";
-            ctx.beginPath();
-            ctx.arc(hitX + Math.random() * reach, this.y + this.h + Math.random() * 20, 3, 0, Math.PI * 2);
-            ctx.fill();
+        if (!(this.target || redCube).dead && rectIntersect(hitX, this.y - 20, reach, this.h + 40, (this.target || redCube).x, (this.target || redCube).y, (this.target || redCube).w, (this.target || redCube).h)) {
+            if (!(this.target || redCube).isInvincible) {
+                (this.target || redCube).takeDamage(15 * this.damageMult);
+                (this.target || redCube).vx = this.facingRight ? 12 : -12;
+                (this.target || redCube).vy = -8;
+
+                this.poisonTargets.push({
+                    target: redCube,
+                    ticksRemaining: 5,
+                    tickTimer: 60
+                });
+                if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
+            }
+        } else {
+            sessionStats.womboComboActive = false;
         }
     }
 
-    // ERROR 404 visual
-    if (this.error404Active) {
-        ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
-        ctx.font = "bold 16px monospace";
-        ctx.fillText("ERROR 404", this.x - 10, this.y - 30);
+    processPoisonDamage() {
+        for (let i = this.poisonTargets.length - 1; i >= 0; i--) {
+            const poison = this.poisonTargets[i];
+            poison.tickTimer--;
 
-        // Glitch lines
-        for (let i = 0; i < 3; i++) {
-            ctx.strokeStyle = `rgba(255, 0, 0, ${0.5 - i * 0.1})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(this.x + Math.random() * this.w, this.y);
-            ctx.lineTo(this.x + Math.random() * this.w, this.y + this.h);
-            ctx.stroke();
+            // Visual bubble effect on poisoned target
+            if (Math.random() < 0.1) {
+                spawnParticles(poison.target.x + poison.target.w / 2, poison.target.y, "#00FF00", 1, 'bubble');
+            }
+
+            if (poison.tickTimer <= 0) {
+                poison.tickTimer = 60;
+                poison.ticksRemaining--;
+
+                if (!poison.target.dead) {
+                    poison.target.takeDamage(8);
+                    poison.target.color = "#00FF00";
+                    setTimeout(() => {
+                        if (!poison.target.dead) {
+                            poison.target.color = poison.target.baseColor || COLORS.RED;
+                        }
+                    }, 100);
+                }
+
+                if (poison.ticksRemaining <= 0) {
+                    this.poisonTargets.splice(i, 1);
+                }
+            }
         }
     }
 
-    // Draw clone
-    if (this.clone && !this.clone.dead) {
-        ctx.globalAlpha = this.clone.alpha;
-        ctx.fillStyle = "black";
-        ctx.fillRect(this.clone.x, this.clone.y, this.clone.w, this.clone.h);
-        ctx.strokeStyle = "#00FF00";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(this.clone.x, this.clone.y, this.clone.w, this.clone.h);
+    performError404() {
+        this.error404Active = true;
+        this.error404Timer = 180;
+        this.error404Cooldown = 480;
 
-        // Clone eye
-        ctx.fillStyle = "#00FF00";
-        const cloneEyeX = this.clone.facingRight ? this.clone.x + 30 : this.clone.x + 10;
-        ctx.fillRect(cloneEyeX, this.clone.y + 10, 10, 10);
-        ctx.globalAlpha = 1.0;
+        if (!(this.target || redCube).dead) {
+            (this.target || redCube).invertControlsTimer = 180;
+            (this.target || redCube).state = 'STUNNED';
+            (this.target || redCube).stateTimer = 30;
+            triggerShake(5);
+        }
+
+        if (Math.random() < 0.4) {
+            this.spawnClone();
+        }
     }
 
-    // Draw ability cooldown indicators
-    ctx.font = "10px Arial";
-    ctx.textAlign = "left";
-    let indicatorY = this.y - 45;
+    spawnClone() {
+        this.clone = {
+            x: this.facingRight ? this.x - 60 : this.x + 60,
+            y: this.y,
+            w: this.w,
+            h: this.h,
+            facingRight: this.facingRight,
+            hp: 50,
+            dead: false,
+            attackTimer: 60,
+            alpha: 0.6
+        };
+    }
 
-    // DELETE cooldown
-    ctx.fillStyle = this.deleteCooldown > 0 ? "#666" : "#00FF00";
-    ctx.fillText(`[SPACE] DELETE ${this.deleteCooldown > 0 ? Math.ceil(this.deleteCooldown / 60) + 's' : 'READY'}`, this.x - 20, indicatorY);
-    indicatorY += 12;
+    updateClone() {
+        if (!this.clone || this.clone.dead) return;
 
-    // ERROR 404 cooldown
-    ctx.fillStyle = this.error404Cooldown > 0 ? "#666" : "#FF0000";
-    ctx.fillText(`[F] 404 ${this.error404Active ? 'ACTIVE' : (this.error404Cooldown > 0 ? Math.ceil(this.error404Cooldown / 60) + 's' : 'READY')}`, this.x - 20, indicatorY);
-    indicatorY += 12;
+        const dx = (this.target || redCube).x - this.clone.x;
+        if (Math.abs(dx) > 100) {
+            this.clone.x += dx > 0 ? 3 : -3;
+            this.clone.facingRight = dx > 0;
+        }
 
-    // HATRED cooldown
-    ctx.fillStyle = this.hatredCooldown > 0 ? "#666" : "#8B0000";
-    ctx.fillText(`[Q] HATRED ${this.hatredActive ? 'ACTIVE' : (this.hatredCooldown > 0 ? Math.ceil(this.hatredCooldown / 60) + 's' : 'READY')}`, this.x - 20, indicatorY);
-    indicatorY += 12;
+        this.clone.attackTimer--;
+        if (this.clone.attackTimer <= 0) {
+            this.clone.attackTimer = 90;
+            const reach = 70;
+            const hitX = this.clone.facingRight ? this.clone.x + this.clone.w : this.clone.x - reach;
 
-    // TERMINATION
-    ctx.fillStyle = this.terminationCooldown > 0 ? "#666" : "#000000";
-    ctx.fillText(`[E] TERMINATION ${this.terminationCooldown > 0 ? Math.ceil(this.terminationCooldown / 60) + 's' : 'READY'}`, this.x - 20, indicatorY);
-}
+            if (!(this.target || redCube).dead && rectIntersect(hitX, this.clone.y, reach, this.clone.h, (this.target || redCube).x, (this.target || redCube).y, (this.target || redCube).w, (this.target || redCube).h)) {
+                (this.target || redCube).takeDamage(10);
+            }
+        }
+
+        if (!this.error404Active) {
+            this.clone = null;
+        }
+    }
+
+    activateHatred() {
+        this.hatredActive = true;
+        this.hatredTimer = 300;
+        this.hatredCooldown = 600;
+        triggerShake(5);
+        spawnParticles(this.x + this.w / 2, this.y + this.h / 2, "red", 30, 'spark');
+    }
+
+    // TERMINATION: Reality Shatter and Retro Transition
+    performTermination() {
+        this.terminationCooldown = 1200; // Long cooldown
+
+        // 1. Shatter Effect
+        triggerShatter();
+        triggerShake(20);
+
+        // 2. Start Sequence
+        // Sequence: Retro(2s) -> Normal(1s) -> Retro(2s) -> Normal(1s) -> Retro(2s) -> Normal(1s) -> Retro(2s) -> Normal(End)
+        // Times in ms
+        const phase1 = 1000; // Wait for shatter anim
+        const retroDur = 2000;
+        const normalDur = 1000;
+
+        let time = phase1;
+
+        // Phase 1 Retro
+        setTimeout(() => { isRetroMode = true; }, time);
+        time += retroDur;
+
+        // Phase 1 Normal
+        setTimeout(() => { isRetroMode = false; triggerShatter(); }, time);
+        time += normalDur;
+
+        // Phase 2 Retro
+        setTimeout(() => { isRetroMode = true; }, time);
+        time += retroDur;
+
+        // Phase 2 Normal
+        setTimeout(() => { isRetroMode = false; triggerShatter(); }, time);
+        time += normalDur;
+
+        // Phase 3 Retro
+        setTimeout(() => { isRetroMode = true; }, time);
+        time += retroDur;
+
+        // Phase 3 Normal
+        setTimeout(() => { isRetroMode = false; triggerShatter(); }, time);
+        time += normalDur;
+
+        // Phase 4 Retro
+        setTimeout(() => { isRetroMode = true; }, time);
+        time += retroDur;
+
+        // Final Normal
+        setTimeout(() => { isRetroMode = false; triggerShatter(); }, time);
+    }
+
+    draw(ctx) {
+        if (this.dead) return;
+        if (isRetroMode) {
+            // Simple retro draw override
+            ctx.fillStyle = "black";
+            ctx.fillRect(this.x, this.y, this.w, this.h);
+            return;
+        }
+
+        // Draw main cube
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.w, this.h);
+
+        // Hatred glow effect
+        if (this.hatredActive) {
+            ctx.shadowColor = "#FF0000";
+            ctx.shadowBlur = 20;
+            ctx.strokeStyle = "#FF0000";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(this.x - 2, this.y - 2, this.w + 4, this.h + 4);
+            ctx.shadowBlur = 0;
+        } else {
+            ctx.strokeStyle = "#444";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(this.x, this.y, this.w, this.h);
+        }
+
+        // Eye
+        ctx.fillStyle = this.hatredActive ? "#FF0000" : "#00FF00";
+        const eyeX = this.facingRight ? this.x + 30 : this.x + 10;
+        ctx.fillRect(eyeX, this.y + 10, 10, 10);
+
+        // DELETE SLASH visual
+        if (this.deleteSlashActive) {
+            const reach = 120;
+            const hitX = this.facingRight ? this.x + this.w : this.x - reach;
+
+            // Poison green slash
+            ctx.fillStyle = "rgba(0, 255, 0, 0.6)";
+            ctx.fillRect(hitX, this.y - 20, reach, this.h + 40);
+
+            // Dripping poison effect
+            for (let i = 0; i < 5; i++) {
+                ctx.fillStyle = "rgba(0, 180, 0, 0.8)";
+                ctx.beginPath();
+                ctx.arc(hitX + Math.random() * reach, this.y + this.h + Math.random() * 20, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // ERROR 404 visual
+        if (this.error404Active) {
+            ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+            ctx.font = "bold 16px monospace";
+            ctx.fillText("ERROR 404", this.x - 10, this.y - 30);
+
+            // Glitch lines
+            for (let i = 0; i < 3; i++) {
+                ctx.strokeStyle = `rgba(255, 0, 0, ${0.5 - i * 0.1})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(this.x + Math.random() * this.w, this.y);
+                ctx.lineTo(this.x + Math.random() * this.w, this.y + this.h);
+                ctx.stroke();
+            }
+        }
+
+        // Draw clone
+        if (this.clone && !this.clone.dead) {
+            ctx.globalAlpha = this.clone.alpha;
+            ctx.fillStyle = "black";
+            ctx.fillRect(this.clone.x, this.clone.y, this.clone.w, this.clone.h);
+            ctx.strokeStyle = "#00FF00";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(this.clone.x, this.clone.y, this.clone.w, this.clone.h);
+
+            // Clone eye
+            ctx.fillStyle = "#00FF00";
+            const cloneEyeX = this.clone.facingRight ? this.clone.x + 30 : this.clone.x + 10;
+            ctx.fillRect(cloneEyeX, this.clone.y + 10, 10, 10);
+            ctx.globalAlpha = 1.0;
+        }
+
+        // Draw ability cooldown indicators
+        ctx.font = "10px Arial";
+        ctx.textAlign = "left";
+        let indicatorY = this.y - 45;
+
+        // DELETE cooldown
+        ctx.fillStyle = this.deleteCooldown > 0 ? "#666" : "#00FF00";
+        ctx.fillText(`[SPACE] DELETE ${this.deleteCooldown > 0 ? Math.ceil(this.deleteCooldown / 60) + 's' : 'READY'}`, this.x - 20, indicatorY);
+        indicatorY += 12;
+
+        // ERROR 404 cooldown
+        ctx.fillStyle = this.error404Cooldown > 0 ? "#666" : "#FF0000";
+        ctx.fillText(`[F] 404 ${this.error404Active ? 'ACTIVE' : (this.error404Cooldown > 0 ? Math.ceil(this.error404Cooldown / 60) + 's' : 'READY')}`, this.x - 20, indicatorY);
+        indicatorY += 12;
+
+        // HATRED cooldown
+        ctx.fillStyle = this.hatredCooldown > 0 ? "#666" : "#8B0000";
+        ctx.fillText(`[Q] HATRED ${this.hatredActive ? 'ACTIVE' : (this.hatredCooldown > 0 ? Math.ceil(this.hatredCooldown / 60) + 's' : 'READY')}`, this.x - 20, indicatorY);
+        indicatorY += 12;
+
+        // TERMINATION
+        ctx.fillStyle = this.terminationCooldown > 0 ? "#666" : "#000000";
+        ctx.fillText(`[E] TERMINATION ${this.terminationCooldown > 0 ? Math.ceil(this.terminationCooldown / 60) + 's' : 'READY'}`, this.x - 20, indicatorY);
+    }
 }
 
 // --- SHATTER EFFECT UTILS ---
@@ -2495,11 +2571,11 @@ class Bobbythe124Cube extends BlueCube {
 
         spawnParticles(hitX + reach / 2, this.y + this.h / 2, "white", 5, 'spark');
 
-        if (!redCube.dead && rectIntersect(hitX, this.y, reach, this.h, redCube.x, redCube.y, redCube.w, redCube.h)) {
-            if (!redCube.isInvincible) {
-                redCube.takeDamage(35 * this.damageMult);
-                redCube.vx = this.facingRight ? 10 : -10;
-                redCube.vy = -5;
+        if (!(this.target || redCube).dead && rectIntersect(hitX, this.y, reach, this.h, (this.target || redCube).x, (this.target || redCube).y, (this.target || redCube).w, (this.target || redCube).h)) {
+            if (!(this.target || redCube).isInvincible) {
+                (this.target || redCube).takeDamage(35 * this.damageMult);
+                (this.target || redCube).vx = this.facingRight ? 10 : -10;
+                (this.target || redCube).vy = -5;
                 if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
             }
         } else {
@@ -2523,9 +2599,9 @@ class Bobbythe124Cube extends BlueCube {
 
         triggerShake(10);
 
-        if (rectIntersect(beamX, beamY, beamW, beamH, redCube.x, redCube.y, redCube.w, redCube.h)) {
-            redCube.takeDamage(50 * this.damageMult);
-            redCube.vx = this.facingRight ? 15 : -15;
+        if (rectIntersect(beamX, beamY, beamW, beamH, (this.target || redCube).x, (this.target || redCube).y, (this.target || redCube).w, (this.target || redCube).h)) {
+            (this.target || redCube).takeDamage(50 * this.damageMult);
+            (this.target || redCube).vx = this.facingRight ? 15 : -15;
             if (sessionStats.womboComboActive) sessionStats.womboComboHits++;
         } else {
             sessionStats.womboComboActive = false;
@@ -2542,11 +2618,11 @@ class Bobbythe124Cube extends BlueCube {
 
         spawnParticles(hitX + reach / 2, this.y + this.h / 2, "red", 15, 'bubble');
 
-        if (!redCube.dead && rectIntersect(hitX, this.y - 20, reach, this.h + 40, redCube.x, redCube.y, redCube.w, redCube.h)) {
-            if (!redCube.isInvincible) {
-                redCube.takeDamage(20 * this.damageMult);
-                redCube.vx = this.facingRight ? 12 : -12;
-                redCube.vy = -8;
+        if (!(this.target || redCube).dead && rectIntersect(hitX, this.y - 20, reach, this.h + 40, (this.target || redCube).x, (this.target || redCube).y, (this.target || redCube).w, (this.target || redCube).h)) {
+            if (!(this.target || redCube).isInvincible) {
+                (this.target || redCube).takeDamage(20 * this.damageMult);
+                (this.target || redCube).vx = this.facingRight ? 12 : -12;
+                (this.target || redCube).vy = -8;
 
                 // Apply bleed/poison effect
                 this.poisonTargets.push({
@@ -2706,209 +2782,237 @@ class RedCube extends Entity {
     update() {
         super.update();
         if (gameMode === 'p2p' && p2pRole === 'client') return;
-if (this.dead) return;
+        if (this.dead) return;
 
-// Simple AI
-if (this.stateTimer > 0) {
-    this.stateTimer--;
-    if (this.stateTimer <= 0) {
-        this.state = 'IDLE';
-        this.isInvincible = false;
-        this.color = COLORS.RED;
-    } else if (this.state === 'STUNNED') {
-        this.vx = 0;
-    }
-    return;
-}
-
-const dist = Math.abs(this.x - blueCube.x);
-
-// AI Logic
-if (Math.random() < 0.02 && dist < 300) {
-    // Dash Attack
-    this.state = 'DASHING';
-    this.stateTimer = 20;
-    this.vx = (blueCube.x < this.x) ? -15 : 15;
-    this.isInvincible = true;
-    this.color = "#FF4444"; // Lighter red
-} else if (Math.random() < 0.005) {
-    // Jump
-    if (this.isGrounded) this.vy = -JUMP_FORCE;
-} else if (Math.random() < 0.01 && dist > 400) {
-    // Laser Attack
-    this.state = 'LASER_CHARGE';
-    this.stateTimer = 60; // 1 second charge
-    this.color = "cyan"; // Telegraph color
-} else {
-    // Move towards player
-    if (blueCube.x < this.x) {
-        this.vx = -MOVE_SPEED * 0.8;
-        this.facingRight = false;
-    } else {
-        this.vx = MOVE_SPEED * 0.8;
-        this.facingRight = true;
-    }
-}
-
-// LASER LOGIC
-if (this.state === 'LASER_CHARGE') {
-    this.vx = 0; // Stop moving
-    if (this.stateTimer <= 1) { // Fire at end of charge
-        this.fireBeam();
-    }
-} else if (this.state === 'DASHING') {
-    // Dash damage
-    if (rectIntersect(this.x, this.y, this.w, this.h, blueCube.x, blueCube.y, blueCube.w, blueCube.h)) {
-        blueCube.takeDamage(15);
-        // Knockback player
-        blueCube.vx = (this.vx > 0) ? 15 : -15;
-        blueCube.vy = -5;
-        this.state = 'IDLE'; // Stop dash on hit
-        this.stateTimer = 0;
-        this.isInvincible = false;
-        this.color = COLORS.RED;
-    }
-}
-    }
-
-fireBeam() {
-    const beamW = 800;
-    const beamH = 30;
-    const beamX = (blueCube.x < this.x) ? this.x - beamW : this.x + this.w;
-    const beamY = this.y + 15;
-
-    // Visual telegraph end
-    spawnParticles(this.x + this.w / 2, this.y + this.h / 2, "red", 20, 'spark');
-    triggerShake(10);
-
-    // Hit Check
-    // Simple full screen beam in facing direction
-    // AI usually faces player when starting charge, but let's check direction
-    const firingLeft = (blueCube.x < this.x);
-
-    // Draw Logic handled in draw() based on flag? No, let's just do instant effect
-    // We need to persist the beam visual for a few frames
-    this.beamActive = true;
-    setTimeout(() => this.beamActive = false, 200);
-
-    if (firingLeft) {
-        if (blueCube.x < this.x && blueCube.y + blueCube.h > beamY && blueCube.y < beamY + beamH) {
-            blueCube.takeDamage(30);
+        // Simple AI
+        if (this.stateTimer > 0) {
+            this.stateTimer--;
+            if (this.stateTimer <= 0) {
+                this.state = 'IDLE';
+                this.isInvincible = false;
+                this.color = COLORS.RED;
+            } else if (this.state === 'STUNNED') {
+                this.vx = 0;
+            }
+            return;
         }
-    } else {
-        // Firing Right
-        if (blueCube.x > this.x && blueCube.y + blueCube.h > beamY && blueCube.y < beamY + beamH) {
-            blueCube.takeDamage(30);
+
+        const dist = Math.abs(this.x - blueCube.x);
+
+        // AI Logic
+        if (Math.random() < 0.02 && dist < 300) {
+            // Dash Attack
+            this.state = 'DASHING';
+            this.stateTimer = 20;
+            this.vx = (blueCube.x < this.x) ? -15 : 15;
+            this.isInvincible = true;
+            this.color = "#FF4444"; // Lighter red
+        } else if (Math.random() < 0.005) {
+            // Jump
+            if (this.isGrounded) this.vy = -JUMP_FORCE;
+        } else if (Math.random() < 0.01 && dist > 400) {
+            // Laser Attack
+            this.state = 'LASER_CHARGE';
+            this.stateTimer = 60; // 1 second charge
+            this.color = "cyan"; // Telegraph color
+        } else {
+            // Move towards player
+            if (blueCube.x < this.x) {
+                this.vx = -MOVE_SPEED * 0.8;
+                this.facingRight = false;
+            } else {
+                this.vx = MOVE_SPEED * 0.8;
+                this.facingRight = true;
+            }
+        }
+
+        // LASER LOGIC
+        if (this.state === 'LASER_CHARGE') {
+            this.vx = 0; // Stop moving
+            if (this.stateTimer <= 1) { // Fire at end of charge
+                this.fireBeam();
+            }
+        } else if (this.state === 'DASHING') {
+            // Dash damage
+            if (rectIntersect(this.x, this.y, this.w, this.h, blueCube.x, blueCube.y, blueCube.w, blueCube.h)) {
+                blueCube.takeDamage(15);
+                // Knockback player
+                blueCube.vx = (this.vx > 0) ? 15 : -15;
+                blueCube.vy = -5;
+                this.state = 'IDLE'; // Stop dash on hit
+                this.stateTimer = 0;
+                this.isInvincible = false;
+                this.color = COLORS.RED;
+            }
         }
     }
-}
 
-draw(ctx) {
-    if (this.dead) return;
-    super.draw(ctx);
-
-    if (this.beamActive) {
-        ctx.fillStyle = "red";
+    fireBeam() {
         const beamW = 800;
+        const beamH = 30;
         const beamX = (blueCube.x < this.x) ? this.x - beamW : this.x + this.w;
-        ctx.fillRect(beamX, this.y + 15, beamW, 30);
-        ctx.fillStyle = "white";
-        ctx.fillRect(beamX, this.y + 22, beamW, 16);
+        const beamY = this.y + 15;
+
+        // Visual telegraph end
+        spawnParticles(this.x + this.w / 2, this.y + this.h / 2, "red", 20, 'spark');
+        triggerShake(10);
+
+        // Hit Check
+        // Simple full screen beam in facing direction
+        // AI usually faces player when starting charge, but let's check direction
+        const firingLeft = (blueCube.x < this.x);
+
+        // Draw Logic handled in draw() based on flag? No, let's just do instant effect
+        // We need to persist the beam visual for a few frames
+        this.beamActive = true;
+        setTimeout(() => this.beamActive = false, 200);
+
+        if (firingLeft) {
+            if (blueCube.x < this.x && blueCube.y + blueCube.h > beamY && blueCube.y < beamY + beamH) {
+                blueCube.takeDamage(30);
+            }
+        } else {
+            // Firing Right
+            if (blueCube.x > this.x && blueCube.y + blueCube.h > beamY && blueCube.y < beamY + beamH) {
+                blueCube.takeDamage(30);
+            }
+        }
     }
 
-    if (this.state === 'LASER_CHARGE') {
-        ctx.beginPath();
-        ctx.arc(this.x + this.w / 2, this.y + this.h / 2, 40 * ((60 - this.stateTimer) / 60), 0, Math.PI * 2);
-        ctx.strokeStyle = "cyan";
-        ctx.stroke();
+    draw(ctx) {
+        if (this.dead) return;
+        super.draw(ctx);
+
+        if (this.beamActive) {
+            ctx.fillStyle = "red";
+            const beamW = 800;
+            const beamX = (blueCube.x < this.x) ? this.x - beamW : this.x + this.w;
+            ctx.fillRect(beamX, this.y + 15, beamW, 30);
+            ctx.fillStyle = "white";
+            ctx.fillRect(beamX, this.y + 22, beamW, 16);
+        }
+
+        if (this.state === 'LASER_CHARGE') {
+            ctx.beginPath();
+            ctx.arc(this.x + this.w / 2, this.y + this.h / 2, 40 * ((60 - this.stateTimer) / 60), 0, Math.PI * 2);
+            ctx.strokeStyle = "cyan";
+            ctx.stroke();
+        }
     }
-}
 }
 
 let blueCube = null;
 let redCube = null;
 
 // --- INITIALIZATION ---
-function startGame(mode) {
-    if (mode) gameMode = mode;
-    gameState = 'playing';
-    winner = null;
-    shatterActive = false;
-    isRetroMode = false;
+function startGame(mode, modeInfo) {
+    try {
+        if (mode) gameMode = mode;
+        gameState = 'playing';
+        winner = null;
+        shatterActive = false;
+        isRetroMode = false;
 
-    // Reset Session Stats
-    sessionStats = {
-        beamStreak: 0,
-        womboComboActive: true,
-        womboComboHits: 0
-    };
+        // Reset Session Stats
+        sessionStats = {
+            beamStreak: 0,
+            womboComboActive: true,
+            womboComboHits: 0
+        };
 
-    // UI Reset
-    navTo('game-container');
-    document.getElementById('ui-layer').style.display = 'flex';
-    document.querySelector('.sidebar').style.display = 'none'; // Only for P2P/Spectator? Should be 'flex' usually?
-    // Actually sidebar is currently unused in main flow, let's hide it or show it if we want side stats.
-    // Spec didn't specify sidebar, but existing code has it. Let's keep it hidden for now as it takes space.
-    document.querySelector('.sidebar').style.display = 'none';
+        // UI Reset
+        navTo('game-container');
+        document.getElementById('ui-layer').style.display = 'flex';
+        document.querySelector('.sidebar').style.display = 'none';
+        document.getElementById('game-over-screen').classList.add('hidden'); // Ensure hidden
+        document.getElementById('menu-overlay').style.pointerEvents = 'none'; // Unlock clicks
 
-    document.getElementById('rainbow-overlay').classList.remove('active');
-    document.getElementById('rainbow-text').innerText = "";
+        document.getElementById('rainbow-overlay').classList.remove('active');
+        document.getElementById('rainbow-text').innerText = "";
 
-    // Instantiate Player Cube based on Selection
-    const CubeClass = getClassForId(selectedCubeId);
-    blueCube = new CubeClass();
+        // Instantiate Player Cube based on Selection
+        const CubeClass = getClassForId(selectedCubeId);
+        blueCube = new CubeClass();
 
-    // Instantiate Enemy
-    // If Mode is P2P, we need logic. For now assuming AI.
-    if (gameMode === 'p2p') {
-        // P2P Logic:
-        // Host is P1 (Left), Client is P2 (Right)
-        if (p2pRole === 'host') {
-            blueCube.x = 50;
-            redCube = new CubeClass(); // Placeholder, will sync
-            redCube.x = WIDTH - 100;
-            redCube.color = "red"; // Force red for visual distinction?
-        } else {
-            // Client
-            blueCube.x = WIDTH - 100; // Client is on right usually?
-            // Actually P2P logic typically syncs state.
-            // Let's keep it simple: Local is always BlueCube controlled, Remote is RedCube proxy.
-            redCube = new CubeClass(); // Just a dummy entity to receive content
-        }
-        // Actually, let's stick to standard P2P: P1Host, P2Client
-        if (p2pRole === 'host') {
-            // I am Blue
-            // Enemy is Red
-        }
-    } else {
-        // AI Mode
-        redCube = new RedCube();
-    }
+        // Instantiate Enemy
+        if (gameMode === 'p2p') {
+            let myId, otherId;
 
-    // Special Case: Fbt_7 vs Bobbythe124 (Secret)
-    if (blueCube instanceof Fbt7Cube) {
-        // Check if map/enemy allows secret?
-        // Let's just standard AI for now.
-    }
+            if (p2pRole === 'host') {
+                // I am P1 (Host)
+                myId = (modeInfo && modeInfo.p1Id) ? modeInfo.p1Id : selectedCubeId;
+                otherId = (modeInfo && modeInfo.p2Id) ? modeInfo.p2Id : 1;
 
-    // Apply Sandbox Overrides if needed
-    if (gameMode === 'sandbox') {
-        // Make enemy invincible dummy?
-        redCube = new Entity(WIDTH - 150, FLOOR_Y - CUBE_SIZE, "gray", 9999);
-        redCube.ai = false; // Disable AI
-        redCube.update = function () {
-            this.vy += GRAVITY;
-            this.y += this.vy;
-            if (this.y + this.h >= FLOOR_Y) {
-                this.y = FLOOR_Y - this.h;
-                this.vy = 0;
+                // Re-instantiate correct class for self if needed
+                const MyClass = getClassForId(myId);
+                blueCube = new MyClass();
+                blueCube.x = 50;
+
+                // Instantiate Opponent (Red/Right)
+                const OppClass = getClassForId(otherId);
+                redCube = new OppClass();
+                (this.target || redCube).x = WIDTH - 100;
+                // BUT RedCube class 'Entity' or 'RedCube' doesn't have key listeners usually (AI).
+                // 'BlueCube' class has key listeners.
+
+                // FIX: We need to instantiate the correct classes into the correct slots.
+                // And input handling needs to know who I am.
+
+                // Let's look at GameLoop:
+                // Client sends INPUT keys.
+                // Host receives INPUT keys.
+                // Host updates BOTH cubes.
+                // Host sends STATE back.
+
+                // So: Client does NOT simulate local physics authoritatively. Host does.
+                // Client just renders the state it receives.
+                // So Client just needs to instantiate DUMMY cubes of the correct visual type.
+
+                // CLIENT instantiation:
+                const P1Class = getClassForId(modeInfo.p1Id || 1);
+                const P2Class = getClassForId(modeInfo.p2Id || 1);
+
+                blueCube = new P1Class(); // Host P1
+                redCube = new P2Class();  // Me P2
+
+                // Ensure positions are correct
+                blueCube.x = 50;
+                (this.target || redCube).x = WIDTH - 100;
             }
-        }; // Simple gravity only
-    }
+        } else {
+            // AI Mode
+            redCube = new RedCube();
+        }
 
-    updateUI();
-    if (animationId) cancelAnimationFrame(animationId);
-    gameLoop();
+        // Special Case: Fbt_7 vs Bobbythe124 (Secret)
+        if (blueCube instanceof Fbt7Cube) {
+            // Check if map/enemy allows secret?
+            // Let's just standard AI for now.
+        }
+
+        // Apply Sandbox Overrides if needed
+        if (gameMode === 'sandbox') {
+            // Make enemy invincible dummy?
+            redCube = new Entity(WIDTH - 150, FLOOR_Y - CUBE_SIZE, "gray", 9999);
+            (this.target || redCube).ai = false; // Disable AI
+            (this.target || redCube).update = function () {
+                this.vy += GRAVITY;
+                this.y += this.vy;
+                if (this.y + this.h >= FLOOR_Y) {
+                    this.y = FLOOR_Y - this.h;
+                    this.vy = 0;
+                }
+            }; // Simple gravity only
+        }
+
+        updateUI();
+        if (animationId) cancelAnimationFrame(animationId);
+        gameLoop();
+    } catch (e) {
+        console.error("StartGame Error:", e);
+        alert("Startup Error: " + e.message);
+        showMainMenu();
+    }
 }
 
 function getClassForId(id) {
@@ -2987,7 +3091,7 @@ function checkGameOver() {
             conn.send({ type: 'GAMEOVER', winner: 'enemy' });
         }
         showGameOver();
-    } else if (redCube.hp <= 0 && gameMode !== 'sandbox') {
+    } else if ((this.target || redCube).hp <= 0 && gameMode !== 'sandbox') {
         winner = 'player';
         if (gameMode === 'p2p') {
             conn.send({ type: 'GAMEOVER', winner: 'player' });
@@ -3001,13 +3105,13 @@ function updateUI() {
 
     // Health Bars
     const p1Pct = (blueCube.hp / blueCube.maxHp) * 100;
-    const p2Pct = (redCube.hp / redCube.maxHp) * 100;
+    const p2Pct = ((this.target || redCube).hp / (this.target || redCube).maxHp) * 100;
 
     document.getElementById('p1-health').style.width = Math.max(0, p1Pct) + '%';
     document.getElementById('p2-health').style.width = Math.max(0, p2Pct) + '%';
 
     document.getElementById('p1-hp-text').innerText = Math.ceil(blueCube.hp);
-    document.getElementById('p2-hp-text').innerText = Math.ceil(redCube.hp);
+    document.getElementById('p2-hp-text').innerText = Math.ceil((this.target || redCube).hp);
 
     // Combo Box
     const comboBox = document.getElementById('combo-box');
@@ -3021,44 +3125,70 @@ function updateUI() {
 
 // --- GAME LOOP ---
 function gameLoop() {
-    // 1. Update
-    if (gameMode === 'p2p') {
-        // Send Input
-        if (conn && conn.open) {
-            conn.send({ type: 'INPUT', keys: keys });
+    try {
+        // 1. Update
+        if (gameMode === 'p2p') {
+            // Send Input
+            if (conn && conn.open) {
+                conn.send({ type: 'INPUT', keys: keys });
 
-            if (p2pRole === 'host') {
-                // Host simulates everything and sends state
-                updateGameLogic();
-                const state = {
-                    type: 'STATE',
-                    p1: { x: blueCube.x, y: blueCube.y, color: blueCube.color, hp: blueCube.hp, facingRight: blueCube.facingRight },
-                    p2: { x: redCube.x, y: redCube.y, color: redCube.color, hp: redCube.hp, facingRight: redCube.facingRight },
-                    isRetroMode: isRetroMode,
-                    shatterActive: shatterActive,
-                    shards: shatterShards
-                };
-                conn.send(state);
-            } else {
-                // Client just predicts/interpolates or waits for state
-                // For simplicity, client rendering is handled by state updates in handleNetworkData
+                if (p2pRole === 'host') {
+                    // Host simulates everything and sends state
+                    updateGameLogic();
+                    const state = {
+                        type: 'STATE',
+                        p1: { x: blueCube.x, y: blueCube.y, color: blueCube.color, hp: blueCube.hp, facingRight: blueCube.facingRight },
+                        p2: { x: (this.target || redCube).x, y: (this.target || redCube).y, color: (this.target || redCube).color, hp: (this.target || redCube).hp, facingRight: (this.target || redCube).facingRight },
+                        isRetroMode: isRetroMode,
+                        shatterActive: shatterActive,
+                        shards: shatterShards
+                    };
+                    conn.send(state);
+                } else {
+                    // Client just predicts/interpolates or waits for state
+                    // For simplicity, client rendering is handled by state updates in handleNetworkData
+                }
             }
+        } else {
+            updateGameLogic();
         }
-    } else {
-        updateGameLogic();
-    }
 
-    // 2. Draw
-    drawGame();
+        // 2. Draw
+        drawGame();
 
-    if (gameState === 'playing') {
-        animationId = requestAnimationFrame(gameLoop);
+        if (gameState === 'playing') {
+            animationId = requestAnimationFrame(gameLoop);
+        }
+    } catch (e) {
+        console.error("Game Loop Crash:", e);
+        // Don't restart loop to avoid spam
     }
 }
 
 function updateGameLogic() {
-    blueCube.update();
-    redCube.update();
+    // P2P Input Swapping Logic
+    if (gameMode === 'p2p' && p2pRole === 'host') {
+        const p1Keys = Object.assign({}, keys); // Backup P1 Keys
+
+        // Update P1 (BlueCube)
+        blueCube.update();
+
+        // Update P2 (RedCube) with Network Keys
+        for (let k in keys) delete keys[k];
+        if (networkKeys) {
+            for (let k in networkKeys) keys[k] = networkKeys[k];
+        }
+
+        (this.target || redCube).update();
+
+        // Restore P1 Keys
+        for (let k in keys) delete keys[k];
+        for (let k in p1Keys) keys[k] = p1Keys[k];
+
+    } else {
+        if (blueCube) blueCube.update();
+        if (redCube) (this.target || redCube).update();
+    }
 
     // Update Particles
     for (let i = particles.length - 1; i >= 0; i--) {
@@ -3111,7 +3241,7 @@ function drawGame() {
 
     // Draw Entities
     if (blueCube) blueCube.draw(ctx);
-    if (redCube) redCube.draw(ctx);
+    if (redCube) (this.target || redCube).draw(ctx);
 
     // Draw Shatter
     if (shatterActive) {

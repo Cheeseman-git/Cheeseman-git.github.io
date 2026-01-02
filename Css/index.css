@@ -1,3 +1,108 @@
+/* CSS Variables for Theming */
+:root {
+    /* Default Theme (CheeseMan Dark) */
+    --color-base: #09090b;
+    /* zinc-950 */
+    --color-card: #18181b;
+    /* zinc-900 */
+    --color-highlight: #27272a;
+    /* zinc-800 */
+    --color-primary: #6366f1;
+    /* indigo-500 */
+    --color-accent: #ec4899;
+    /* pink-500 */
+
+    --text-main: #ffffff;
+    --text-muted: #94a3b8;
+    /* slate-400 */
+
+    --glass-bg: rgba(24, 24, 27, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --glass-hover-bg: rgba(39, 39, 42, 0.8);
+    --glass-hover-border: rgba(99, 102, 241, 0.3);
+
+    --scrollbar-track: #09090b;
+    --scrollbar-thumb: #3f3f46;
+    --scrollbar-thumb-hover: #6366f1;
+}
+
+[data-theme="light"] {
+    --color-base: #f4f4f5;
+    /* zinc-100 */
+    --color-card: #ffffff;
+    /* white */
+    --color-highlight: #e4e4e7;
+    /* zinc-200 */
+    --color-primary: #4f46e5;
+    /* indigo-600 */
+    --color-accent: #db2777;
+    /* pink-600 */
+
+    --text-main: #18181b;
+    /* zinc-900 */
+    --text-muted: #64748b;
+    /* slate-500 */
+
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.05);
+    --glass-hover-bg: rgba(255, 255, 255, 0.9);
+    --glass-hover-border: rgba(79, 70, 229, 0.3);
+
+    --scrollbar-track: #f4f4f5;
+    --scrollbar-thumb: #d4d4d8;
+    --scrollbar-thumb-hover: #4f46e5;
+}
+
+[data-theme="midnight"] {
+    --color-base: #020617;
+    /* slate-950 */
+    --color-card: #0f172a;
+    /* slate-900 */
+    --color-highlight: #1e293b;
+    /* slate-800 */
+    --color-primary: #38bdf8;
+    /* sky-400 */
+    --color-accent: #818cf8;
+    /* indigo-400 */
+
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+
+    --glass-bg: rgba(15, 23, 42, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --glass-hover-bg: rgba(30, 41, 59, 0.8);
+    --glass-hover-border: rgba(56, 189, 248, 0.3);
+
+    --scrollbar-track: #020617;
+    --scrollbar-thumb: #1e293b;
+    --scrollbar-thumb-hover: #38bdf8;
+}
+
+[data-theme="forest"] {
+    --color-base: #052e16;
+    /* green-950 */
+    --color-card: #14532d;
+    /* green-900 */
+    --color-highlight: #166534;
+    /* green-800 */
+    --color-primary: #4ade80;
+    /* green-400 */
+    --color-accent: #facc15;
+    /* yellow-400 */
+
+    --text-main: #f0fdf4;
+    --text-muted: #bbf7d0;
+
+    --glass-bg: rgba(20, 83, 45, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --glass-hover-bg: rgba(22, 101, 52, 0.8);
+    --glass-hover-border: rgba(74, 222, 128, 0.3);
+
+    --scrollbar-track: #052e16;
+    --scrollbar-thumb: #14532d;
+    --scrollbar-thumb-hover: #4ade80;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
@@ -5,29 +110,29 @@
 }
 
 ::-webkit-scrollbar-track {
-    background: #09090b;
+    background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #3f3f46;
+    background: var(--scrollbar-thumb);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #6366f1;
+    background: var(--scrollbar-thumb-hover);
 }
 
 /* Glassmorphism Utilities */
 .glass {
-    background: rgba(24, 24, 27, 0.6);
+    background: var(--glass-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
 }
 
 .glass-hover:hover {
-    background: rgba(39, 39, 42, 0.8);
-    border-color: rgba(99, 102, 241, 0.3);
+    background: var(--glass-hover-bg);
+    border-color: var(--glass-hover-border);
     box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
 }
 

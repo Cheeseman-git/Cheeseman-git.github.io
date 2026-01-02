@@ -39,7 +39,7 @@ const catStyle = {
 };
 
 onValue(ref(db, "scrolling_text/value"), snap => {
-    const text = snap.val() || "Welcome to Nexus Hub!";
+    const text = snap.val() || "Welcome to CheeseMan Games!";
     if (marqueeEl) marqueeEl.textContent = text;
 });
 

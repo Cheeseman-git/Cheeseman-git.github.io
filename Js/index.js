@@ -1,3 +1,19 @@
+// --- THEME LOGIC ---
+function setTheme(themeName) {
+    if (themeName === 'default') {
+        document.documentElement.removeAttribute('data-theme');
+    } else {
+        document.documentElement.setAttribute('data-theme', themeName);
+    }
+    localStorage.setItem('cheeseman-theme', themeName);
+}
+
+// Init theme
+const savedTheme = localStorage.getItem('cheeseman-theme');
+if (savedTheme) {
+    setTheme(savedTheme);
+}
+
 // --- NAVIGATION LOGIC ---
 function switchTab(tabId) {
     // Hide all views
@@ -15,23 +31,24 @@ function switchTab(tabId) {
     if (mainScroll) mainScroll.scrollTop = 0;
 
     // Update Desktop Nav State
+    // Update Desktop Nav State
     document.querySelectorAll('.nav-item').forEach(el => {
-        el.classList.remove('bg-white/10', 'text-white');
-        el.classList.add('text-slate-400');
+        el.classList.remove('bg-cheeseman-highlight/20', 'text-cheeseman-content');
+        el.classList.add('text-cheeseman-muted');
     });
     const deskBtn = document.getElementById(`desk-nav-${tabId}`);
     if (deskBtn) {
-        deskBtn.classList.add('bg-white/10', 'text-white');
-        deskBtn.classList.remove('text-slate-400');
+        deskBtn.classList.add('bg-cheeseman-highlight/20', 'text-cheeseman-content');
+        deskBtn.classList.remove('text-cheeseman-muted');
     }
 
     // Update Mobile Nav State
     document.querySelectorAll('.mobile-nav-btn').forEach(el => {
-        el.classList.remove('text-indigo-400');
-        el.classList.add('text-slate-400');
+        el.classList.remove('text-cheeseman-primary');
+        el.classList.add('text-cheeseman-muted');
         if (el.dataset.target === tabId) {
-            el.classList.add('text-indigo-400');
-            el.classList.remove('text-slate-400');
+            el.classList.add('text-cheeseman-primary');
+            el.classList.remove('text-cheeseman-muted');
         }
     });
 }

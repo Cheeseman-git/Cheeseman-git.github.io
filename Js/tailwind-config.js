@@ -5,12 +5,14 @@ tailwind.config = {
                 sans: ['Outfit', 'sans-serif'],
             },
             colors: {
-                nexus: {
-                    base: '#09090b', // zinc-950
-                    card: '#18181b', // zinc-900
-                    highlight: '#27272a', // zinc-800
-                    primary: '#6366f1', // indigo-500
-                    accent: '#ec4899', // pink-500
+                cheeseman: {
+                    base: 'var(--color-base)',
+                    card: 'var(--color-card)',
+                    highlight: 'var(--color-highlight)',
+                    primary: 'var(--color-primary)',
+                    accent: 'var(--color-accent)',
+                    muted: 'var(--text-muted)',
+                    content: 'var(--text-main)',
                 }
             },
             animation: {
