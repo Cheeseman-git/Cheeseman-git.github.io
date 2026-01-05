@@ -1,4 +1,4 @@
-// --- THEME LOGIC ---
+// ---// Theme Handling
 function setTheme(themeName) {
     if (themeName === 'default') {
         document.documentElement.removeAttribute('data-theme');
@@ -6,13 +6,62 @@ function setTheme(themeName) {
         document.documentElement.setAttribute('data-theme', themeName);
     }
     localStorage.setItem('cheeseman-theme', themeName);
+
+    // Update active state in settings UI
+    document.querySelectorAll('.active-theme-btn').forEach(btn => {
+        if (btn.dataset.theme === themeName) {
+            btn.classList.add('ring-2', 'ring-cheeseman-primary', 'ring-offset-2', 'ring-offset-transparent');
+        } else {
+            btn.classList.remove('ring-2', 'ring-cheeseman-primary', 'ring-offset-2', 'ring-offset-transparent');
+        }
+    });
 }
 
-// Init theme
-const savedTheme = localStorage.getItem('cheeseman-theme');
-if (savedTheme) {
-    setTheme(savedTheme);
+// Settings Handling
+function toggleSetting(settingId) {
+    const checkbox = document.getElementById(`setting-${settingId.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
+    if (!checkbox) return;
+
+    const isEnabled = checkbox.checked;
+    localStorage.setItem(`cheeseman-setting-${settingId}`, isEnabled);
+
+    // Apply setting immediately
+    if (settingId === 'reducedMotion') {
+        if (isEnabled) {
+            document.documentElement.style.setProperty('--transition-speed', '0s');
+            document.body.classList.add('reduce-motion');
+        } else {
+            document.documentElement.style.removeProperty('--transition-speed');
+            document.body.classList.remove('reduce-motion');
+        }
+    }
 }
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    // Load Theme
+    const savedTheme = localStorage.getItem('cheeseman-theme') || 'default';
+    setTheme(savedTheme);
+
+    // Initialize Navigation
+    switchTab('home');
+
+    // Load Settings
+    const settings = ['reducedMotion', 'showFps'];
+    settings.forEach(setting => {
+        const savedValue = localStorage.getItem(`cheeseman-setting-${setting}`);
+        const checkbox = document.getElementById(`setting-${setting.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
+        if (checkbox && savedValue !== null) {
+            checkbox.checked = savedValue === 'true';
+            // Apply initial state
+            if (setting === 'reducedMotion' && checkbox.checked) {
+                document.body.classList.add('reduce-motion');
+            }
+        }
+    });
+
+    // --- LOGIN LOGIC REMOVED ---
+});
 
 // --- NAVIGATION LOGIC ---
 function switchTab(tabId) {
