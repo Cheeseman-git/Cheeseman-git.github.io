@@ -184,93 +184,10 @@ async function fetchAnnouncements() {
     currentOffset = 0;
     allAnnouncements = [];
 
-    // MOCK DATA FOR VERIFICATION
-    const mockData = [
-        {
-            "id": 1,
-            "title": "Welcome to Our New Platform!",
-            "date": "2024-01-01",
-            "content": "We are excited to announce the launch of our new platform. Explore the new features and enhancements designed to improve your experience.",
-            "author": "Admin",
-            "tags": ["launch", "welcome"],
-            "priority": "high",
-            "pinned": true
-        },
-        {
-            "id": 2,
-            "title": "Scheduled Maintenance",
-            "date": "2024-04-10",
-            "content": "Please be informed that there will be a scheduled maintenance on June 15th from 2 AM to 4 AM UTC. During this time, some services may be temporarily unavailable.",
-            "author": "Admin",
-            "tags": ["maintenance", "update"],
-            "priority": "medium",
-            "pinned": false
-        },
-        {
-            "id": 3,
-            "title": "New Feature Release: Dark Mode",
-            "date": "2024-06-15",
-            "content": "We are thrilled to introduce Dark Mode! You can now switch to a darker theme for a more comfortable viewing experience, especially in low-light environments.",
-            "author": "Admin",
-            "tags": ["feature", "ui", "dark mode"],
-            "priority": "high",
-            "pinned": false
-        }
-    ];
-
     allAnnouncements = mockData;
     renderAnnouncements(allAnnouncements, false);
     return; // STOP HERE FOR MOCK
 
-    if (feedEl.children.length === 0 || feedEl.querySelector('.fa-circle-notch')) {
-        feedEl.innerHTML = `
-        <div class="text-center py-12">
-            <i class="fa-solid fa-circle-notch fa-spin text-cheeseman-primary text-3xl mb-4"></i>
-            <p class="text-cheeseman-muted">Refreshing updates...</p>
-        </div>`;
-    }
-
-    try {
-        const response = await fetch(ANNOUNCEMENTS_URL);
-        if (!response.ok) throw new Error('Failed to load announcements');
-
-        const data = await response.json();
-
-        // Handle user's JSON structure or fallback
-        let items = data.announcements || data || [];
-
-        // Sort: Pinned first, then by date descending
-        items.sort((a, b) => {
-            // Check pinned status (true comes before false)
-            const pinnedA = (a.pinned === true || a.pinned === 'true');
-            const pinnedB = (b.pinned === true || b.pinned === 'true');
-
-            if (pinnedA && !pinnedB) return -1;
-            if (!pinnedA && pinnedB) return 1;
-
-            // If pinned status is same, sort by date
-            const dateA = new Date(a.date || a.created_at || 0);
-            const dateB = new Date(b.date || b.created_at || 0);
-            return dateB - dateA; // Descending
-        });
-
-        allAnnouncements = items;
-        // Initial render
-        const initialBatch = allAnnouncements.slice(0, FEED_PAGE_SIZE);
-        currentOffset = initialBatch.length;
-        renderAnnouncements(initialBatch, false);
-
-    } catch (error) {
-        console.error('Fetch error:', error);
-        feedEl.innerHTML = `<div class="text-red-400 text-center p-4">
-            <b>Error loading announcements.</b><br>
-            <span class="text-sm">Unable to fetch from GitHub.</span><br>
-            <span class="text-xs text-cheeseman-muted mt-2 block">
-                1. Ensure repo <b>fkm-X3/my-database</b> is <b>PUBLIC</b>.<br>
-                2. Check console for details.
-            </span>
-        </div>`;
-    }
 }
 
 function loadMoreAnnouncements() {
