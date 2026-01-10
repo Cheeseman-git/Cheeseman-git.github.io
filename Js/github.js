@@ -3,7 +3,7 @@ const ANNOUNCEMENTS_URL = 'https://raw.githubusercontent.com/fkm-X3/my-database/
 
 // Elements
 // -- Community Auth Elements --
-let statusText, signoutBtn, feedEl, userStatusSection, guestPostPrompt;
+let statusText, signoutBtn, feedEl, userStatusSection;
 
 // -- Settings Auth Elements --
 let authSection, accountInfoDisplay, settingsUsername, settingsSignoutBtn, settingsDownloadKeyBtn;
@@ -12,14 +12,14 @@ let authSection, accountInfoDisplay, settingsUsername, settingsSignoutBtn, setti
 let profileUsernameInput, updateProfileBtn;
 
 // -- In-App Elements --
-let downloadKeyBtn, postTitle, postContent, postType, postSubmitBtn;
+let downloadKeyBtn;
 
 function initElements() {
     statusText = document.getElementById('status-text');
     signoutBtn = document.getElementById('signout-btn');
     feedEl = document.getElementById('community-feed');
     userStatusSection = document.getElementById('user-status-section');
-    guestPostPrompt = document.getElementById('guest-post-prompt');
+
 
     authSection = document.getElementById('auth-section');
     accountInfoDisplay = document.getElementById('account-info-display');
@@ -31,10 +31,7 @@ function initElements() {
     updateProfileBtn = document.getElementById('update-profile-btn');
 
     downloadKeyBtn = document.getElementById('download-key-btn');
-    postTitle = document.getElementById('post-title');
-    postContent = document.getElementById('post-content');
-    postType = document.getElementById('post-type');
-    postSubmitBtn = document.getElementById('post-submit-btn');
+
 
     // Re-attach listeners now that elements are found
     attachListeners();
@@ -258,13 +255,7 @@ function loadMoreAnnouncements() {
 }
 
 
-// --- POST CREATION (MOCKED) ---
-async function createPost() {
-    alert("Posting is currently disabled in this static version. \nPlease submit an update via Pull Request to Data/Announcements.json");
-    // Clear inputs
-    if (postTitle) postTitle.value = '';
-    if (postContent) postContent.value = '';
-}
+
 
 
 // --- AUTH & PROFILE (LOCAL MOCK) ---
@@ -275,7 +266,7 @@ function updateUI(isLoggedIn) {
     if (isLoggedIn) {
         // Logged In View
         if (userStatusSection) userStatusSection.style.display = 'flex';
-        if (guestPostPrompt) guestPostPrompt.style.display = 'none';
+
         if (statusText) statusText.textContent = username;
 
         // Settings View
@@ -291,7 +282,7 @@ function updateUI(isLoggedIn) {
     } else {
         // Guest View
         if (userStatusSection) userStatusSection.style.display = 'none';
-        if (guestPostPrompt) guestPostPrompt.style.display = 'block';
+
 
         if (authSection) authSection.style.display = 'block';
         if (accountInfoDisplay) accountInfoDisplay.classList.add('hidden');
@@ -349,9 +340,7 @@ function attachListeners() {
     if (signoutBtn) signoutBtn.onclick = handleSignOut;
     if (settingsSignoutBtn) settingsSignoutBtn.onclick = handleSignOut;
 
-    if (postSubmitBtn) {
-        postSubmitBtn.onclick = createPost;
-    }
+
 
     if (updateProfileBtn) {
         updateProfileBtn.onclick = updateProfile;

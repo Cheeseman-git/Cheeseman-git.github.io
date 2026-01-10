@@ -449,17 +449,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Main Feed -->
                 <div class="lg:col-span-2 space-y-6">
-                    <!-- Login Prompt for Guests (New) -->
-                    <div id="guest-post-prompt" class="glass p-6 rounded-3xl border border-white/5 mb-6 text-center"
-                        style="display:none;">
-                        <i class="fa-solid fa-lock text-3xl text-cheeseman-muted mb-3"></i>
-                        <h3 class="text-xl font-bold text-white mb-2">Want to post?</h3>
-                        <p class="text-cheeseman-muted mb-4">Create an account in Settings to join the conversation.</p>
-                        <button onclick="switchTab('settings')"
-                            class="px-6 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors">
-                            Go to Settings
-                        </button>
-                    </div>
+
 
                     <!-- User Status (Show if signed in) -->
                     <div id="user-status-section" class="flex flex-col gap-4 mb-6" style="display:none;">
@@ -488,27 +478,7 @@
                             </div>
                         </div>
 
-                        <!-- Create Post Form -->
-                        <div class="glass p-6 rounded-3xl border border-white/5">
-                            <h3 class="text-lg font-bold text-white mb-4"><i
-                                    class="fa-solid fa-pen-nib text-cheeseman-primary mr-2"></i> Create Post</h3>
-                            <input id="post-title" type="text" placeholder="Title (e.g. New High Score!)"
-                                class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white mb-3 focus:outline-none focus:border-cheeseman-primary">
-                            <textarea id="post-content" rows="3" placeholder="What's on your mind?"
-                                class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white mb-3 focus:outline-none focus:border-cheeseman-primary resize-none"></textarea>
-                            <div class="flex justify-between items-center">
-                                <select id="post-type"
-                                    class="bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-cheeseman-primary">
-                                    <option value="Community">General</option>
-                                    <option value="Score">Score</option>
-                                    <option value="Question">Question</option>
-                                </select>
-                                <button id="post-submit-btn"
-                                    class="px-6 py-2 bg-gradient-to-r from-cheeseman-primary to-cheeseman-accent text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cheeseman-primary/25 transition-all transform hover:scale-105">
-                                    Post
-                                </button>
-                            </div>
-                        </div>
+
                     </div>
 
                     <!-- Dynamic Feed -->
