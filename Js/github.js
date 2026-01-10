@@ -3,20 +3,19 @@ const ANNOUNCEMENTS_URL = 'https://raw.githubusercontent.com/fkm-X3/my-database/
 
 // Elements
 // -- Community Auth Elements --
-let statusText, signoutBtn, feedEl, userStatusSection;
+let statusText, feedEl, userStatusSection;
 
 // -- Settings Auth Elements --
-let authSection, accountInfoDisplay, settingsUsername, settingsSignoutBtn, settingsDownloadKeyBtn;
+let authSection, accountInfoDisplay, settingsUsername, settingsSignoutBtn;
 
 // -- Profile Elements --
 let profileUsernameInput, updateProfileBtn;
 
 // -- In-App Elements --
-let downloadKeyBtn;
+
 
 function initElements() {
     statusText = document.getElementById('status-text');
-    signoutBtn = document.getElementById('signout-btn');
     feedEl = document.getElementById('community-feed');
     userStatusSection = document.getElementById('user-status-section');
 
@@ -25,12 +24,12 @@ function initElements() {
     accountInfoDisplay = document.getElementById('account-info-display');
     settingsUsername = document.getElementById('settings-username');
     settingsSignoutBtn = document.getElementById('settings-signout-btn');
-    settingsDownloadKeyBtn = document.getElementById('settings-download-key-btn');
+
 
     profileUsernameInput = document.getElementById('profile-username-input');
     updateProfileBtn = document.getElementById('update-profile-btn');
 
-    downloadKeyBtn = document.getElementById('download-key-btn');
+
 
 
     // Re-attach listeners now that elements are found
@@ -337,7 +336,7 @@ function initAuth() {
 // --- EVENT LISTENERS ---
 
 function attachListeners() {
-    if (signoutBtn) signoutBtn.onclick = handleSignOut;
+
     if (settingsSignoutBtn) settingsSignoutBtn.onclick = handleSignOut;
 
 
