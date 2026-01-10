@@ -177,6 +177,7 @@ function renderShowMoreButton() {
 }
 
 // Fetch Announcements from JSON
+// Fetch Announcements from JSON
 async function fetchAnnouncements() {
     if (!feedEl) return;
 
@@ -184,10 +185,54 @@ async function fetchAnnouncements() {
     currentOffset = 0;
     allAnnouncements = [];
 
-    allAnnouncements = mockData;
-    renderAnnouncements(allAnnouncements, false);
-    return; // STOP HERE FOR MOCK
+    // Show Loading
+    feedEl.innerHTML = `
+        <div class="text-center py-12">
+            <i class="fa-solid fa-circle-notch fa-spin text-cheeseman-primary text-3xl mb-4"></i>
+            <p class="text-cheeseman-muted">Loading community updates...</p>
+        </div>
+    `;
 
+    try {
+        const response = await fetch(ANNOUNCEMENTS_URL);
+        if (!response.ok) throw new Error("Failed to fetch announcements");
+
+        const data = await response.json();
+
+        // Handle different possible JSON structures (array vs object)
+        if (Array.isArray(data)) {
+            allAnnouncements = data;
+        } else if (data.announcements && Array.isArray(data.announcements)) {
+            allAnnouncements = data.announcements;
+        } else {
+            console.error("Unknown data format", data);
+            allAnnouncements = [];
+        }
+
+        // Sort by date (newest first)
+        allAnnouncements.sort((a, b) => {
+            const dateA = new Date(a.date || a.created_at || 0);
+            const dateB = new Date(b.date || b.created_at || 0);
+            return dateB - dateA;
+        });
+
+        // Initial Render (First Page)
+        const initialBatch = allAnnouncements.slice(0, FEED_PAGE_SIZE);
+        currentOffset = initialBatch.length;
+        renderAnnouncements(initialBatch, false);
+
+    } catch (err) {
+        console.error(err);
+        feedEl.innerHTML = `
+          <div class="glass p-8 rounded-3xl border border-white/5 text-center">
+            <i class="fa-solid fa-wifi text-4xl text-cheeseman-muted mb-4"></i>
+            <p class="text-white text-lg font-bold">Connection Failed</p>
+            <p class="text-cheeseman-muted mb-4">Could not load announcements.</p>
+            <button onclick="fetchAnnouncements()" class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-white font-bold transition-colors">
+                Retry
+            </button>
+          </div>`;
+    }
 }
 
 function loadMoreAnnouncements() {
