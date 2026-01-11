@@ -101,6 +101,28 @@
 
                 <ul class="space-y-3">
                     <li>
+                        <button onclick="loadGame('../Cube-combat-2.html')" ondblclick="closeGame()"
+                            class="group w-full flex items-center p-3 rounded-xl bg-gray-800/40 hover:bg-blue-500/10 hover:border-blue-500/30 border border-gray-700/50 transition-all duration-200 text-left relative overflow-hidden">
+
+                            <div
+                                class="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+
+                            <div
+                                class="relative z-10 w-10 h-10 rounded-lg bg-gray-700/50 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform duration-200 shadow-lg group-hover:shadow-blue-500/20">
+                                <i class="fa-solid fa-cube text-lg"></i>
+                            </div>
+                            <div class="relative z-10 ml-3">
+                                <p
+                                    class="text-sm font-bold text-gray-200 group-hover:text-blue-300 transition-colors font-mono">
+                                    Cube Combat 2</p>
+                                <p
+                                    class="text-[10px] text-gray-500 group-hover:text-blue-400/60 uppercase tracking-wide">
+                                    The Blue Saga</p>
+                            </div>
+                        </button>
+                    </li>
+                    <li>
                         <button onclick="loadGame('Sketchy-Caisno.html')" ondblclick="closeGame()"
                             class="group w-full flex items-center p-3 rounded-xl bg-gray-800/40 hover:bg-purple-500/10 hover:border-purple-500/30 border border-gray-700/50 transition-all duration-200 text-left relative overflow-hidden">
 
@@ -121,6 +143,8 @@
                                     RNG & Chance</p>
                             </div>
                         </button>
+                    </li>
+                    <li>
                         <button onclick="loadGame('fent-sim.html')" ondblclick="closeGame()"
                             class="group w-full flex items-center p-3 rounded-xl bg-gray-800/40 hover:bg-green-500/10 hover:border-green-500/30 border border-gray-700/50 transition-all duration-200 text-left relative overflow-hidden">
 
