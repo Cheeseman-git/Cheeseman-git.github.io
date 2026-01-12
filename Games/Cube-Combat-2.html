@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<!-- saved from url=(0182)https://dede3phc22dgx.cloudfront.net/creao2/7d637c62-f2cd-46c2-b5d0-2ab2deec3681/c80113c0-4021-7080-b19e-e83b4c21cd65/dd022ce8-107a-43a4-9068-a04bd2acde58/Cube-Combat-2-Complete.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cube Combat 2: The Render Error</title>
-    <script src="./Cube-Combat-2_files/three.min.js.download"></script><style type="text/css" id="operaUserStyle"></style>
+    <script src="./Cube Combat 2_ The Render Error_files/three.min.js.download"></script><style type="text/css" id="operaUserStyle"></style>
     <style>
 body {
     margin: 0;
@@ -186,40 +185,252 @@ canvas {
 }
 
 .menu-screen {
-    background: rgba(0, 0, 0, 0.9);
+    background: radial-gradient(ellipse at center, rgba(10, 10, 30, 0.95) 0%, rgba(0, 0, 0, 0.98) 100%);
     pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: opacity 0.5s ease;
 }
 
-.menu-screen.hidden { opacity: 0; pointer-events: none; }
-.menu-screen.active { opacity: 1; pointer-events: auto; }
+.menu-screen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 255, 255, 0.03) 0px,
+        transparent 1px,
+        transparent 2px,
+        rgba(0, 255, 255, 0.03) 3px
+    );
+    pointer-events: none;
+    animation: scan-lines 8s linear infinite;
+}
+
+@keyframes scan-lines {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(4px); }
+}
+
+.menu-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.95);
+}
+
+.menu-screen.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+}
 
 .game-title {
-    font-size: 50px;
-    margin-bottom: 40px;
-    text-shadow: 4px 4px 0px #0000FF;
-    letter-spacing: 5px;
+    font-size: 60px;
+    margin-bottom: 10px;
+    text-shadow:
+        0 0 10px #0000FF,
+        0 0 20px #0000FF,
+        0 0 30px #0000FF,
+        4px 4px 0px rgba(0, 0, 255, 0.5);
+    letter-spacing: 8px;
     text-align: center;
+    animation: title-glow 3s ease-in-out infinite;
+    position: relative;
+    z-index: 10;
+    font-weight: 900;
+    background: linear-gradient(180deg, #ffffff 0%, #00ffff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+@keyframes title-glow {
+    0%, 100% {
+        filter: brightness(1) drop-shadow(0 0 20px #0000FF);
+    }
+    50% {
+        filter: brightness(1.2) drop-shadow(0 0 30px #00ffff);
+    }
+}
+
+.menu-buttons {
+    position: relative;
+    z-index: 10;
+    margin-top: 20px;
 }
 
 .menu-buttons button {
     display: block;
-    width: 250px;
-    padding: 15px;
-    margin: 10px auto;
-    font-size: 20px;
-    border: 2px solid #00ffff;
-    background: transparent;
+    width: 300px;
+    padding: 18px 30px;
+    margin: 20px auto;
+    font-size: 22px;
+    border: 3px solid #00ffff;
+    background: rgba(0, 20, 40, 0.6);
     color: #00ffff;
     cursor: pointer;
     font-family: inherit;
     text-transform: uppercase;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 2px;
+    font-weight: 700;
+    box-shadow:
+        0 0 10px rgba(0, 255, 255, 0.3),
+        inset 0 0 10px rgba(0, 255, 255, 0.1);
+}
+
+.menu-buttons button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(0, 255, 255, 0.4) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+    border-radius: 50%;
+}
+
+.menu-buttons button::after {
+    content: '›';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%) translateX(10px);
+    opacity: 0;
     transition: all 0.3s;
+    font-size: 28px;
 }
 
 .btn-primary:hover, .btn-secondary:hover {
+    background: rgba(0, 255, 255, 0.2);
+    color: #ffffff;
+    border-color: #ffffff;
+    box-shadow:
+        0 0 30px rgba(0, 255, 255, 0.8),
+        inset 0 0 20px rgba(0, 255, 255, 0.3);
+    transform: translateY(-3px) scale(1.05);
+}
+
+.btn-primary:hover::before, .btn-secondary:hover::before {
+    width: 400px;
+    height: 400px;
+}
+
+.btn-primary:hover::after, .btn-secondary:hover::after {
+    transform: translateY(-50%) translateX(0);
+    opacity: 1;
+}
+
+.btn-primary:active, .btn-secondary:active {
+    transform: translateY(-1px) scale(1.02);
+}
+
+/* Audio indicator */
+.audio-indicator {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-size: 14px;
+    color: #00ffff;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+    padding: 10px 15px;
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    background: rgba(0, 20, 40, 0.5);
+    border-radius: 4px;
+    animation: pulse-glow 2s ease-in-out infinite;
+    z-index: 10;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+    }
+}
+
+/* Version text */
+.version-text {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    font-size: 12px;
+    color: rgba(0, 255, 255, 0.5);
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+    z-index: 10;
+    font-style: italic;
+}
+
+/* Animated background particles */
+.menu-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.particle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
     background: #00ffff;
-    color: black;
-    box-shadow: 0 0 20px #00ffff;
+    border-radius: 50%;
+    opacity: 0;
+    animation: float-particle 15s infinite ease-in-out;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+.particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 12s; }
+.particle:nth-child(2) { left: 20%; animation-delay: 2s; animation-duration: 15s; }
+.particle:nth-child(3) { left: 30%; animation-delay: 4s; animation-duration: 13s; }
+.particle:nth-child(4) { left: 40%; animation-delay: 1s; animation-duration: 14s; }
+.particle:nth-child(5) { left: 50%; animation-delay: 3s; animation-duration: 16s; }
+.particle:nth-child(6) { left: 60%; animation-delay: 5s; animation-duration: 11s; }
+.particle:nth-child(7) { left: 70%; animation-delay: 2s; animation-duration: 13s; }
+.particle:nth-child(8) { left: 80%; animation-delay: 4s; animation-duration: 15s; }
+.particle:nth-child(9) { left: 90%; animation-delay: 1s; animation-duration: 12s; }
+.particle:nth-child(10) { left: 15%; animation-delay: 6s; animation-duration: 14s; }
+
+@keyframes float-particle {
+    0% {
+        transform: translateY(600px) translateX(0) scale(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.6;
+    }
+    90% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: translateY(-100px) translateX(50px) scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* Blink animation for dialogue prompt */
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
 }
 
 /* 2D Dialogue Box */
@@ -274,14 +485,29 @@ canvas {
 
         <div id="ui-layer">
             <div id="main-menu" class="menu-screen active">
-                <h1 class="game-title">CUBE COMBAT 2</h1>
-                <h3 style="color: #00ffff; margin-top: -30px; margin-bottom: 30px; text-shadow: 0 0 5px #00ffff;">SECTOR ZERO EDITION</h3>
-                <div class="menu-buttons">
-                    <button class="btn btn-primary" onclick="startCampaignFlow()">START CAMPAIGN</button>
-                    <button class="btn btn-secondary" onclick="showCredits()">CREDITS</button>
+                <div class="menu-particles">
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
                 </div>
-                <div style="position: absolute; bottom: 20px; right: 20px; font-size: 12px; color: #00ffff; text-shadow: 0 0 5px #00ffff;">
+                <h1 class="game-title">CUBE COMBAT 2</h1>
+                <h3 style="color: #00ffff; margin-top: 0; margin-bottom: 40px; text-shadow: 0 0 10px rgba(0, 255, 255, 0.8); letter-spacing: 4px; position: relative; z-index: 10; font-weight: 500; font-size: 20px;">SECTOR ZERO EDITION</h3>
+                <div class="menu-buttons">
+                    <button class="btn btn-primary" onclick="startCampaignFlow()">▶ START CAMPAIGN</button>
+                    <button class="btn btn-secondary" onclick="showCredits()">ℹ CREDITS</button>
+                </div>
+                <div class="audio-indicator">
                     🔊 AUDIO: ON
+                </div>
+                <div class="version-text">
+                    v1.0 • Enhanced Edition
                 </div>
             </div>
 
@@ -1044,4 +1270,4 @@ ctx.fillStyle = '#111'; ctx.fillRect(0, 0, WIDTH, HEIGHT);
     </script>
 
 
-<protonpass-root-fffe data-protonpass-role="root" data-protonpass-theme="os"><template shadowrootmode="closed"></template></protonpass-root-fffe></body></html>
+<protonpass-root-e785 data-protonpass-role="root" data-protonpass-theme="os"><template shadowrootmode="closed"></template></protonpass-root-e785></body></html>
