@@ -163,6 +163,33 @@
     --scrollbar-thumb-hover: #4d9de0;
 }
 
+[data-theme="boykisser67"] {
+    --color-base: #fce4ec;
+    /* Light pink background */
+    --color-card: #ffffff;
+    /* White cards */
+    --color-highlight: #f8bbd0;
+    /* Soft pink highlights */
+    --color-primary: #f06292;
+    /* Vibrant pink primary */
+    --color-accent: #ba68c8;
+    /* Purple accent */
+
+    --text-main: #4a148c;
+    /* Dark purple text */
+    --text-muted: #880e4f;
+    /* Dark pink muted text */
+
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(240, 98, 146, 0.2);
+    --glass-hover-bg: rgba(255, 255, 255, 0.9);
+    --glass-hover-border: rgba(240, 98, 146, 0.4);
+
+    --scrollbar-track: #fce4ec;
+    --scrollbar-thumb: #f8bbd0;
+    --scrollbar-thumb-hover: #f06292;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
