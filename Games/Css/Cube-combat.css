@@ -24,7 +24,7 @@ canvas {
     display: block;
 }
 
-/* RAINBOW OVERLAY STYLE */
+
 .rainbow-overlay {
     position: absolute;
     top: 0;
@@ -86,7 +86,7 @@ canvas {
     }
 }
 
-/* RAINBOW TEXT STYLE */
+
 .rainbow-text {
     position: absolute;
     top: 10px;
@@ -161,7 +161,7 @@ canvas {
     width: 100%;
 }
 
-/* COMBO BOX STYLE */
+
 .combo-box {
     width: 40px;
     height: 40px;
@@ -177,7 +177,7 @@ canvas {
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
-/* ACHIEVEMENT TOAST */
+
 #achievement-toast {
     position: absolute;
     top: -400px;
@@ -438,7 +438,7 @@ canvas {
     height: 24px;
 }
 
-/* SANDBOX MENU STYLES */
+
 #sandbox-menu {
     position: absolute;
     top: 50px;
@@ -518,7 +518,7 @@ canvas {
     margin-bottom: 5px;
 }
 
-/* Floating text for sandbox damage */
+
 .floating-text-container {
     position: absolute;
     top: 0;
@@ -545,7 +545,7 @@ canvas {
     background: #777;
 }
 
-/* SIDEBAR LAYOUT */
+
 .main-wrapper {
     display: flex;
     align-items: center;
@@ -558,7 +558,7 @@ canvas {
     background: #222;
     border: 2px solid #555;
     display: none;
-    /* Hidden by default, shown in game */
+    
     flex-direction: column;
     padding: 20px;
     box-sizing: border-box;
@@ -586,7 +586,7 @@ canvas {
     border: 2px solid white;
     margin-right: 15px;
     background: blue;
-    /* dynamic */
+    
 }
 
 .sb-name {
@@ -606,7 +606,7 @@ canvas {
 .sb-health-bar {
     height: 100%;
     background: blue;
-    /* dynamic */
+    
     width: 100%;
     transition: width 0.2s;
 }
@@ -635,7 +635,7 @@ canvas {
     text-align: right;
 }
 
-/* Hide old HUD if we are replacing it, but for now I'll just hide the top bars via CSS or remove them in HTML */
+
 .hud {
     display: none !important;
 }
