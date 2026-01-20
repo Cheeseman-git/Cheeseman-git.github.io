@@ -1,4 +1,4 @@
-// ---// Theme Handling
+
 function setTheme(themeName) {
     if (themeName === 'default') {
         document.documentElement.removeAttribute('data-theme');
@@ -7,7 +7,7 @@ function setTheme(themeName) {
     }
     localStorage.setItem('cheeseman-theme', themeName);
 
-    // Update active state in settings UI
+    
     document.querySelectorAll('.active-theme-btn').forEach(btn => {
         if (btn.dataset.theme === themeName) {
             btn.classList.add('ring-2', 'ring-cheeseman-primary', 'ring-offset-2', 'ring-offset-transparent');
@@ -17,7 +17,7 @@ function setTheme(themeName) {
     });
 }
 
-// Settings Handling
+
 function toggleSetting(settingId) {
     const checkbox = document.getElementById(`setting-${settingId.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
     if (!checkbox) return;
@@ -25,7 +25,7 @@ function toggleSetting(settingId) {
     const isEnabled = checkbox.checked;
     localStorage.setItem(`cheeseman-setting-${settingId}`, isEnabled);
 
-    // Apply setting immediately
+    
     if (settingId === 'reducedMotion') {
         if (isEnabled) {
             document.documentElement.style.setProperty('--transition-speed', '0s');
@@ -37,50 +37,50 @@ function toggleSetting(settingId) {
     }
 }
 
-// Initialize
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Load Theme
+    
     const savedTheme = localStorage.getItem('cheeseman-theme') || 'default';
     setTheme(savedTheme);
 
-    // Initialize Navigation
+    
     switchTab('home');
 
-    // Load Settings
+    
     const settings = ['reducedMotion', 'showFps'];
     settings.forEach(setting => {
         const savedValue = localStorage.getItem(`cheeseman-setting-${setting}`);
         const checkbox = document.getElementById(`setting-${setting.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
         if (checkbox && savedValue !== null) {
             checkbox.checked = savedValue === 'true';
-            // Apply initial state
+            
             if (setting === 'reducedMotion' && checkbox.checked) {
                 document.body.classList.add('reduce-motion');
             }
         }
     });
 
-    // --- LOGIN LOGIC REMOVED ---
+    
 });
 
-// --- NAVIGATION LOGIC ---
+
 function switchTab(tabId) {
-    // Hide all views
+    
     ['home', 'games', 'community', 'settings', 'credits', 'socials'].forEach(id => {
         const el = document.getElementById(`view-${id}`);
         if (el) el.classList.add('hidden');
     });
 
-    // Show selected view
+    
     const view = document.getElementById(`view-${tabId}`);
     if (view) view.classList.remove('hidden');
 
-    // Reset scroll
+    
     const mainScroll = document.getElementById('main-scroll');
     if (mainScroll) mainScroll.scrollTop = 0;
 
-    // Update Desktop Nav State
-    // Update Desktop Nav State
+    
+    
     document.querySelectorAll('.nav-item').forEach(el => {
         el.classList.remove('bg-cheeseman-highlight/20', 'text-cheeseman-content');
         el.classList.add('text-cheeseman-muted');
@@ -91,7 +91,7 @@ function switchTab(tabId) {
         deskBtn.classList.remove('text-cheeseman-muted');
     }
 
-    // Update Mobile Nav State
+    
     document.querySelectorAll('.mobile-nav-btn').forEach(el => {
         el.classList.remove('text-cheeseman-primary');
         el.classList.add('text-cheeseman-muted');
@@ -102,7 +102,7 @@ function switchTab(tabId) {
     });
 }
 
-// --- GAME SYSTEM ---
+
 let gameInterval = null;
 let activeGame = null;
 const canvas = document.getElementById('game-canvas');
@@ -131,7 +131,7 @@ function launchGame(gameType) {
     statusDesc.textContent = "Press start to begin.";
     startBtn.classList.remove('hidden');
 
-    // Reset Displays
+    
     canvas.classList.add('hidden');
     tttBoard.classList.add('hidden');
     memoryBoard.classList.add('hidden');
@@ -188,11 +188,11 @@ function launchGame(gameType) {
         hintEl.innerHTML = 'Physics Arena';
         iframe.classList.remove('hidden');
         iframe.src = 'Games/Cube-combat.html';
-        // Hide Start Button for iframe games as they usually have their own menu
+        
         startBtn.classList.add('hidden');
         statusTitle.textContent = "";
         statusDesc.textContent = "";
-        uiLayer.classList.add('hidden'); // Hide UI layer immediately
+        uiLayer.classList.add('hidden'); 
     }
 }
 
@@ -218,7 +218,7 @@ startBtn.addEventListener('click', () => {
     if (activeGame === 'solitaire') initSolitaire();
 });
 
-// --- SNAKE GAME LOGIC ---
+
 function startSnake() {
     let snake = [{ x: 10, y: 10 }];
     let food = { x: 15, y: 15 };
@@ -226,7 +226,7 @@ function startSnake() {
     let dy = 0;
     let score = 0;
     let gridSize = 20;
-    let tileCount = 20; // 400px / 20px
+    let tileCount = 20; 
     let speed = 100;
 
     draw();
@@ -326,7 +326,7 @@ function startSnake() {
     }
 }
 
-// --- TIC TAC TOE LOGIC ---
+
 function initTicTacToe(playable) {
     tttBoard.innerHTML = '';
     let board = ['', '', '', '', '', '', '', '', ''];
@@ -402,7 +402,7 @@ function initTicTacToe(playable) {
     }
 }
 
-// --- REFLEX TESTER LOGIC ---
+
 function startReflex() {
     let state = 'waiting';
     let startTime = 0;
@@ -447,7 +447,7 @@ function startReflex() {
     }
 }
 
-// --- NEON BREAKER LOGIC ---
+
 function startBreaker() {
     let paddleH = 10, paddleW = 75, paddleX = (canvas.width - paddleW) / 2;
     let rightPressed = false, leftPressed = false;
@@ -567,7 +567,7 @@ function startBreaker() {
     draw();
 }
 
-// --- MEMORY MATCH LOGIC ---
+
 function initMemoryMatch(playable) {
     memoryBoard.innerHTML = '';
     const icons = ['fa-ghost', 'fa-gamepad', 'fa-heart', 'fa-bolt', 'fa-star', 'fa-bomb', 'fa-robot', 'fa-dragon'];
@@ -636,11 +636,11 @@ function initMemoryMatch(playable) {
     }
 }
 
-// --- HIGH-LOW LOGIC ---
+
 function initHighLow(playable) {
     let deck = [], score = 0, currentCard = null;
     const suits = ['♥', '♦', '♣', '♠'];
-    const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; // 11=J, 12=Q, 13=K, 14=A
+    const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; 
 
     function createDeck() {
         deck = [];
@@ -702,7 +702,7 @@ function initHighLow(playable) {
         document.getElementById('hl-card-display').innerHTML = `<div class="text-red-500 flex flex-col items-center"><span>A</span><span class="text-6xl">♥</span></div>`;
     }
 
-    // Cleanup old listeners to prevent stacking
+    
     const btnHigh = document.getElementById('hl-higher');
     const btnLow = document.getElementById('hl-lower');
     const newHigh = btnHigh.cloneNode(true);
@@ -716,12 +716,12 @@ function initHighLow(playable) {
     }
 }
 
-// --- SOLITAIRE LOGIC ---
+
 function initSolitaire() {
     let deck = [], tableau = [[], [], [], [], [], [], []], foundations = [[], [], [], []], stock = [], talon = [];
     let selectedCard = null;
 
-    const suits = ['♥', '♦', '♣', '♠']; // R, R, B, B
+    const suits = ['♥', '♦', '♣', '♠']; 
     const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
     function createDeck() {
@@ -764,11 +764,11 @@ function initSolitaire() {
     }
 
     function render() {
-        // Stock/Talon
+        
         const talonHTML = talon.length > 0 ? getCardHTML({ ...talon[talon.length - 1], faceUp: true }) : '';
         document.getElementById('sol-talon').innerHTML = talonHTML;
 
-        // Foundations
+        
         for (let i = 0; i < 4; i++) {
             const fd = foundations[i];
             const el = document.querySelector(`[data-type="foundation"][data-id="${i}"]`);
@@ -776,7 +776,7 @@ function initSolitaire() {
             else el.innerHTML = `<i class="fa-solid fa-${['heart', 'diamond', 'clover', 'spa'][i]} opacity-20"></i>`;
         }
 
-        // Tableau
+        
         const tabEl = document.getElementById('sol-tableau');
         tabEl.innerHTML = '';
         tableau.forEach((col, cIdx) => {
@@ -797,21 +797,21 @@ function initSolitaire() {
     }
 
     window.solCardClick = (id) => {
-        // Find card
+        
         let loc = findCard(id);
         if (!loc) return;
 
-        // If in Talon
+        
         if (loc.place === 'talon') {
             handleSelection(loc.card, 'talon');
             return;
         }
-        // If in Tableau
+        
         if (loc.place === 'tableau') {
-            // Only face up can be selected
+            
             if (loc.card.faceUp) handleSelection(loc.card, 'tableau', loc.colIdx);
             else if (loc.isLast) {
-                // Flip if last
+                
                 loc.card.faceUp = true;
                 render();
             }
@@ -850,25 +850,25 @@ function initSolitaire() {
     }
 
     function handleSelection(card, place, colIdx) {
-        // If already selected, deselect
+        
         if (selectedCard && selectedCard.id === card.id) {
             selectedCard = null;
             render();
             return;
         }
 
-        // If another selected, try to move to this card
+        
         if (selectedCard) {
             if (place === 'tableau') tryMove(selectedCard, 'tableau', colIdx);
-            // Cannot move TO talon
+            
             return;
         }
 
-        // Select logic
-        // Try auto move to foundation first
+        
+        
         if (tryAutoFoundation(card, place, colIdx)) return;
 
-        // Else select it
+        
         selectedCard = card;
         render();
     }
@@ -876,14 +876,14 @@ function initSolitaire() {
     function tryAutoFoundation(card, place, colIdx) {
         for (let i = 0; i < 4; i++) {
             let fd = foundations[i];
-            // Empty foundation needs Ace
+            
             if (fd.length === 0) {
                 if (card.val === 1) {
                     doMove(card, place, colIdx, 'foundation', i);
                     return true;
                 }
             } else {
-                // Needs same suit, +1 value
+                
                 let top = fd[fd.length - 1];
                 if (top.suit === card.suit && card.val === top.val + 1) {
                     doMove(card, place, colIdx, 'foundation', i);
@@ -897,12 +897,12 @@ function initSolitaire() {
     function tryMove(card, toPlace, toIdx) {
         if (toPlace === 'tableau') {
             let destCol = tableau[toIdx];
-            // If empty, only King
+            
             if (destCol.length === 0) {
                 if (card.val === 13) doMove(card, findCard(card.id).place, findCard(card.id).colIdx, 'tableau', toIdx);
             } else {
                 let top = destCol[destCol.length - 1];
-                // Opp color, -1 value
+                
                 if (top.color !== card.color && top.val === card.val + 1) {
                     doMove(card, findCard(card.id).place, findCard(card.id).colIdx, 'tableau', toIdx);
                 }
@@ -913,7 +913,7 @@ function initSolitaire() {
     }
 
     function doMove(card, fromPlace, fromIdx, toPlace, toIdx) {
-        // Remove from Source
+        
         let movingCards = [];
         if (fromPlace === 'talon') {
             movingCards.push(talon.pop());
@@ -921,14 +921,14 @@ function initSolitaire() {
             let col = tableau[fromIdx];
             let cIdx = col.findIndex(c => c.id === card.id);
             movingCards = col.splice(cIdx);
-            // Flip new top
+            
             if (col.length > 0) col[col.length - 1].faceUp = true;
         }
 
-        // Add to Dest
+        
         if (toPlace === 'foundation') {
             foundations[toIdx].push(movingCards[0]);
-            // Check Win
+            
             if (foundations.every(f => f.length === 13)) {
                 setTimeout(() => {
                     uiLayer.classList.remove('hidden');

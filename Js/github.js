@@ -1,17 +1,17 @@
-// Local JSON Implementation (No Supabase)
+
 const ANNOUNCEMENTS_URL = 'https://raw.githubusercontent.com/fkm-X3/my-database/main/Announcements.json';
 
-// Elements
-// -- Community Auth Elements --
+
+
 let statusText, feedEl, userStatusSection;
 
-// -- Settings Auth Elements --
+
 let authSection, accountInfoDisplay, settingsUsername, settingsSignoutBtn;
 
-// -- Profile Elements --
+
 let profileUsernameInput, updateProfileBtn;
 
-// -- In-App Elements --
+
 
 
 function initElements() {
@@ -32,18 +32,18 @@ function initElements() {
 
 
 
-    // Re-attach listeners now that elements are found
+    
     attachListeners();
 }
 
-// State
+
 const FEED_PAGE_SIZE = 5;
 let currentOffset = 0;
-let allAnnouncements = []; // Store all fetched announcements
+let allAnnouncements = []; 
 
-// --- FEED RENDERING ---
+
 function renderAnnouncements(rows, isLoadMore = false) {
-    // Remove existing "Show More" button if it exists
+    
     const existingShowMore = document.getElementById('feed-show-more-btn');
     if (existingShowMore) existingShowMore.remove();
 
@@ -64,24 +64,24 @@ function renderAnnouncements(rows, isLoadMore = false) {
         const div = document.createElement('div');
         div.className = 'glass p-6 rounded-3xl border border-white/5 hover:border-cheeseman-primary/30 transition-all group mb-6 animate-fade-in relative overflow-hidden';
 
-        // Map JSON fields to UI fields
+        
         const title = row.Title || row.title || 'Announcement';
         const content = row.content || row.body || '';
         const rawDate = row.date || row.created_at;
         const dateStr = rawDate ? new Date(rawDate).toLocaleDateString() : 'Just now';
 
-        // Metadata
+        
         const typeLabel = row.type || row.topic || 'Community';
         const isPinned = row.pinned === true || row.pinned === 'true';
         const priority = (row.priority || 'low').toLowerCase();
         const tags = row.tags || [];
 
-        // Colors & Icons based on type/priority
+        
         let iconClass = 'fa-bullhorn';
         let iconColor = 'text-cheeseman-primary';
         let borderColor = 'border-white/5';
 
-        // Priority Styling
+        
         let priorityBadge = '';
         if (priority === 'high') {
             borderColor = 'border-rose-500/30';
@@ -95,7 +95,7 @@ function renderAnnouncements(rows, isLoadMore = false) {
         else if (typeLabel.toLowerCase().includes('score')) { iconClass = 'fa-trophy'; iconColor = 'text-yellow-400'; }
         else if (typeLabel.toLowerCase().includes('alert')) { iconClass = 'fa-triangle-exclamation'; iconColor = 'text-amber-400'; }
 
-        // Tags HTML
+        
         let tagsHtml = '';
         if (Array.isArray(tags) && tags.length > 0) {
             tagsHtml = `<div class="flex flex-wrap gap-2 mt-3">
@@ -105,12 +105,12 @@ function renderAnnouncements(rows, isLoadMore = false) {
 
         const authorName = row.author || 'Community Member';
 
-        // Pinned visual cue
+        
         const pinnedIcon = isPinned ? `<div class="absolute top-4 right-4 text-cheeseman-primary transform rotate-45"><i class="fa-solid fa-thumbtack text-xl opacity-20 group-hover:opacity-100 transition-opacity"></i></div>` : '';
 
-        // Apply dynamic border if high priority
+        
         if (priority === 'high') {
-            div.style.borderColor = 'rgba(244, 63, 94, 0.3)'; // Tailwind rose-500/30
+            div.style.borderColor = 'rgba(244, 63, 94, 0.3)'; 
         }
 
         div.innerHTML = `
@@ -150,7 +150,7 @@ function renderAnnouncements(rows, isLoadMore = false) {
         feedEl.appendChild(div);
     });
 
-    // Handle Pagination Logic based on remaining items in global array
+    
     if (currentOffset < allAnnouncements.length) {
         renderShowMoreButton();
     }
@@ -172,16 +172,16 @@ function renderShowMoreButton() {
     });
 }
 
-// Fetch Announcements from JSON
-// Fetch Announcements from JSON
+
+
 async function fetchAnnouncements() {
     if (!feedEl) return;
 
-    // Reset
+    
     currentOffset = 0;
     allAnnouncements = [];
 
-    // Show Loading
+    
     feedEl.innerHTML = `
         <div class="text-center py-12">
             <i class="fa-solid fa-circle-notch fa-spin text-cheeseman-primary text-3xl mb-4"></i>
@@ -195,7 +195,7 @@ async function fetchAnnouncements() {
 
         const data = await response.json();
 
-        // Handle different possible JSON structures (array vs object)
+        
         if (Array.isArray(data)) {
             allAnnouncements = data;
         } else if (data.announcements && Array.isArray(data.announcements)) {
@@ -205,14 +205,14 @@ async function fetchAnnouncements() {
             allAnnouncements = [];
         }
 
-        // Sort by date (newest first)
+        
         allAnnouncements.sort((a, b) => {
             const dateA = new Date(a.date || a.created_at || 0);
             const dateB = new Date(b.date || b.created_at || 0);
             return dateB - dateA;
         });
 
-        // Initial Render (First Page)
+        
         const initialBatch = allAnnouncements.slice(0, FEED_PAGE_SIZE);
         currentOffset = initialBatch.length;
         renderAnnouncements(initialBatch, false);
@@ -234,7 +234,7 @@ async function fetchAnnouncements() {
 function loadMoreAnnouncements() {
     const nextBatch = allAnnouncements.slice(currentOffset, currentOffset + FEED_PAGE_SIZE);
 
-    // Simulate loading delay for UX
+    
     const btn = document.getElementById('show-more-btn-action');
     if (btn) {
         btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Loading...`;
@@ -246,7 +246,7 @@ function loadMoreAnnouncements() {
             currentOffset += nextBatch.length;
             renderAnnouncements(nextBatch, true);
         } else {
-            // remove button if no more
+            
             const existingShowMore = document.getElementById('feed-show-more-btn');
             if (existingShowMore) existingShowMore.remove();
         }
@@ -257,19 +257,19 @@ function loadMoreAnnouncements() {
 
 
 
-// --- AUTH & PROFILE (LOCAL MOCK) ---
+
 
 function updateUI(isLoggedIn) {
     let username = localStorage.getItem('cheeseman_username') || 'Guest';
 
     if (isLoggedIn) {
-        // Logged In View
+        
         if (userStatusSection) userStatusSection.style.display = 'flex';
 
         if (statusText) statusText.textContent = username;
 
-        // Settings View
-        // Hide "Magic Link" section
+        
+        
         if (authSection) {
             authSection.style.display = 'none';
         }
@@ -279,7 +279,7 @@ function updateUI(isLoggedIn) {
         if (profileUsernameInput) profileUsernameInput.value = username;
 
     } else {
-        // Guest View
+        
         if (userStatusSection) userStatusSection.style.display = 'none';
 
 
@@ -288,7 +288,7 @@ function updateUI(isLoggedIn) {
     }
 }
 
-// Simple "Login" simulation
+
 function loginLocal(username) {
     localStorage.setItem('cheeseman_is_logged_in', 'true');
     localStorage.setItem('cheeseman_username', username);
@@ -311,18 +311,18 @@ function updateProfile() {
 }
 
 function initAuth() {
-    // Check local storage for session state
+    
     const isLoggedIn = localStorage.getItem('cheeseman_is_logged_in') === 'true';
     updateUI(isLoggedIn);
 
-    // Attach listeners to the "Magic Link" button to act as a simple login for now (or hide it)
-    // For this refactor, let's repurpose the Magic Link button to just "Log In as User" for testing
+    
+    
     const magicBtn = document.getElementById('magic-btn');
     const magicEmail = document.getElementById('magic-email');
 
     if (magicBtn) {
         magicBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket mr-2"></i> Enter (Local)';
-        // Remove old listeners by cloning or just overwriting onclick
+        
         magicBtn.onclick = (e) => {
             e.preventDefault();
             const email = magicEmail.value || 'User';
@@ -333,7 +333,7 @@ function initAuth() {
 }
 
 
-// --- EVENT LISTENERS ---
+
 
 function attachListeners() {
 
@@ -346,7 +346,7 @@ function attachListeners() {
     }
 }
 
-// Init
+
 document.addEventListener('DOMContentLoaded', () => {
     initElements();
     initAuth();

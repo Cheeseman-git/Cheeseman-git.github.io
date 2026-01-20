@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Geometry Dash Clone</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pusab&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #111;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        canvas {
+            display: block;
+            background: linear-gradient(to bottom, #0066ff, #003399);
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .title {
+            font-size: 40px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #eee;
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.8; transform: scale(1); }
+            to { opacity: 1; transform: scale(1.05); }
+        }
+
+        #progress-bar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            height: 10px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid white;
+            border-radius: 5px;
+            display: none; 
+        }
+
+        #progress-fill {
+            height: 100%;
+            background: #00ff00;
+            width: 0%;
+            border-radius: 3px;
+        }
+
+        #debug-info {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            font-size: 10px;
+            opacity: 0.5;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui-layer">
+        <div class="title" id="main-title">GEOMETRY DASH</div>
+        <div class="subtitle" id="start-msg">Click or Space to Start</div>
+    </div>
+    <div id="progress-bar"><div id="progress-fill"></div></div>
+    <div id="debug-info"></div>
+</div>
+
+<script>
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+const Sound = {
+    jump: () => {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+    },
+    death: () => {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+    },
+    win: () => {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.0);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 1.0);
+    }
+};
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const uiLayer = document.getElementById('ui-layer');
+const progressBar = document.getElementById('progress-bar');
+const progressFill = document.getElementById('progress-fill');
+const debugInfo = document.getElementById('debug-info');
+
+// Logical resolution (HD aspect)
+const GAME_WIDTH = 800;
+const GAME_HEIGHT = 450;
+const TILE_SIZE = 40;
+const PLAYER_SIZE = 30;
+const GRAVITY = 1.8;
+const JUMP_FORCE = -19;
+const TERMINAL_VELOCITY = 20;
+const SPEED = 8.5;
+const FLOOR_HEIGHT = 100;
+
+let scale = 1;
+
+let gameState = 'START';
+let frames = 0;
+let attempts = 1;
+let cameraX = 0;
+let bgHue = 200; // Starting background color hue
+
+// --- Physics Objects ---
+const player = {
+    x: 200, // Fixed horizontal position on screen
+    y: 0,   // Vertical position (calculated from bottom)
+    vy: 0,
+    angle: 0,
+    grounded: false,
+    dead: false,
+    color: '#ffff00',
+    trail: []
+};
+
+// Level Map Data
+// Types: 1=Block, 2=Spike, 3=Half-Spike/Small Spike, 4=Platform(Slab)
+// This is a simple grid-based parser.
+// ' ' = empty, '#' = block, '^' = spike, '*' = small spike, '-' = slab
+const levelMapString = `
+                                                                                                    
+                                                                                                    
+                                                                                                    
+              #                                                                                     
+             ###                                                                                    
+            #####                                  #  #                                             
+           #######     ^^^                        ##  ##        ^^                                  
+          #########   #####             ^^       ###  ###      ####      ^^^     ^^^                
+         ########### #######           ####     ####  ####    ######    #####   #####               
+        #####################         ######   #####  #####  ########  ####### #######       #      
+       #######################       #######  ######  ##### ########## #################    ###     
+      #########################     ######## #######  ###################################  #####    
+____________________________________________________________________________________________________
+`;
+
+// Helper to construct level objects
+// x is grid coordinate, y is grid coordinate (0 is floor)
+const levelObjects = [];
+const floorY = GAME_HEIGHT - FLOOR_HEIGHT;
+
+function buildLevel() {
+    levelObjects.length = 0;
+    
+    // Procedural generation for infinite-like play or specific design
+    // Let's manually design a track similar to Stereo Madness
+    
+    let x = 10; // Start a bit away
+    
+    function addBlock(bx, by) {
+        levelObjects.push({ type: 'block', x: bx * TILE_SIZE, y: floorY - (by * TILE_SIZE) - TILE_SIZE, w: TILE_SIZE, h: TILE_SIZE });
+    }
+    
+    function addSpike(bx, by) {
+        levelObjects.push({ type: 'spike', x: bx * TILE_SIZE, y: floorY - (by * TILE_SIZE) - TILE_SIZE, w: TILE_SIZE, h: TILE_SIZE });
+    }
+
+    function addSlab(bx, by) { // Half block
+        levelObjects.push({ type: 'block', x: bx * TILE_SIZE, y: floorY - (by * TILE_SIZE) - (TILE_SIZE/2), w: TILE_SIZE, h: TILE_SIZE/2 });
+    }
+
+    // --- SECTION 1: The Basics ---
+    x += 10; addSpike(x, 0);
+    x += 5; addSpike(x, 0);
+    x += 4; addBlock(x, 0); 
+    x += 4; addSpike(x, 0); addSpike(x+1, 0);
+    x += 6; addBlock(x, 0); addSpike(x, 1); // Jump over block with spike on top
+    
+    // --- SECTION 2: Stairs ---
+    x += 6; 
+    addBlock(x, 0);
+    addBlock(x+1, 1); addBlock(x+1, 0);
+    addBlock(x+2, 2); addBlock(x+2, 1); addBlock(x+2, 0);
+    x += 2;
+    // Drop down
+    x += 4; addSpike(x, 0);
+    
+    // --- SECTION 3: The Pads (Simulated by blocks for now) ---
+    x += 5; addBlock(x, 0); addBlock(x+2, 2); addBlock(x+4, 4); 
+    x += 4;
+    // Fall safely
+    
+    // --- SECTION 4: The Triple Spike (Actually double for fairness in clone) ---
+    x += 8; addSpike(x, 0); addSpike(x+1, 0);
+    
+    // --- SECTION 5: Rhythm section ---
+    x += 5; addBlock(x, 0); x+=3; addBlock(x, 0); x+=3; addBlock(x, 1);
+    
+    // --- SECTION 6: Gap ---
+    x += 5; 
+    // Create a pit by not drawing floor? 
+    // For this simple engine, we assume floor is infinite, so we build walls.
+    addBlock(x, 0); addBlock(x, 1); addBlock(x, 2);
+    addSpike(x+1, 0); addSpike(x+2, 0); addSpike(x+3, 0);
+    addBlock(x+4, 2); addBlock(x+4, 1); addBlock(x+4, 0);
+
+    // End Goal
+    x += 10;
+    levelObjects.push({ type: 'win', x: x * TILE_SIZE, y: 0, w: 20, h: GAME_HEIGHT });
+    
+    return x * TILE_SIZE;
+}
+
+let levelLength = buildLevel();
+let particles = [];
+
+// --- Resizing ---
+function resize() {
+    let aspect = GAME_WIDTH / GAME_HEIGHT;
+    let windowAspect = window.innerWidth / window.innerHeight;
+    
+    if (windowAspect < aspect) {
+        scale = window.innerWidth / GAME_WIDTH;
+    } else {
+        scale = window.innerHeight / GAME_HEIGHT;
+    }
+    
+    canvas.width = GAME_WIDTH * scale;
+    canvas.height = GAME_HEIGHT * scale;
+    
+    ctx.scale(scale, scale);
+    ctx.imageSmoothingEnabled = false;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// --- Input Handling ---
+let inputActive = false;
+function handleInput(e) {
+    if (e.type === 'keydown' && e.code !== 'Space' && e.code !== 'ArrowUp') return;
+    if (e.type !== 'keydown') e.preventDefault(); // Prevent double firing on touch
+
+    if (gameState === 'START' || gameState === 'DEAD' || gameState === 'WIN') {
+        resetGame();
+        return;
+    }
+
+    if (player.grounded) {
+        player.vy = JUMP_FORCE;
+        player.grounded = false;
+        Sound.jump();
+        // Create jump particles
+        createParticles(player.x + PLAYER_SIZE/2, player.y + PLAYER_SIZE, 5, '#fff');
+    }
+}
+
+window.addEventListener('keydown', handleInput);
+window.addEventListener('touchstart', (e) => {
+    // Init Audio Context on first touch
+    if (!audioCtx) audioCtx = new AudioContext();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    handleInput(e);
+}, {passive: false});
+window.addEventListener('mousedown', (e) => {
+    if (!audioCtx) audioCtx = new AudioContext();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    handleInput(e);
+});
+
+// --- Game Logic ---
+
+function createParticles(x, y, count, color) {
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x: x,
+            y: y,
+            vx: (Math.random() - 0.5) * 10,
+            vy: (Math.random() - 0.5) * 10,
+            life: 1.0,
+            color: color || '#fff',
+            size: Math.random() * 5 + 2
+        });
+    }
+}
+
+function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.05;
+        p.size *= 0.95;
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+}
+
+function drawParticles() {
+    for (let p of particles) {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
+        ctx.fillRect(p.x - cameraX, p.y, p.size, p.size);
+    }
+    ctx.globalAlpha = 1.0;
+}
+
+function checkCollision(rect1, rect2) {
+    return (rect1.x < rect2.x + rect2.w &&
+            rect1.x + rect1.w > rect2.x &&
+            rect1.y < rect2.y + rect2.h &&
+            rect1.y + rect1.h > rect2.y);
+}
+
+function resetGame() {
+    gameState = 'PLAYING';
+    player.x = 200;
+    player.y = floorY - PLAYER_SIZE;
+    player.vy = 0;
+    player.angle = 0;
+    player.dead = false;
+    player.trail = [];
+    cameraX = 0;
+    bgHue = 200;
+    particles = [];
+    
+    uiLayer.style.display = 'none';
+    progressBar.style.display = 'block';
+    
+    // Ensure we start on ground
+    player.grounded = true;
+}
+
+function die() {
+    if (player.dead) return;
+    player.dead = true;
+    gameState = 'DEAD';
+    Sound.death();
+    createParticles(player.x + PLAYER_SIZE/2, player.y + PLAYER_SIZE/2, 30, player.color);
+    
+    setTimeout(() => {
+        uiLayer.style.display = 'flex';
+        document.getElementById('main-title').innerText = "CRASHED";
+        document.getElementById('start-msg').innerText = "Click to Restart";
+        progressBar.style.display = 'none';
+        attempts++;
+    }, 500);
+}
+
+function win() {
+    gameState = 'WIN';
+    Sound.win();
+    uiLayer.style.display = 'flex';
+    document.getElementById('main-title').innerText = "LEVEL COMPLETE!";
+    document.getElementById('start-msg').innerText = `Attempts: ${attempts}`;
+    progressBar.style.display = 'none';
+}
+
+function update() {
+    if (gameState !== 'PLAYING') {
+        updateParticles(); // Keep particles moving even if dead
+        return;
+    }
+
+    frames++;
+
+    // 1. Move Player Horizontal (Actually we move camera, but logically player x increases)
+    player.x += SPEED;
+    cameraX = player.x - 200; // Keep player at x=200 on screen
+
+    // 2. Apply Gravity
+    player.vy += GRAVITY;
+    if (player.vy > TERMINAL_VELOCITY) player.vy = TERMINAL_VELOCITY;
+    player.y += player.vy;
+
+    // 3. Rotation Logic
+    if (!player.grounded) {
+        player.angle += 5; // Spin while jumping
+    } else {
+        // Snap to nearest 90
+        let nearest90 = Math.round(player.angle / 90) * 90;
+        player.angle = nearest90;
+    }
+
+    // 4. Floor Collision
+    // The Infinite floor logic
+    if (player.y + PLAYER_SIZE >= floorY) {
+        player.y = floorY - PLAYER_SIZE;
+        player.vy = 0;
+        player.grounded = true;
+    } else {
+        player.grounded = false;
+    }
+
+    // 5. Object Collision
+    // We strictly check objects nearby to save performance
+    let playerRect = { x: player.x + 4, y: player.y + 4, w: PLAYER_SIZE - 8, h: PLAYER_SIZE - 8 }; // Hitbox slightly smaller than sprite
+    
+    for (let obj of levelObjects) {
+        // Optimization: only check objects within screen view + buffer
+        if (obj.x + obj.w < cameraX || obj.x > cameraX + GAME_WIDTH) continue;
+
+        if (obj.type === 'win') {
+            if (player.x > obj.x) win();
+            continue;
+        }
+
+        if (checkCollision(playerRect, obj)) {
+            // Collision detected
+            if (obj.type === 'spike') {
+                die();
+            } else if (obj.type === 'block') {
+                // Resolution: Did we hit top, bottom, or side?
+                // Calculate overlap
+                let overlapX = (playerRect.w + obj.w) / 2 - Math.abs((playerRect.x + playerRect.w / 2) - (obj.x + obj.w / 2));
+                let overlapY = (playerRect.h + obj.h) / 2 - Math.abs((playerRect.y + playerRect.h / 2) - (obj.y + obj.h / 2));
+
+                if (overlapX < overlapY) {
+                    // Side collision -> Death (in Geometry Dash, hitting a wall is death)
+                    die();
+                } else {
+                    // Vertical collision
+                    if (player.vy > 0 && player.y + PLAYER_SIZE/2 < obj.y) {
+                        // Landed on top
+                        player.y = obj.y - PLAYER_SIZE;
+                        player.vy = 0;
+                        player.grounded = true;
+                    } else if (player.vy < 0 && player.y > obj.y) {
+                        // Hit head -> Death or just stop? In GD hitting head on block is usually death or stop.
+                        // Let's go with immediate death for difficulty match
+                        die();
+                    }
+                }
+            }
+        }
+    }
+
+    // 6. Trail
+    if (frames % 3 === 0) {
+        player.trail.push({ x: player.x, y: player.y, alpha: 0.6 });
+        if (player.trail.length > 10) player.trail.shift();
+    }
+
+    updateParticles();
+    
+    // 7. Background Shift
+    if (frames % 60 === 0) bgHue = (bgHue + 10) % 360;
+    
+    // 8. Progress
+    let pct = Math.min((player.x / levelLength) * 100, 100);
+    progressFill.style.width = pct + '%';
+}
+
+function draw() {
+    // Clear
+    ctx.fillStyle = `hsl(${bgHue}, 50%, 20%)`;
+    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+    // Draw Background Grid
+    ctx.strokeStyle = `hsl(${bgHue}, 50%, 30%)`;
+    ctx.lineWidth = 2;
+    let gridOffsetX = -(cameraX * 0.5) % TILE_SIZE;
+    let gridOffsetY = 0;
+    
+    ctx.beginPath();
+    for (let x = gridOffsetX; x < GAME_WIDTH; x += TILE_SIZE) {
+        ctx.moveTo(x, 0); ctx.lineTo(x, GAME_HEIGHT);
+    }
+    for (let y = 0; y < GAME_HEIGHT; y += TILE_SIZE) {
+        ctx.moveTo(0, y); ctx.lineTo(GAME_WIDTH, y);
+    }
+    ctx.stroke();
+
+    // Draw Floor Line
+    ctx.fillStyle = `hsl(${bgHue}, 60%, 40%)`; // Floor color
+    ctx.fillRect(0, floorY, GAME_WIDTH, GAME_HEIGHT - floorY);
+    
+    // Floor "Speed" Line
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, floorY);
+    ctx.lineTo(GAME_WIDTH, floorY);
+    ctx.stroke();
+
+    // Draw Objects
+    ctx.save();
+    ctx.translate(-cameraX, 0);
+
+    for (let obj of levelObjects) {
+        if (obj.x + obj.w < cameraX || obj.x > cameraX + GAME_WIDTH) continue;
+
+        if (obj.type === 'block') {
+            // Main block body
+            ctx.fillStyle = "#000000"; // Inner black
+            ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+            
+            // Neon border
+            ctx.strokeStyle = "#00ffcc"; // Neon cyan
+            ctx.lineWidth = 2;
+            ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
+            
+            // Inner detail
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = "#00ffcc";
+            ctx.fillRect(obj.x + 5, obj.y + 5, obj.w - 10, obj.h - 10);
+            ctx.globalAlpha = 1.0;
+        } 
+        else if (obj.type === 'spike') {
+            ctx.fillStyle = "#000";
+            ctx.strokeStyle = "#ff3333";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(obj.x, obj.y + obj.h);
+            ctx.lineTo(obj.x + obj.w / 2, obj.y);
+            ctx.lineTo(obj.x + obj.w, obj.y + obj.h);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Inner triangle detail
+            ctx.beginPath();
+            ctx.moveTo(obj.x + 8, obj.y + obj.h - 4);
+            ctx.lineTo(obj.x + obj.w / 2, obj.y + 12);
+            ctx.lineTo(obj.x + obj.w - 8, obj.y + obj.h - 4);
+            ctx.closePath();
+            ctx.fillStyle = "#ff3333";
+            ctx.fill();
+        }
+    }
+
+    // Draw Player Trail
+    if (!player.dead) {
+        for (let t of player.trail) {
+            ctx.fillStyle = player.color;
+            ctx.globalAlpha = t.alpha;
+            t.alpha -= 0.05;
+            ctx.fillRect(t.x, t.y, PLAYER_SIZE, PLAYER_SIZE);
+        }
+    }
+    ctx.globalAlpha = 1.0;
+
+    // Draw Player
+    if (!player.dead) {
+        ctx.translate(player.x + PLAYER_SIZE/2, player.y + PLAYER_SIZE/2);
+        ctx.rotate(player.angle * Math.PI / 180);
+        
+        // Cube Body
+        ctx.fillStyle = player.color; // Yellow center
+        ctx.fillRect(-PLAYER_SIZE/2, -PLAYER_SIZE/2, PLAYER_SIZE, PLAYER_SIZE);
+        
+        // Cube Border
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(-PLAYER_SIZE/2, -PLAYER_SIZE/2, PLAYER_SIZE, PLAYER_SIZE);
+        
+        // Face (Simple GD face)
+        ctx.fillStyle = "#000";
+        // Eye
+        ctx.fillRect(2, -8, 8, 8);
+        // Mouth
+        ctx.fillRect(4, 4, 10, 3);
+        
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform relative to canvas (removes rotation/translation)
+        ctx.scale(scale, scale); // Re-apply global scale
+    }
+    
+    // Draw Particles (handled in world space, so we need to offset by cameraX manually in logic or here)
+    // Actually my particle logic uses screen coords minus camera in the drawParticles function
+    // So we don't need the camera translate here.
+    
+    ctx.restore(); // Pop the camera translation
+
+    drawParticles();
+}
+
+function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+// Start
+requestAnimationFrame(gameLoop);
+
+</script>
+</body>
+</html>

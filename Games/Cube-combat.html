@@ -13,7 +13,7 @@
     <div id="rainbow-text" class="rainbow-text"></div>
 
     <div class="main-wrapper">
-        <!-- P1 SIDEBAR -->
+        
         <div id="p1-sidebar" class="sidebar p1">
             <div class="sb-header-row">
                 <div id="p1-sb-icon" class="sb-icon"></div>
@@ -42,7 +42,7 @@
                 <div id="p1-sb-cd4" class="sb-stat-value">READY</div>
             </div>
 
-            <!-- COMBO BOX MOVED HERE -->
+            
             <div id="p1-combo-sidebar" class="sb-stat-box" style="display:none; border-color: gold;">
                 <div class="sb-stat-label" style="color:gold;">COMBO</div>
                 <div id="p1-combo-val" class="sb-stat-value" style="color:gold;">0</div>
@@ -61,7 +61,7 @@
                 </div>
             </div>
 
-            <!-- SANDBOX MENU -->
+            
             <div id="sandbox-menu">
                 <div class="sb-header">Sandbox Control Panel</div>
                 <div style="text-align:center; margin-bottom:10px; color:#aaa; font-style:italic;">Press 'R' to toggle
@@ -69,20 +69,20 @@
                     menu</div>
                 <div class="sb-content">
                     <div class="sb-list" id="sb-cube-list">
-                        <!-- Populated by JS -->
+                        
                     </div>
                     <div class="sb-details" id="sb-details-pane">
-                        <!-- Populated by JS -->
+                        
                     </div>
                 </div>
                 <button class="btn btn-gray" style="width:100%; margin-top:10px; padding:10px;"
                     onclick="toggleSandboxMenu()">CLOSE MENU</button>
             </div>
 
-            <!-- OLD UI LAYER REMOVED/HIDDEN via CSS .hud display:none -->
+            
             <div id="ui-layer">
                 <div class="hud" id="hud">
-                    <!-- Old HUD content kept for structure but hidden -->
+                    
                     <div>
                         <div style="color: blue" id="p1-name-display">P1 (Blue)</div>
                         <div class="health-bar-container">
@@ -168,12 +168,12 @@
                     <button class="btn btn-gray" style="width: 150px; position: absolute; top: 20px; left: 20px;"
                         onclick="handleCubeBack()">BACK (ESC)</button>
 
-                    <!-- ACTION BUTTON: Appears when selecting for a game -->
+                    
                     <button id="btn-confirm-selection" class="btn btn-green"
                         style="width: 200px; position: absolute; bottom: 20px; right: 20px; display: none;"
                         onclick="confirmSelection()">FIGHT!</button>
 
-                    <!-- SANDBOX BUTTON -->
+                    
                     <button class="btn btn-orange" style="width: 200px; position: absolute; top: 20px; right: 20px;"
                         onclick="startGame('sandbox')">SANDBOX MODE</button>
 
@@ -212,9 +212,9 @@
                 </div>
 
             </div>
-        </div><!-- End game-container -->
+        </div>
 
-        <!-- P2 SIDEBAR -->
+        
         <div id="p2-sidebar" class="sidebar p2">
             <div class="sb-header-row">
                 <div id="p2-sb-name" class="sb-name">P2</div>
@@ -244,7 +244,7 @@
             </div>
         </div>
 
-    </div><!-- End main-wrapper -->
+    </div>
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="Js/Cube-combat.js"></script>
