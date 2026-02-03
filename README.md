@@ -19,16 +19,22 @@ key:
 🟡 = In active development
 🟨 = In development
 
-CheeseMan Games: 🔵
+CheeseMan Games: 🟢
 
 Games Tab: 🟢
 
-    cube combat: 🟡
+    cube combat: 🟢
 
-Test branch: 🔵
+Test branch: 🟢
+
+    Cube combat 2: 🟨
 
     Sketchy Caisno: 🟢
 
+    Fent sim: 🟢
 
-Announcements: 🟨
+    Shitty Gd: 🟢
+
+
+Announcements: 🟢
 
