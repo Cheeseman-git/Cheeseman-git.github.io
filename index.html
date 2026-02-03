@@ -6,16 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CheeseMan Games</title>
 
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
 
-    
+
     <script src="Js/tailwind-config.js"></script>
 
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="Css/index.css">
@@ -24,12 +24,12 @@
 <body
     class="bg-cheeseman-base text-cheeseman-content h-screen flex flex-col md:flex-row overflow-hidden selection:bg-indigo-500 selection:text-white font-sans">
 
-    
 
-    
+
+
     <aside
         class="hidden md:flex w-20 lg:w-72 flex-col glass z-20 border-r border-cheeseman-highlight/20 transition-all duration-300">
-        
+
         <div
             class="h-24 flex items-center justify-center lg:justify-start lg:px-8 border-b border-cheeseman-highlight/20 relative overflow-hidden group">
             <div
@@ -46,7 +46,7 @@
             </div>
         </div>
 
-        
+
         <nav class="flex-1 py-8 px-4 space-y-3">
             <button onclick="switchTab('home')"
                 class="nav-item w-full flex items-center p-4 rounded-xl text-cheeseman-muted hover:text-white hover:bg-white/5 transition-all group active relative overflow-hidden"
@@ -104,7 +104,7 @@
             </button>
         </nav>
 
-        
+
         <div class="p-4 border-t border-cheeseman-highlight/20 bg-black/20">
             <button onclick="switchTab('settings')"
                 class="w-full flex items-center p-3 rounded-xl hover:bg-white/5 transition-all border border-transparent hover:border-cheeseman-highlight/30 group">
@@ -127,7 +127,7 @@
         </div>
     </aside>
 
-    
+
     <header
         class="md:hidden h-16 glass fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 border-b border-cheeseman-highlight/20">
         <div class="flex items-center gap-3">
@@ -144,27 +144,27 @@
         </button>
     </header>
 
-    
+
     <main class="flex-1 relative overflow-y-auto overflow-x-hidden pt-16 pb-24 md:pt-0 md:pb-0 z-10" id="main-scroll">
 
-        
+
         <section id="view-home" class="p-6 lg:p-12 max-w-[1600px] mx-auto space-y-12 animate-fade-in relative z-10">
 
-            
+
             <div
                 class="relative w-full rounded-[32px] overflow-hidden h-[60vh] min-h-[500px] shadow-2xl shadow-cheeseman-primary/10 group isolate">
-                
+
                 <div
                     class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2671&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-[3s] group-hover:scale-105">
                 </div>
 
-                
+
                 <div class="absolute inset-0 bg-gradient-to-t from-cheeseman-base via-cheeseman-base/60 to-transparent">
                 </div>
                 <div class="absolute inset-0 bg-gradient-to-r from-cheeseman-base via-cheeseman-base/40 to-transparent">
                 </div>
 
-                
+
                 <div class="absolute bottom-0 left-0 p-8 md:p-16 w-full max-w-4xl">
                     <div class="flex items-center gap-3 mb-6 animate-slide-up" style="animation-delay: 0.1s;">
                         <span
@@ -204,9 +204,9 @@
                 </div>
             </div>
 
-            
+
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                
+
                 <div
                     class="glass p-6 rounded-3xl border border-white/5 relative overflow-hidden group hover:border-cheeseman-primary/30 transition-all hover:bg-cheeseman-primary/5">
                     <div
@@ -222,7 +222,7 @@
                     </div>
                 </div>
 
-                
+
                 <div
                     class="glass p-6 rounded-3xl border border-white/5 relative overflow-hidden group hover:border-emerald-500/30 transition-all hover:bg-emerald-500/5">
                     <div
@@ -238,7 +238,7 @@
                     </div>
                 </div>
 
-                
+
                 <div
                     class="glass p-6 rounded-3xl border border-white/5 relative overflow-hidden group hover:border-cheeseman-accent/30 transition-all hover:bg-cheeseman-accent/5">
                     <div
@@ -254,7 +254,7 @@
                     </div>
                 </div>
 
-                
+
                 <div
                     class="glass p-6 rounded-3xl border border-white/5 relative overflow-hidden group hover:border-amber-500/30 transition-all hover:bg-amber-500/5">
                     <div
@@ -274,7 +274,7 @@
                 </div>
             </div>
 
-            
+
             <div class="pt-8 border-t border-white/5">
                 <div class="flex items-center justify-between mb-8">
                     <div>
@@ -288,18 +288,18 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    
+
                     <div onclick="launchGame('cubecombat')"
                         class="group cursor-pointer relative rounded-3xl overflow-hidden aspect-[16/9] border border-white/5 hover:border-cheeseman-primary/50 transition-all hover:shadow-2xl hover:shadow-cheeseman-primary/10">
                         <img src="Assets/Cube-combat.png"
                             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
 
-                        
+
                         <div
                             class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-80 group-hover:opacity-60 transition-opacity">
                         </div>
 
-                        
+
                         <div class="absolute inset-0 p-6 flex flex-col justify-end">
                             <span
                                 class="inline-block px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded mb-2 w-fit">HOT</span>
@@ -318,7 +318,7 @@
                             </div>
                         </div>
 
-                        
+
                         <div
                             class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform scale-50 group-hover:scale-100 border border-white/20">
                             <i class="fa-solid fa-play text-white text-2xl pl-1"></i>
@@ -328,7 +328,7 @@
             </div>
         </section>
 
-        
+
         <section id="view-games" class="hidden p-6 lg:p-12 max-w-[1600px] mx-auto min-h-full animate-fade-in">
             <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                 <div>
@@ -343,7 +343,7 @@
                 </div>
             </div>
 
-            
+
             <div class="flex gap-3 overflow-x-auto pb-4 mb-8 no-scrollbar">
                 <button
                     class="px-6 py-2.5 bg-white text-black font-bold rounded-xl text-sm whitespace-nowrap hover:scale-105 transition-transform">All
@@ -357,7 +357,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                
+
                 <button onclick="launchGame('cubecombat')"
                     class="group relative flex flex-col items-start p-1 rounded-3xl bg-gradient-to-br from-white/5 to-white/0 hover:from-cheeseman-primary/20 hover:to-cheeseman-accent/20 border border-white/5 hover:border-cheeseman-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-cheeseman-primary/10 hover:-translate-y-1">
 
@@ -386,7 +386,7 @@
                     </div>
                 </button>
 
-                
+
                 <button onclick="launchGame('snake')"
                     class="group relative flex flex-col items-start p-1 rounded-3xl bg-gradient-to-br from-white/5 to-white/0 hover:from-emerald-500/20 hover:to-green-500/20 border border-white/5 hover:border-emerald-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-1">
 
@@ -411,7 +411,7 @@
                     </div>
                 </button>
 
-                
+
                 <button onclick="launchGame('tictactoe')"
                     class="group relative flex flex-col items-start p-1 rounded-3xl bg-gradient-to-br from-white/5 to-white/0 hover:from-indigo-500/20 hover:to-purple-500/20 border border-white/5 hover:border-indigo-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1">
 
@@ -441,17 +441,14 @@
         </section>
 
 
-
-        
         <section id="view-community" class="hidden p-6 lg:p-12 max-w-[1600px] mx-auto min-h-full animate-fade-in">
             <h1 class="text-4xl lg:text-5xl font-black text-white mb-8">Community Hub</h1>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
+
                 <div class="lg:col-span-2 space-y-6">
 
 
-                    
                     <div id="user-status-section" class="flex flex-col gap-4 mb-6" style="display:none;">
                         <div
                             class="glass p-4 rounded-2xl border border-cheeseman-primary/20 bg-cheeseman-primary/5 flex justify-between items-center">
@@ -468,10 +465,9 @@
 
                         </div>
 
-
                     </div>
 
-                    
+
                     <div id="community-feed">
                         <div class="text-center py-12">
                             <i class="fa-solid fa-circle-notch fa-spin text-cheeseman-primary text-3xl mb-4"></i>
@@ -480,9 +476,9 @@
                     </div>
                 </div>
 
-                
+
                 <div class="space-y-6">
-                    
+
                     <div class="glass p-6 rounded-3xl border border-white/5">
                         <h3 class="font-bold text-white mb-4 flex items-center gap-2">
                             <i class="fa-solid fa-calendar-star text-cheeseman-primary"></i> Live Events
@@ -506,7 +502,7 @@
                         </div>
                     </div>
 
-                    
+
                     <div class="glass p-6 rounded-3xl border border-white/5">
                         <h3 class="font-bold text-white mb-4 flex items-center gap-2">
                             <i class="fa-solid fa-ranking-star text-yellow-400"></i> Top Players
@@ -539,12 +535,12 @@
             </div>
         </section>
 
-        
+
         <section id="view-settings" class="hidden p-6 lg:p-12 max-w-4xl mx-auto min-h-full animate-fade-in">
             <h1 class="text-4xl lg:text-5xl font-black text-white mb-8">Settings</h1>
 
             <div class="space-y-8">
-                
+
                 <div class="glass rounded-3xl p-8 border border-white/5">
                     <h2 class="text-xl font-bold text-white mb-6 flex items-center">
                         <span
@@ -553,7 +549,7 @@
                         Account
                     </h2>
 
-                    
+
                     <section id="auth-section" style="display:none;">
                         <h3 class="text-sm font-bold text-cheeseman-muted uppercase tracking-wide mb-2">Sign In with
                             Magic Link</h3>
@@ -575,7 +571,7 @@
                             <div class="flex-grow border-t border-white/10"></div>
                         </div>
 
-                        
+
                         <div class="mt-4">
                             <h3 class="text-sm font-bold text-cheeseman-muted uppercase tracking-wide mb-2">Have a Key?
                             </h3>
@@ -591,7 +587,7 @@
                         <div id="auth-message" class="text-cheeseman-muted text-sm mt-4 font-bold"></div>
                     </section>
 
-                    
+
                     <div id="account-info-display" class="hidden">
                         <div class="flex items-center gap-4 mb-4">
                             <div
@@ -604,7 +600,7 @@
                             </div>
                         </div>
 
-                        
+
                         <div class="mb-4">
                             <label
                                 class="text-sm font-bold text-cheeseman-muted uppercase tracking-wide mb-2 block">Display
@@ -628,7 +624,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="glass rounded-3xl p-8 border border-white/5">
                     <h2 class="text-xl font-bold text-white mb-6 flex items-center">
                         <span
@@ -638,7 +634,7 @@
                     </h2>
 
                     <div class="space-y-8">
-                        
+
                         <div>
                             <span class="block text-white font-bold mb-4 flex items-center gap-2"><i
                                     class="fa-solid fa-palette text-cheeseman-muted text-xs"></i> Color Theme</span>
@@ -726,7 +722,7 @@
                             </div>
                         </div>
 
-                        
+
                         <div>
                             <span class="block text-white font-bold mb-4 flex items-center gap-2"><i
                                     class="fa-solid fa-face-grin-tears text-cheeseman-muted text-xs"></i> Meme
@@ -749,7 +745,7 @@
                             </div>
                         </div>
 
-                        
+
                         <div
                             class="flex items-center justify-between group p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                             <div>
@@ -785,7 +781,7 @@
                     </div>
                 </div>
 
-                
+
                 <div class="glass rounded-3xl p-8 border border-white/5">
                     <h2 class="text-xl font-bold text-white mb-6 flex items-center">
                         <span
@@ -806,7 +802,7 @@
                     </div>
                 </div>
 
-                
+
                 <div class="glass rounded-3xl p-8 border border-white/5">
                     <h2 class="text-xl font-bold text-white mb-6 flex items-center">
                         <span
@@ -830,12 +826,12 @@
             </div>
         </section>
 
-        
+
         <section id="view-credits" class="hidden p-6 lg:p-12 max-w-4xl mx-auto min-h-full animate-fade-in">
             <h1 class="text-4xl lg:text-5xl font-black text-white mb-8 text-center">Credits</h1>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                
+
                 <div class="glass rounded-3xl p-8 border border-white/5 flex flex-col items-center text-center">
                     <div
                         class="w-20 h-20 rounded-full bg-cheeseman-primary/20 flex items-center justify-center text-cheeseman-primary text-3xl mb-6 border border-cheeseman-primary/30">
@@ -849,7 +845,7 @@
                     </ul>
                 </div>
 
-                
+
                 <div class="glass rounded-3xl p-8 border border-white/5 flex flex-col items-center text-center">
                     <div
                         class="w-20 h-20 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-400 text-3xl mb-6 border border-pink-500/30">
@@ -870,10 +866,9 @@
                 <p class="text-cheeseman-muted text-xs">© 2025 CheeseMan Games. All rights reserved.</p>
                 <p class="text-cheeseman-muted text-[10px] mt-2">v2.5.0-beta</p>
             </div>
+        </section>
 
-
-            
-            <section id="view-socials" class="hidden p-6 lg:p-12 max-w-[1600px] mx-auto min-h-full animate-fade-in">
+        <section id="view-socials" class="hidden p-6 lg:p-12 max-w-[1600px] mx-auto min-h-full animate-fade-in">
                 <div class="text-center max-w-2xl mx-auto mb-16 mt-8">
                     <span
                         class="inline-block px-3 py-1 rounded-full bg-cheeseman-primary/10 text-cheeseman-primary text-xs font-bold uppercase tracking-widest mb-4 border border-cheeseman-primary/20">Connect
@@ -887,7 +882,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    
+
                     <a href="#"
                         class="group glass p-8 rounded-[32px] border border-white/5 hover:bg-[#5865F2] transition-all duration-300 hover:-translate-y-2 text-center">
                         <div
@@ -905,7 +900,7 @@
                         </span>
                     </a>
 
-                    
+
                     <a href="#"
                         class="group glass p-8 rounded-[32px] border border-white/5 hover:bg-black transition-all duration-300 hover:-translate-y-2 text-center">
                         <div
@@ -922,7 +917,7 @@
                         </span>
                     </a>
 
-                    
+
                     <a href="#"
                         class="group glass p-8 rounded-[32px] border border-white/5 hover:bg-[#FF0000] transition-all duration-300 hover:-translate-y-2 text-center">
                         <div
@@ -940,8 +935,8 @@
                         </span>
                     </a>
 
-                    
-                    <a href="#"
+
+                    <a href="https://github.com/Cheeseman-git/Cheeseman-git.github.io" target="_blank" rel="noopener noreferrer"
                         class="group glass p-8 rounded-[32px] border border-white/5 hover:bg-[#333] transition-all duration-300 hover:-translate-y-2 text-center">
                         <div
                             class="w-20 h-20 mx-auto rounded-full bg-white/10 flex items-center justify-center mb-6 group-hover:bg-white text-white group-hover:text-[#333] transition-colors text-4xl shadow-xl">
@@ -958,23 +953,18 @@
                         </span>
                     </a>
                 </div>
-            </section>
-            <li>Unsplash background images</li>
-            </ul>
-            </div>
 
-            <div class="glass rounded-2xl p-6 border border-cheeseman-highlight/20">
-                <h2 class="text-xl font-semibold mb-2">Special Thanks</h2>
-                <p class="text-cheeseman-content text-sm">
-                    Thanks to @RedFox-AI51 for providing the framework for testbranch.
-                    Thanks to everyone who helped test CheeseMan Games and provided feedback.
-                </p>
-            </div>
-            </div>
-        </section>
+                <div class="glass rounded-2xl p-6 border border-cheeseman-highlight/20 mt-12">
+                    <h2 class="text-xl font-semibold mb-2">Special Thanks</h2>
+                    <p class="text-cheeseman-content text-sm">
+                        Thanks to @RedFox-AI51 for providing the framework for testbranch.
+                        Thanks to everyone who helped test CheeseMan Games and provided feedback.
+                    </p>
+                </div>
+            </section>
     </main>
 
-    
+
     <div
         class="md:hidden fixed bottom-0 left-0 right-0 h-20 glass border-t border-cheeseman-highlight/30 z-50 flex justify-around items-center px-2 pb-2">
         <button onclick="switchTab('home')"
@@ -1008,9 +998,9 @@
         </button>
     </div>
 
-    
+
     <div id="game-overlay" class="fixed inset-0 bg-black/90 z-[100] hidden flex-col animate-fade-in backdrop-blur-xl">
-        
+
         <div class="flex justify-between items-center p-4 border-b border-cheeseman-highlight/30">
             <h2 id="active-game-title" class="text-xl font-bold text-white tracking-wider flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> GAME TITLE
@@ -1021,37 +1011,37 @@
             </button>
         </div>
 
-        
+
         <div class="flex-1 flex items-center justify-center p-4 overflow-hidden relative">
 
             <div
                 class="relative bg-slate-900 rounded-xl shadow-2xl border border-cheeseman-highlight/30 overflow-hidden max-w-full max-h-full">
-                
+
                 <canvas id="game-canvas" width="400" height="400"
                     class="hidden max-w-full max-h-[70vh] cursor-crosshair object-contain"></canvas>
 
-                
+
                 <iframe id="game-iframe" class="hidden w-full h-[80vh] min-w-[80vw] bg-transparent border-0"
                     allowfullscreen></iframe>
 
-                
+
                 <div id="ttt-board"
                     class="hidden grid-cols-3 gap-3 bg-slate-800 p-4 w-[min(90vw,400px)] h-[min(90vw,400px)]">
-                    
+
                 </div>
 
-                
+
                 <div id="memory-board"
                     class="hidden grid-cols-4 gap-2 bg-slate-800 p-4 w-[min(90vw,400px)] h-[min(90vw,400px)]">
-                    
+
                 </div>
 
-                
+
                 <div id="highlow-board"
                     class="hidden flex-col items-center justify-center gap-8 bg-slate-800 p-8 w-[min(90vw,400px)] h-[min(90vw,400px)]">
                     <div id="hl-card-display"
                         class="w-32 h-48 bg-white rounded-xl shadow-2xl flex flex-col items-center justify-center text-4xl font-bold transition-all transform hover:scale-105">
-                        
+
                     </div>
                     <div class="flex gap-4 w-full">
                         <button id="hl-lower"
@@ -1065,13 +1055,13 @@
                     </div>
                 </div>
 
-                
+
                 <div id="solitaire-board"
                     class="hidden flex-col bg-slate-800 p-2 w-[min(95vw,600px)] h-[min(140vw,600px)] relative">
-                    
+
                     <div class="flex justify-between h-24 mb-4">
                         <div class="flex gap-2" id="sol-foundations">
-                            
+
                             <div class="w-16 h-24 border-2 border-slate-600 rounded-md flex items-center justify-center text-slate-600"
                                 data-type="foundation" data-id="0"><i class="fa-solid fa-heart"></i></div>
                             <div class="w-16 h-24 border-2 border-slate-600 rounded-md flex items-center justify-center text-slate-600"
@@ -1089,13 +1079,13 @@
                             <div id="sol-talon" class="w-16 h-24 border border-slate-600 rounded-md relative"></div>
                         </div>
                     </div>
-                    
+
                     <div class="flex justify-between flex-1 relative" id="sol-tableau">
-                        
+
                     </div>
                 </div>
 
-                
+
                 <div id="game-ui-layer"
                     class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20 backdrop-blur-sm p-6 text-center">
                     <h3 id="game-status-title"
@@ -1116,7 +1106,7 @@
 
         </div>
 
-        
+
         <div class="p-6 text-center text-slate-500 text-sm border-t border-cheeseman-highlight/30 bg-black">
             <p id="game-controls-hint" class="flex justify-center items-center gap-4">
                 <span class="flex gap-1"><i class="fa-solid fa-arrow-up border border-slate-700 p-1 rounded"></i><i
@@ -1125,7 +1115,7 @@
         </div>
     </div>
 
-    
+
     <script src="Js/index.js"></script>
     <script src="Js/github.js"></script>
 </body>

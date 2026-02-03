@@ -1,4 +1,3 @@
-
 function setTheme(themeName) {
     if (themeName === 'default') {
         document.documentElement.removeAttribute('data-theme');
