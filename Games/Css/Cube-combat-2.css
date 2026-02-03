@@ -1,12 +1,12 @@
 body {
     margin: 0;
     padding: 0;
-    background-color: #050505; /* Darker background to match cutscene */
+    background-color: #050505; 
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    font-family: 'Courier New', Courier, monospace; /* Changed to match tech theme */
+    font-family: 'Courier New', Courier, monospace; 
     color: white;
     overflow: hidden;
 }
@@ -17,7 +17,7 @@ body {
     height: 600px;
     box-shadow: 0 0 50px rgba(0, 255, 255, 0.1);
     background-color: #000;
-    overflow: hidden; /* Important for 3D shake effects */
+    overflow: hidden; 
 }
 
 canvas {
@@ -25,7 +25,7 @@ canvas {
     background-color: #222;
 }
 
-/* --- CUTSCENE STYLES --- */
+
 #cutscene-layer {
     position: absolute;
     top: 0;
@@ -61,7 +61,7 @@ canvas {
 
 .cinematic-bar {
     width: 100%;
-    height: 60px; /* Adjusted for 800x600 resolution */
+    height: 60px; 
     background: black;
 }
 
@@ -78,7 +78,7 @@ canvas {
     justify-content: center;
     opacity: 0;
     transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    margin-bottom: 80px; /* Above bottom bar */
+    margin-bottom: 80px; 
     box-shadow: 0 0 30px rgba(0, 255, 255, 0.4), inset 0 0 20px rgba(0, 255, 255, 0.1);
     backdrop-filter: blur(10px);
 }
@@ -111,7 +111,7 @@ canvas {
     letter-spacing: 8px;
 }
 
-/* Glitch Animations */
+
 .glitch-anim {
     animation: glitch-skew 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
     color: red;
@@ -130,7 +130,7 @@ canvas {
     animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite;
 }
 
-/* Move the cutscene dialog up/out of the way during dramatic events */
+
 .cs-move-up {
     transform: translateY(-320px) scale(0.85);
     opacity: 0.3 !important;
@@ -168,7 +168,7 @@ canvas {
     z-index: 56;
 }
 
-/* --- UI LAYER & EXISTING STYLES --- */
+
 #ui-layer {
     position: absolute;
     top: 0;
@@ -215,7 +215,7 @@ canvas {
     box-shadow: 0 0 20px #00ffff;
 }
 
-/* 2D Dialogue Box */
+
 #dialogue-box {
     position: absolute;
     bottom: 20px;
@@ -237,7 +237,7 @@ canvas {
 #dialogue-text { font-size: 16px; line-height: 1.4; flex-grow: 1; }
 .dialogue-prompt { font-size: 12px; color: #888; text-align: right; width: 100%; animation: blink 1s infinite; }
 
-/* HUD */
+
 #combat-hud { position: absolute; top: 20px; left: 20px; width: calc(100% - 40px); display: flex; justify-content: space-between; pointer-events: none; }
 #combat-hud.hidden { display: none; }
 .health-bar-container { width: 300px; }

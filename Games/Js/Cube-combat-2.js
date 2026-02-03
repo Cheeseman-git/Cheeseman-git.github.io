@@ -1,4 +1,4 @@
-// --- AUDIO SYSTEM ---
+
 const AudioSystem = {
     ctx: null,
     masterGain: null,
@@ -21,7 +21,7 @@ const AudioSystem = {
         this.sfxGain.connect(this.masterGain);
     },
 
-    // Play synthesized sound effect
+    
     playSFX: function(type) {
         if (!this.ctx) return;
 
@@ -104,7 +104,7 @@ const AudioSystem = {
         }
     },
 
-    // Atmospheric background music
+    
     startMusic: function(mood = 'ambient') {
         if (!this.ctx) return;
         this.stopMusic();
@@ -112,18 +112,18 @@ const AudioSystem = {
         const now = this.ctx.currentTime;
 
         if (mood === 'ambient') {
-            // Ambient drone - peaceful exploration
+            
             const bass = this.ctx.createOscillator();
             bass.type = 'sine';
-            bass.frequency.value = 55; // A1
+            bass.frequency.value = 55; 
 
             const mid = this.ctx.createOscillator();
             mid.type = 'triangle';
-            mid.frequency.value = 110; // A2
+            mid.frequency.value = 110; 
 
             const pad = this.ctx.createOscillator();
             pad.type = 'sine';
-            pad.frequency.value = 220; // A3
+            pad.frequency.value = 220; 
 
             const bassGain = this.ctx.createGain();
             const midGain = this.ctx.createGain();
@@ -144,14 +144,14 @@ const AudioSystem = {
             this.currentMusic = [bass, mid, pad];
 
         } else if (mood === 'danger') {
-            // Tense, dramatic music
+            
             const bass = this.ctx.createOscillator();
             bass.type = 'sawtooth';
-            bass.frequency.value = 65; // C2
+            bass.frequency.value = 65; 
 
             const pulse = this.ctx.createOscillator();
             pulse.type = 'square';
-            pulse.frequency.value = 130; // C3
+            pulse.frequency.value = 130; 
 
             const bassGain = this.ctx.createGain();
             const pulseGain = this.ctx.createGain();
@@ -159,7 +159,7 @@ const AudioSystem = {
             bassGain.gain.value = 0.25;
             pulseGain.gain.value = 0.1;
 
-            // Pulsing effect
+            
             const lfo = this.ctx.createOscillator();
             lfo.frequency.value = 2;
             const lfoGain = this.ctx.createGain();
@@ -196,42 +196,42 @@ const AudioSystem = {
     }
 };
 
-// --- 3D CUTSCENE SYSTEM (From Act-1) ---
+
 const Cutscene3D = {
     active: false,
     scene: null, camera: null, renderer: null, clock: null,
     animationId: null,
 
-    // Objects
+    
     azure: null, greenCube: null, yellowCube: null, tesseract: null, groundGrid: null,
     particles: [],
     isGlitching: false,
 
-    // Config matches Game Wrapper size
+    
     width: 800,
     height: 600,
 
     init: function() {
         const container = document.getElementById('three-canvas-container');
-        container.innerHTML = ''; // Clear previous
+        container.innerHTML = ''; 
 
-        // Scene
+        
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x1a1a2e);
         this.scene.fog = new THREE.FogExp2(0x1a1a2e, 0.02);
 
-        // Camera
+        
         this.camera = new THREE.PerspectiveCamera(75, this.width / this.height, 0.1, 1000);
         this.camera.position.set(0, 5, 10);
         this.camera.lookAt(0, 0, 0);
 
-        // Renderer
+        
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(this.width, this.height);
         this.renderer.shadowMap.enabled = true;
         container.appendChild(this.renderer.domElement);
 
-        // Lights
+        
         const ambientLight = new THREE.AmbientLight(0x202040, 1.5);
         this.scene.add(ambientLight);
 
@@ -242,17 +242,17 @@ const Cutscene3D = {
         dirLight.shadow.mapSize.height = 1024;
         this.scene.add(dirLight);
 
-        // Add dramatic rim light
+        
         const rimLight = new THREE.DirectionalLight(0x00ffff, 0.8);
         rimLight.position.set(-5, 3, -5);
         this.scene.add(rimLight);
 
-        // Store lights for dramatic changes
+        
         this.ambientLight = ambientLight;
         this.dirLight = dirLight;
         this.rimLight = rimLight;
 
-        // Reset State
+        
         this.particles = [];
         this.isGlitching = false;
         this.clock = new THREE.Clock();
@@ -263,12 +263,12 @@ const Cutscene3D = {
     },
 
     createWorld: function() {
-        // Grid Floor
+        
         const gridHelper = new THREE.GridHelper(100, 100, 0x00ffff, 0x333333);
         this.scene.add(gridHelper);
         this.groundGrid = gridHelper;
 
-        // "Digital" Floor Plane
+        
         const geometry = new THREE.PlaneGeometry(100, 100);
         const material = new THREE.MeshPhongMaterial({ 
             color: 0x0a0a0a, side: THREE.DoubleSide, transparent: true, opacity: 0.8 
@@ -282,7 +282,7 @@ const Cutscene3D = {
 
     createCharacters: function() {
         const geometry = new THREE.BoxGeometry(1, 1, 1);
-        // Azure - Enhanced with glow
+        
         const azMat = new THREE.MeshStandardMaterial({
             color: 0x00ffff,
             emissive: 0x0066ff,
@@ -296,7 +296,7 @@ const Cutscene3D = {
         this.azure.receiveShadow = true;
         this.scene.add(this.azure);
 
-        // Green - Enhanced
+        
         const greenMat = new THREE.MeshStandardMaterial({
             color: 0x00ff00,
             emissive: 0x004400,
@@ -309,7 +309,7 @@ const Cutscene3D = {
         this.greenCube.castShadow = true;
         this.scene.add(this.greenCube);
 
-        // Yellow - Enhanced
+        
         const yellowMat = new THREE.MeshStandardMaterial({
             color: 0xffff00,
             emissive: 0x444400,
@@ -347,7 +347,7 @@ const Cutscene3D = {
         this.tesseract.add(core);
         this.tesseract.position.set(0, 20, -10);
 
-        // Add ominous point light
+        
         const tesseractLight = new THREE.PointLight(0xff0033, 3, 15);
         this.tesseract.add(tesseractLight);
 
@@ -356,7 +356,7 @@ const Cutscene3D = {
 
     createDeResParticles: function(position, color) {
         const geo = new THREE.BufferGeometry();
-        const count = 100; // More particles
+        const count = 100; 
         const positions = new Float32Array(count * 3);
         const velocities = [];
 
@@ -392,27 +392,27 @@ const Cutscene3D = {
         const delta = this.clock.getDelta();
         const elapsed = this.clock.getElapsedTime();
 
-        // Azure idle animation
+        
         if(this.azure) {
             this.azure.rotation.y = Math.sin(elapsed * 1.2) * 0.1;
             this.azure.position.y = 0.5 + Math.sin(elapsed * 2) * 0.05;
         }
 
-        // Tesseract menacing rotation
+        
         if(this.tesseract) {
             this.tesseract.rotation.x += delta * 0.8;
             this.tesseract.rotation.y += delta * 1.2;
             this.tesseract.rotation.z += delta * 0.5;
         }
 
-        // Glitch effect with enhanced camera shake
+        
         if (this.isGlitching) {
             this.camera.position.x += (Math.random() - 0.5) * 0.3;
             this.camera.position.y += (Math.random() - 0.5) * 0.3;
             if (Math.random() > 0.8) {
                 this.groundGrid.material.color.setHex(Math.random() > 0.5 ? 0xff0000 : 0x00ffff);
             }
-            // Flicker lights
+            
             if (Math.random() > 0.7) {
                 this.ambientLight.intensity = Math.random() * 2;
             }
@@ -425,7 +425,7 @@ const Cutscene3D = {
             }
         }
 
-        // Particles with fade-out
+        
         this.particles.forEach((p, index) => {
             const pos = p.geometry.attributes.position.array;
             const v = p.userData.velocities;
@@ -433,12 +433,12 @@ const Cutscene3D = {
                 pos[i*3] += v[i].x;
                 pos[i*3+1] += v[i].y;
                 pos[i*3+2] += v[i].z;
-                v[i].y -= 0.005; // Gravity
+                v[i].y -= 0.005; 
             }
             p.geometry.attributes.position.needsUpdate = true;
             p.userData.life--;
 
-            // Fade out particles
+            
             p.material.opacity = p.userData.life / 90;
 
             if(p.userData.life <= 0) {
@@ -450,18 +450,18 @@ const Cutscene3D = {
         this.renderer.render(this.scene, this.camera);
     },
 
-    // --- Timeline Director ---
+    
     playSequence: async function() {
         this.active = true;
         this.init();
         document.getElementById('cutscene-layer').classList.remove('hidden');
 
-        // Initialize audio system
+        
         if (!AudioSystem.ctx) {
             AudioSystem.init();
         }
 
-        // Start ambient music
+        
         AudioSystem.startMusic('ambient');
 
         const showText = async (text, dur = 3000) => {
@@ -474,7 +474,7 @@ const Cutscene3D = {
             await this.sleep(500);
         };
 
-        // Helper to move the cutscene dialog out of the way (and back)
+        
         const moveDialogAway = () => {
             const box = document.getElementById('cs-dialog-box');
             if (box) box.classList.add('cs-move-up');
@@ -484,10 +484,10 @@ const Cutscene3D = {
             if (box) box.classList.remove('cs-move-up');
         };
 
-        // Timeline
+        
         await this.sleep(1000);
 
-        // Slow camera pan intro
+        
         AudioSystem.playSFX('whoosh');
         const camStartPos = { x: 0, y: 5, z: 10 };
         let t = 0;
@@ -500,16 +500,16 @@ const Cutscene3D = {
 
         await showText("System: Sector Zero. Hub World. Status: Normal.", 3000);
 
-        // The Tear - dramatic camera zoom
+        
         AudioSystem.playSFX('tension');
-        AudioSystem.fadeMusic(0.1, 1); // Fade music down
+        AudioSystem.fadeMusic(0.1, 1); 
 
         this.scene.fog.color.setHex(0x330000);
         this.scene.background.setHex(0x110000);
         this.ambientLight.color.setHex(0x400000);
         this.rimLight.color.setHex(0xff0000);
 
-        // Quick camera zoom in
+        
         const camZoomStart = this.camera.position.clone();
         t = 0;
         while(t < 1) {
@@ -524,7 +524,7 @@ const Cutscene3D = {
         document.getElementById('game-wrapper').classList.add('screen-shake');
         await showText("System Alert: Anomalous energy signature detected!", 2000);
 
-        // Switch to danger music
+        
         AudioSystem.stopMusic();
         await this.sleep(300);
         AudioSystem.startMusic('danger');
@@ -533,30 +533,30 @@ const Cutscene3D = {
         AudioSystem.playSFX('whoosh');
         moveDialogAway();
 
-        // Drop Tesseract with camera tracking
+        
         t = 0;
         while(t < 1) {
             t += 0.01;
-            const easeT = t * t; // Ease in
+            const easeT = t * t; 
             this.tesseract.position.y = 20 + (5 - 20) * easeT;
-            // Camera follows slightly
+            
             this.camera.lookAt(0, this.tesseract.position.y * 0.3, -5);
             await this.sleep(16);
         }
 
-        // Impact sound
+        
         AudioSystem.playSFX('explosion');
         document.getElementById('game-wrapper').classList.remove('screen-shake');
         await this.sleep(300);
         moveDialogBack();
 
-        // Glitch
+        
         this.isGlitching = true;
         const warn = document.getElementById('warning-overlay');
         warn.style.display = 'block';
         warn.classList.add('glitch-anim');
 
-        // Glitch sounds
+        
         for(let i = 0; i < 5; i++) {
             AudioSystem.playSFX('glitch');
             await this.sleep(300);
@@ -567,7 +567,7 @@ const Cutscene3D = {
 
         await showText("Entity: Crimson Tesseract. executing: DELETE_ALL.EXE", 3000);
 
-        // Capture Friends
+        
         AudioSystem.playSFX('whoosh');
         const startG = this.greenCube.position.clone();
         const startY = this.yellowCube.position.clone();
@@ -582,7 +582,7 @@ const Cutscene3D = {
             await this.sleep(16);
         }
 
-        // Compression sound
+        
         AudioSystem.playSFX('damage');
         this.scene.remove(this.greenCube);
         this.scene.remove(this.yellowCube);
@@ -591,12 +591,12 @@ const Cutscene3D = {
 
         await showText("Azure: NO! They're being compressed!", 2000);
 
-        // Damage Azure with dramatic camera shake
+        
         AudioSystem.playSFX('explosion');
         AudioSystem.playSFX('damage');
         this.createDeResParticles(this.azure.position, 0x00ffff);
         const azStart = this.azure.position.clone();
-        const azEnd = new THREE.Vector3(0, 0.5, 8); // Knockback
+        const azEnd = new THREE.Vector3(0, 0.5, 8); 
         const camDamageStart = this.camera.position.clone();
 
         t = 0;
@@ -604,11 +604,11 @@ const Cutscene3D = {
             t += 0.02;
             this.azure.position.lerpVectors(azStart, azEnd, t);
             this.azure.rotation.z += 0.2;
-            // Flicker
+            
             this.azure.material.color.setHex(Math.random() > 0.5 ? 0x333333 : 0x00ffff);
             this.azure.material.emissiveIntensity = Math.random() * 0.8;
 
-            // Camera recoil
+            
             this.camera.position.z = camDamageStart.z + Math.sin(t * Math.PI * 4) * 0.5;
             this.camera.lookAt(this.azure.position);
 
@@ -619,7 +619,7 @@ const Cutscene3D = {
 
         await showText("System: CORE INTEGRITY CRITICAL. ABILITIES OFFLINE.", 2000);
 
-        // Escape - camera follows Azure
+        
         AudioSystem.playSFX('whoosh');
         while(this.azure.position.x > -15) {
             this.azure.position.x -= 0.5;
@@ -628,7 +628,7 @@ const Cutscene3D = {
             await this.sleep(16);
         }
 
-        // End
+        
         AudioSystem.fadeMusic(0, 1.5);
         await this.sleep(500);
         this.cleanup();
@@ -638,9 +638,9 @@ const Cutscene3D = {
         this.active = false;
         cancelAnimationFrame(this.animationId);
         document.getElementById('cutscene-layer').classList.add('hidden');
-        // Stop music
+        
         AudioSystem.stopMusic();
-        // Trigger 2D Game
+        
         startGame();
     },
 
@@ -648,7 +648,7 @@ const Cutscene3D = {
 };
 
 
-// --- CAMPAIGN DATA (2D) ---
+
 const CAMPAIGN_DATA = {
     act1: {
         title: "The Glitch",
@@ -668,7 +668,7 @@ const CAMPAIGN_DATA = {
     }
 };
 
-// --- 2D GAME ENGINE ---
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const WIDTH = 800;
@@ -757,30 +757,30 @@ class Player extends Entity {
 let player = new Player();
 
 function loop() {
-    ctx.fillStyle = '#111'; ctx.fillRect(0, 0, WIDTH, HEIGHT); // Clear
-    ctx.fillStyle = '#003366'; ctx.fillRect(0, HEIGHT - 50, WIDTH, 50); // Floor
+    ctx.fillStyle = '#111'; ctx.fillRect(0, 0, WIDTH, HEIGHT); 
+    ctx.fillStyle = '#003366'; ctx.fillRect(0, HEIGHT - 50, WIDTH, 50); 
     player.update();
     player.draw();
     requestAnimationFrame(loop);
 }
 
-// --- FLOW CONTROL ---
 
-// 1. Triggered by Button
+
+
 function startCampaignFlow() {
     document.getElementById('main-menu').classList.remove('active');
     document.getElementById('main-menu').classList.add('hidden');
     
-    // Play Act 1 Cutscene
+    
     Cutscene3D.playSequence();
 }
 
-// 2. Triggered by Cutscene End
+
 function startGame() {
     const level = CAMPAIGN_DATA.act1.levels[0];
     player.x = 100; player.y = HEIGHT - 150;
     
-    // Start Level 1 Dialogue
+    
     StoryManager.startDialogue(level.introDialogue);
     
     if (!gameLoopStarted) {
@@ -794,5 +794,5 @@ function showCredits() {
 }
 
 let gameLoopStarted = false;
-// Initial Render
+
 ctx.fillStyle = '#111'; ctx.fillRect(0, 0, WIDTH, HEIGHT);
