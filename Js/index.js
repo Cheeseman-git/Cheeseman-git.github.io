@@ -192,6 +192,16 @@ function launchGame(gameType) {
         statusTitle.textContent = "";
         statusDesc.textContent = "";
         uiLayer.classList.add('hidden'); 
+    } else if (gameType === 'sketchycasino') {
+        titleEl.innerHTML = '<i class="fa-solid fa-dice text-red-400 mr-2"></i> SKETCHY CASINO';
+        hintEl.innerHTML = 'Try Your Luck';
+        iframe.classList.remove('hidden');
+        iframe.src = 'Games/Sketchy-Caisno.html';
+        
+        startBtn.classList.add('hidden');
+        statusTitle.textContent = "";
+        statusDesc.textContent = "";
+        uiLayer.classList.add('hidden'); 
     }
 }
 

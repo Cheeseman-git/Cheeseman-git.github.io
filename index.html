@@ -324,6 +324,44 @@
                             <i class="fa-solid fa-play text-white text-2xl pl-1"></i>
                         </div>
                     </div>
+
+                    <!-- Sketchy Casino -->
+                    <div onclick="launchGame('sketchycasino')"
+                        class="group cursor-pointer relative rounded-3xl overflow-hidden aspect-[16/9] border border-white/5 hover:border-red-500/50 transition-all hover:shadow-2xl hover:shadow-red-500/10">
+                        <div class="w-full h-full bg-gradient-to-br from-slate-900 via-red-950 to-black flex items-center justify-center transition-transform duration-700 group-hover:scale-110">
+                            <i class="fa-solid fa-dice text-8xl text-red-400 group-hover:scale-125 transition-transform duration-300"></i>
+                        </div>
+
+
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-80 group-hover:opacity-60 transition-opacity">
+                        </div>
+
+
+                        <div class="absolute inset-0 p-6 flex flex-col justify-end">
+                            <span
+                                class="inline-block px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded mb-2 w-fit">NEW</span>
+                            <h3
+                                class="font-black text-2xl text-white mb-1 group-hover:text-red-400 transition-colors">
+                                Sketchy Casino</h3>
+                            <p
+                                class="text-gray-300 text-sm line-clamp-2 mb-4 opacity-0 group-hover:opacity-100 transition-all transform translate-y-4 group-hover:translate-y-0 duration-300">
+                                Try your luck at the tables in this shady casino experience.
+                            </p>
+                            <div class="flex items-center gap-2 text-xs font-bold text-cheeseman-muted">
+                                <span class="bg-white/10 px-2 py-1 rounded"><i class="fa-solid fa-dice mr-1"></i>
+                                    Casino</span>
+                                <span class="bg-white/10 px-2 py-1 rounded"><i class="fa-solid fa-coins mr-1"></i>
+                                    Gambling</span>
+                            </div>
+                        </div>
+
+
+                        <div
+                            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform scale-50 group-hover:scale-100 border border-white/20">
+                            <i class="fa-solid fa-play text-white text-2xl pl-1"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -386,7 +424,35 @@
                     </div>
                 </button>
 
+                <!-- Sketchy Casino -->
+                <button onclick="launchGame('sketchycasino')"
+                    class="group relative flex flex-col items-start p-1 rounded-3xl bg-gradient-to-br from-white/5 to-white/0 hover:from-red-500/20 hover:to-amber-500/20 border border-white/5 hover:border-red-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-red-500/10 hover:-translate-y-1">
 
+                    <div class="w-full aspect-video rounded-[20px] overflow-hidden relative mb-4">
+                        <img src="Assets/SKETCHY_CASINO.png"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                        <div
+                            class="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-bold text-white border border-white/10">
+                            <i class="fa-solid fa-dice mr-1"></i> CASINO
+                        </div>
+                    </div>
+
+                    <div class="w-full px-4 pb-4">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3
+                                class="text-xl font-bold text-white group-hover:text-red-400 transition-colors">
+                                Sketchy Casino</h3>
+                            <div
+                                class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-all">
+                                <i class="fa-solid fa-play text-xs"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-cheeseman-muted group-hover:text-slate-300 line-clamp-1">Try your luck at the tables.</p>
+                    </div>
+                </button>
+
+                <!-- Cyber Snake -->
                 <button onclick="launchGame('snake')"
                     class="group relative flex flex-col items-start p-1 rounded-3xl bg-gradient-to-br from-white/5 to-white/0 hover:from-emerald-500/20 hover:to-green-500/20 border border-white/5 hover:border-emerald-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-1">
 
