@@ -227,6 +227,7 @@
         <p>MOUSE - Look</p>
         <p>LEFT CLICK - Shoot</p>
         <p>R - Reload</p>
+        <p>M - Regenerate Map</p>
         <p style="margin-top: 30px; font-size: 18px;">Click to start</p>
     </div>
     
@@ -254,8 +255,8 @@
         
         // Scene setup
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x111111);
-        scene.fog = new THREE.Fog(0x111111, 0, 100);
+        scene.background = new THREE.Color(0x0a0a0a);
+        scene.fog = new THREE.Fog(0x0a0a0a, 20, 80);
         
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -286,71 +287,258 @@
         scene.add(yawObject);
         yawObject.position.y = player.height;
         
-        // Create test environment
-        function createEnvironment() {
-            // Floor
-            const floorGeometry = new THREE.PlaneGeometry(100, 100);
-            const floorMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x222222,
-                roughness: 0.8
+        // Procedural map generation
+        const mapData = {
+            gridSize: 10, // Size of grid cells
+            mapWidth: 15, // Grid units
+            mapDepth: 15,
+            cells: [],
+            rooms: [],
+            corridors: [],
+            seed: Math.random()
+        };
+        
+        // Clear existing map objects
+        function clearMap() {
+            const objectsToRemove = [];
+            scene.children.forEach(obj => {
+                if (obj.type === 'Mesh' || obj.type === 'PointLight') {
+                    if (obj !== camera && !obj.isAmbientLight && !obj.isDirectionalLight) {
+                        objectsToRemove.push(obj);
+                    }
+                }
             });
-            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-            floor.rotation.x = -Math.PI / 2;
-            floor.receiveShadow = true;
-            scene.add(floor);
+            objectsToRemove.forEach(obj => scene.remove(obj));
+        }
+        
+        // Regenerate entire map
+        function regenerateMap() {
+            clearMap();
+            mapData.seed = Math.random();
+            createEnvironment();
+        }
+        
+        // Simple seeded random
+        function seededRandom(seed) {
+            const x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+        }
+        
+        // Generate room-based dungeon layout
+        function generateMapLayout() {
+            const grid = [];
+            const w = mapData.mapWidth;
+            const d = mapData.mapDepth;
             
-            // Grid helper
-            const grid = new THREE.GridHelper(100, 50, 0x00ff00, 0x004400);
-            grid.material.opacity = 0.2;
-            grid.material.transparent = true;
-            scene.add(grid);
+            // Initialize empty grid
+            for (let z = 0; z < d; z++) {
+                grid[z] = [];
+                for (let x = 0; x < w; x++) {
+                    grid[z][x] = 0; // 0 = empty, 1 = floor, 2 = wall
+                }
+            }
             
-            // Add some walls and obstacles
+            mapData.rooms = [];
+            let seed = mapData.seed;
+            
+            // Generate random rooms
+            const numRooms = 8 + Math.floor(seededRandom(seed++) * 6);
+            
+            for (let i = 0; i < numRooms; i++) {
+                const roomWidth = 3 + Math.floor(seededRandom(seed++) * 5);
+                const roomDepth = 3 + Math.floor(seededRandom(seed++) * 5);
+                const roomX = Math.floor(seededRandom(seed++) * (w - roomWidth - 2)) + 1;
+                const roomZ = Math.floor(seededRandom(seed++) * (d - roomDepth - 2)) + 1;
+                
+                // Check if room overlaps with existing rooms
+                let overlaps = false;
+                for (let z = roomZ - 1; z < roomZ + roomDepth + 1; z++) {
+                    for (let x = roomX - 1; x < roomX + roomWidth + 1; x++) {
+                        if (z >= 0 && z < d && x >= 0 && x < w && grid[z][x] === 1) {
+                            overlaps = true;
+                            break;
+                        }
+                    }
+                    if (overlaps) break;
+                }
+                
+                if (!overlaps) {
+                    // Place room
+                    for (let z = roomZ; z < roomZ + roomDepth; z++) {
+                        for (let x = roomX; x < roomX + roomWidth; x++) {
+                            grid[z][x] = 1;
+                        }
+                    }
+                    
+                    mapData.rooms.push({
+                        x: roomX,
+                        z: roomZ,
+                        width: roomWidth,
+                        depth: roomDepth,
+                        centerX: roomX + Math.floor(roomWidth / 2),
+                        centerZ: roomZ + Math.floor(roomDepth / 2)
+                    });
+                }
+            }
+            
+            // Connect rooms with corridors
+            for (let i = 0; i < mapData.rooms.length - 1; i++) {
+                const roomA = mapData.rooms[i];
+                const roomB = mapData.rooms[i + 1];
+                
+                // Create L-shaped corridor
+                let x = roomA.centerX;
+                let z = roomA.centerZ;
+                
+                while (x !== roomB.centerX) {
+                    if (x >= 0 && x < w && z >= 0 && z < d) {
+                        grid[z][x] = 1;
+                    }
+                    x += (roomB.centerX > x) ? 1 : -1;
+                }
+                
+                while (z !== roomB.centerZ) {
+                    if (x >= 0 && x < w && z >= 0 && z < d) {
+                        grid[z][x] = 1;
+                    }
+                    z += (roomB.centerZ > z) ? 1 : -1;
+                }
+            }
+            
+            mapData.cells = grid;
+            return grid;
+        }
+        
+        // Create 3D geometry from map layout
+        function createEnvironment() {
+            const grid = generateMapLayout();
+            const cellSize = mapData.gridSize;
+            
+            // Floor and ceiling materials
+            const floorMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x1a1a1a,
+                roughness: 0.9
+            });
+            
             const wallMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x444444,
+                color: 0x333333,
                 roughness: 0.7
             });
             
-            // Create a simple maze-like structure
-            const walls = [
-                { x: 10, z: 0, w: 2, h: 5, d: 20 },
-                { x: -10, z: 0, w: 2, h: 5, d: 20 },
-                { x: 0, z: 15, w: 15, h: 5, d: 2 },
-                { x: 0, z: -15, w: 15, h: 5, d: 2 },
-                { x: 20, z: 10, w: 10, h: 4, d: 2 },
-                { x: -20, z: -10, w: 10, h: 4, d: 2 }
-            ];
+            // Generate walls and floors
+            for (let z = 0; z < mapData.mapDepth; z++) {
+                for (let x = 0; x < mapData.mapWidth; x++) {
+                    const worldX = (x - mapData.mapWidth / 2) * cellSize;
+                    const worldZ = (z - mapData.mapDepth / 2) * cellSize;
+                    
+                    if (grid[z][x] === 1) {
+                        // Create floor tile
+                        const floorGeom = new THREE.PlaneGeometry(cellSize, cellSize);
+                        const floor = new THREE.Mesh(floorGeom, floorMaterial);
+                        floor.rotation.x = -Math.PI / 2;
+                        floor.position.set(worldX, 0, worldZ);
+                        floor.receiveShadow = true;
+                        scene.add(floor);
+                        
+                        // Check adjacent cells for walls
+                        const checks = [
+                            { dx: 0, dz: -1, rotY: 0 },        // North
+                            { dx: 1, dz: 0, rotY: Math.PI / 2 }, // East
+                            { dx: 0, dz: 1, rotY: Math.PI },    // South
+                            { dx: -1, dz: 0, rotY: -Math.PI / 2 } // West
+                        ];
+                        
+                        checks.forEach(check => {
+                            const adjX = x + check.dx;
+                            const adjZ = z + check.dz;
+                            
+                            // Place wall if adjacent cell is empty or out of bounds
+                            if (adjX < 0 || adjX >= mapData.mapWidth || 
+                                adjZ < 0 || adjZ >= mapData.mapDepth || 
+                                grid[adjZ][adjX] === 0) {
+                                
+                                const wallHeight = 4 + Math.random() * 2;
+                                const wallGeom = new THREE.BoxGeometry(cellSize, wallHeight, 0.5);
+                                const wall = new THREE.Mesh(wallGeom, wallMaterial.clone());
+                                
+                                // Position wall at edge of cell
+                                const offsetX = check.dx * cellSize / 2;
+                                const offsetZ = check.dz * cellSize / 2;
+                                wall.position.set(worldX + offsetX, wallHeight / 2, worldZ + offsetZ);
+                                wall.rotation.y = check.rotY;
+                                wall.castShadow = true;
+                                wall.receiveShadow = true;
+                                scene.add(wall);
+                            }
+                        });
+                    }
+                }
+            }
             
-            walls.forEach(wall => {
-                const geometry = new THREE.BoxGeometry(wall.w, wall.h, wall.d);
-                const mesh = new THREE.Mesh(geometry, wallMaterial);
-                mesh.position.set(wall.x, wall.h / 2, wall.z);
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-                scene.add(mesh);
+            // Add pillars in rooms
+            const pillarMaterial = new THREE.MeshStandardMaterial({
+                color: 0x555555,
+                roughness: 0.6
             });
             
-            // Add some boxes to shoot at
-            const targetMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0xff0000,
-                roughness: 0.5
+            mapData.rooms.forEach((room, idx) => {
+                let seed = mapData.seed + idx * 100;
+                
+                // Random decorations per room
+                const numPillars = Math.floor(seededRandom(seed++) * 3);
+                for (let i = 0; i < numPillars; i++) {
+                    const pillarX = (room.x + 1 + Math.floor(seededRandom(seed++) * (room.width - 2)) - mapData.mapWidth / 2) * cellSize;
+                    const pillarZ = (room.z + 1 + Math.floor(seededRandom(seed++) * (room.depth - 2)) - mapData.mapDepth / 2) * cellSize;
+                    const pillarHeight = 3 + seededRandom(seed++) * 3;
+                    
+                    const pillar = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.5, 0.8, pillarHeight, 8),
+                        pillarMaterial
+                    );
+                    pillar.position.set(pillarX, pillarHeight / 2, pillarZ);
+                    pillar.castShadow = true;
+                    pillar.receiveShadow = true;
+                    scene.add(pillar);
+                }
+                
+                // Add target boxes in rooms
+                const numTargets = 1 + Math.floor(seededRandom(seed++) * 3);
+                for (let i = 0; i < numTargets; i++) {
+                    const targetX = (room.x + Math.floor(seededRandom(seed++) * room.width) - mapData.mapWidth / 2) * cellSize;
+                    const targetZ = (room.z + Math.floor(seededRandom(seed++) * room.depth) - mapData.mapDepth / 2) * cellSize;
+                    const size = 0.8 + seededRandom(seed++) * 1.2;
+                    
+                    const target = new THREE.Mesh(
+                        new THREE.BoxGeometry(size, size, size),
+                        new THREE.MeshStandardMaterial({ 
+                            color: 0xff0000,
+                            roughness: 0.5
+                        })
+                    );
+                    target.position.set(targetX, size / 2, targetZ);
+                    target.castShadow = true;
+                    target.receiveShadow = true;
+                    target.userData.isTarget = true;
+                    scene.add(target);
+                }
             });
             
-            for (let i = 0; i < 10; i++) {
-                const size = 1 + Math.random() * 2;
-                const box = new THREE.Mesh(
-                    new THREE.BoxGeometry(size, size, size),
-                    targetMaterial.clone()
-                );
-                box.position.set(
-                    (Math.random() - 0.5) * 40,
-                    size / 2,
-                    (Math.random() - 0.5) * 40
-                );
-                box.castShadow = true;
-                box.receiveShadow = true;
-                box.userData.isTarget = true;
-                scene.add(box);
+            // Add ambient lighting to rooms
+            mapData.rooms.forEach(room => {
+                const lightX = (room.centerX - mapData.mapWidth / 2) * cellSize;
+                const lightZ = (room.centerZ - mapData.mapDepth / 2) * cellSize;
+                
+                const roomLight = new THREE.PointLight(0x4488ff, 0.5, 20);
+                roomLight.position.set(lightX, 3, lightZ);
+                scene.add(roomLight);
+            });
+            
+            // Spawn player in first room
+            if (mapData.rooms.length > 0) {
+                const spawnRoom = mapData.rooms[0];
+                const spawnX = (spawnRoom.centerX - mapData.mapWidth / 2) * cellSize;
+                const spawnZ = (spawnRoom.centerZ - mapData.mapDepth / 2) * cellSize;
+                yawObject.position.set(spawnX, player.height, spawnZ);
             }
         }
         
@@ -534,6 +722,7 @@
         document.addEventListener('keydown', (e) => {
             keys[e.code] = true;
             if (e.code === 'KeyR') reload();
+            if (e.code === 'KeyM' && game.locked) regenerateMap();
         });
         
         document.addEventListener('keyup', (e) => {
