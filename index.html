@@ -1,21 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CheeseMan Games</title>
-
-
     <script src="https://cdn.tailwindcss.com"></script>
-
-
     <script src="Js/tailwind-config.js"></script>
-
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="Css/index.css">
@@ -23,13 +14,8 @@
 
 <body
     class="bg-cheeseman-base text-cheeseman-content h-screen flex flex-col md:flex-row overflow-hidden selection:bg-indigo-500 selection:text-white font-sans">
-
-
-
-
     <aside
         class="hidden md:flex w-20 lg:w-72 flex-col glass z-20 border-r border-cheeseman-highlight/20 transition-all duration-300">
-
         <div
             class="h-24 flex items-center justify-center lg:justify-start lg:px-8 border-b border-cheeseman-highlight/20 relative overflow-hidden group">
             <div
@@ -45,8 +31,6 @@
                 <span class="block text-xs font-bold text-cheeseman-primary tracking-[0.2em] uppercase">Games</span>
             </div>
         </div>
-
-
         <nav class="flex-1 py-8 px-4 space-y-3">
             <button onclick="switchTab('home')"
                 class="nav-item w-full flex items-center p-4 rounded-xl text-cheeseman-muted hover:text-white hover:bg-white/5 transition-all group active relative overflow-hidden"
@@ -58,7 +42,6 @@
                     class="fa-solid fa-house text-xl w-8 text-center group-hover:text-cheeseman-primary transition-colors relative z-10"></i>
                 <span class="ml-3 font-semibold hidden lg:block relative z-10">Home</span>
             </button>
-
             <button onclick="switchTab('games')"
                 class="nav-item w-full flex items-center p-4 rounded-xl text-cheeseman-muted hover:text-white hover:bg-white/5 transition-all group relative overflow-hidden"
                 id="desk-nav-games">
@@ -69,7 +52,6 @@
                     class="fa-solid fa-ghost text-xl w-8 text-center group-hover:text-cheeseman-accent transition-colors relative z-10"></i>
                 <span class="ml-3 font-semibold hidden lg:block relative z-10">Games</span>
             </button>
-
             <button onclick="switchTab('community')"
                 class="nav-item w-full flex items-center p-4 rounded-xl text-cheeseman-muted hover:text-white hover:bg-white/5 transition-all group relative overflow-hidden"
                 id="desk-nav-community">
@@ -80,7 +62,6 @@
                     class="fa-solid fa-users text-xl w-8 text-center group-hover:text-emerald-400 transition-colors relative z-10"></i>
                 <span class="ml-3 font-semibold hidden lg:block relative z-10">Community</span>
             </button>
-
             <button onclick="switchTab('socials')"
                 class="nav-item w-full flex items-center p-4 rounded-xl text-cheeseman-muted hover:text-white hover:bg-white/5 transition-all group relative overflow-hidden"
                 id="desk-nav-socials">
@@ -91,7 +72,6 @@
                     class="fa-solid fa-share-nodes text-xl w-8 text-center group-hover:text-cyan-400 transition-colors relative z-10"></i>
                 <span class="ml-3 font-semibold hidden lg:block relative z-10">Socials</span>
             </button>
-
             <button onclick="switchTab('credits')"
                 class="nav-item w-full flex items-center p-4 rounded-xl text-cheeseman-muted hover:text-white hover:bg-white/5 transition-all group relative overflow-hidden"
                 id="desk-nav-credits">
@@ -103,7 +83,6 @@
                 <span class="ml-3 font-semibold hidden lg:block relative z-10">Credits</span>
             </button>
         </nav>
-
 
         <div class="p-4 border-t border-cheeseman-highlight/20 bg-black/20">
             <button onclick="switchTab('settings')"
@@ -127,7 +106,6 @@
         </div>
     </aside>
 
-
     <header
         class="md:hidden h-16 glass fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 border-b border-cheeseman-highlight/20">
         <div class="flex items-center gap-3">
@@ -144,27 +122,19 @@
         </button>
     </header>
 
-
     <main class="flex-1 relative overflow-y-auto overflow-x-hidden pt-16 pb-24 md:pt-0 md:pb-0 z-10" id="main-scroll">
-
 
         <section id="view-home" class="p-6 lg:p-12 max-w-[1600px] mx-auto space-y-12 animate-fade-in relative z-10">
 
-
             <div
                 class="relative w-full rounded-[32px] overflow-hidden h-[60vh] min-h-[500px] shadow-2xl shadow-cheeseman-primary/10 group isolate">
-
                 <div
                     class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2671&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-[3s] group-hover:scale-105">
                 </div>
-
-
                 <div class="absolute inset-0 bg-gradient-to-t from-cheeseman-base via-cheeseman-base/60 to-transparent">
                 </div>
                 <div class="absolute inset-0 bg-gradient-to-r from-cheeseman-base via-cheeseman-base/40 to-transparent">
                 </div>
-
-
                 <div class="absolute bottom-0 left-0 p-8 md:p-16 w-full max-w-4xl">
                     <div class="flex items-center gap-3 mb-6 animate-slide-up" style="animation-delay: 0.1s;">
                         <span
@@ -176,7 +146,6 @@
                             BETA v2.0
                         </span>
                     </div>
-
                     <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight tracking-tight animate-slide-up"
                         style="animation-delay: 0.2s; -webkit-text-stroke: 0; color: white;">
                         Retrofuturism <br>
