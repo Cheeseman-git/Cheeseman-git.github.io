@@ -47,6 +47,91 @@
             font-weight: bold;
         }
         
+        #weapon-stats {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: #0f0;
+            font-size: 16px;
+            text-shadow: 2px 2px 4px #000;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border: 2px solid #0f0;
+            min-width: 200px;
+        }
+        
+        #weapon-stats h3 {
+            margin: 0 0 10px 0;
+            font-size: 20px;
+            color: #0ff;
+        }
+        
+        .stat-bar {
+            margin: 8px 0;
+        }
+        
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+            font-size: 14px;
+        }
+        
+        .stat-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #002200;
+            border: 1px solid #0f0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0f0, #0ff);
+            transition: width 0.3s ease;
+        }
+        
+        #morph-timer {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #0f0;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        #morph-progress {
+            width: 100%;
+            height: 6px;
+            background: #002200;
+            border: 1px solid #0f0;
+            margin-top: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #morph-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0, #f00);
+            transition: width 0.1s linear;
+        }
+        
+        .morphing {
+            animation: morph-flash 0.5s ease-in-out;
+        }
+        
+        @keyframes morph-flash {
+            0%, 100% { 
+                border-color: #0f0;
+                box-shadow: 0 0 10px #0f0;
+            }
+            50% { 
+                border-color: #ff0;
+                box-shadow: 0 0 30px #ff0;
+            }
+        }
+        
         #instructions {
             position: fixed;
             top: 50%;
@@ -73,6 +158,68 @@
         <div>AMMO: <span id="ammo">30/30</span></div>
         <div>HEALTH: <span id="health">100</span></div>
     </div>
+    
+    <div id="weapon-stats">
+        <h3>WEAPON MORPH</h3>
+        
+        <div class="stat-bar">
+            <div class="stat-label">
+                <span>DAMAGE</span>
+                <span id="damage-val">25</span>
+            </div>
+            <div class="stat-bar-bg">
+                <div class="stat-bar-fill" id="damage-bar"></div>
+            </div>
+        </div>
+        
+        <div class="stat-bar">
+            <div class="stat-label">
+                <span>FIRE RATE</span>
+                <span id="firerate-val">50</span>
+            </div>
+            <div class="stat-bar-bg">
+                <div class="stat-bar-fill" id="firerate-bar"></div>
+            </div>
+        </div>
+        
+        <div class="stat-bar">
+            <div class="stat-label">
+                <span>PROJ SPEED</span>
+                <span id="speed-val">45</span>
+            </div>
+            <div class="stat-bar-bg">
+                <div class="stat-bar-fill" id="speed-bar"></div>
+            </div>
+        </div>
+        
+        <div class="stat-bar">
+            <div class="stat-label">
+                <span>SPREAD</span>
+                <span id="spread-val">5°</span>
+            </div>
+            <div class="stat-bar-bg">
+                <div class="stat-bar-fill" id="spread-bar"></div>
+            </div>
+        </div>
+        
+        <div class="stat-bar">
+            <div class="stat-label">
+                <span>MAG SIZE</span>
+                <span id="mag-val">30</span>
+            </div>
+            <div class="stat-bar-bg">
+                <div class="stat-bar-fill" id="mag-bar"></div>
+            </div>
+        </div>
+        
+        <div id="morph-timer">
+            NEXT MORPH: <span id="morph-countdown">4.0s</span>
+            <div id="morph-progress">
+                <div id="morph-progress-fill"></div>
+            </div>
+        </div>
+    </div>
+    
     <div id="instructions">
         <h2>NON-EUCLIDEAN FPS</h2>
         <p style="margin-top: 20px;">WASD - Move</p>
@@ -92,11 +239,17 @@
             weapon: {
                 damage: 25,
                 fireRate: 150,
+                projectileSpeed: 45,
+                spread: 5,
+                magSize: 30,
                 ammo: 30,
                 maxAmmo: 30,
                 lastShot: 0,
                 reloading: false
-            }
+            },
+            morphTimer: 0,
+            morphInterval: 4000, // 4 seconds between morphs
+            lastMorphTime: Date.now()
         };
         
         // Scene setup
@@ -219,6 +372,72 @@
         camera.add(muzzleFlash);
         muzzleFlash.position.set(0.3, -0.2, -0.5);
         
+        // Weapon morphing system
+        function morphWeapon() {
+            const w = game.weapon;
+            
+            // Randomly generate new stats within ranges
+            w.damage = Math.floor(5 + Math.random() * 90); // 5-95
+            w.fireRate = Math.floor(100 + Math.random() * 1900); // 100-2000ms
+            w.projectileSpeed = Math.floor(10 + Math.random() * 70); // 10-80
+            w.spread = Math.floor(Math.random() * 16); // 0-15 degrees
+            w.magSize = Math.floor(3 + Math.random() * 28); // 3-30
+            
+            // Refill ammo on morph
+            w.maxAmmo = w.magSize;
+            w.ammo = w.maxAmmo;
+            w.reloading = false;
+            
+            // Visual feedback
+            const statsPanel = document.getElementById('weapon-stats');
+            statsPanel.classList.add('morphing');
+            setTimeout(() => statsPanel.classList.remove('morphing'), 500);
+            
+            // Camera shake
+            const originalY = camera.position.y;
+            const shakeIntensity = 0.1;
+            const shakeDuration = 200;
+            const shakeStart = Date.now();
+            
+            function shake() {
+                const elapsed = Date.now() - shakeStart;
+                if (elapsed < shakeDuration) {
+                    camera.position.y = originalY + (Math.random() - 0.5) * shakeIntensity;
+                    requestAnimationFrame(shake);
+                } else {
+                    camera.position.y = originalY;
+                }
+            }
+            shake();
+            
+            updateWeaponStatsUI();
+            updateUI();
+        }
+        
+        // Update weapon stats UI
+        function updateWeaponStatsUI() {
+            const w = game.weapon;
+            
+            // Update values and bars
+            document.getElementById('damage-val').textContent = w.damage;
+            document.getElementById('damage-bar').style.width = ((w.damage - 5) / 90 * 100) + '%';
+            
+            // Fire rate is inverse (lower is better), so invert the bar
+            const fireRateNormalized = 100 - ((w.fireRate - 100) / 1900 * 100);
+            document.getElementById('firerate-val').textContent = Math.floor(60000 / w.fireRate) + ' RPM';
+            document.getElementById('firerate-bar').style.width = fireRateNormalized + '%';
+            
+            document.getElementById('speed-val').textContent = w.projectileSpeed;
+            document.getElementById('speed-bar').style.width = ((w.projectileSpeed - 10) / 70 * 100) + '%';
+            
+            // Spread is inverse (lower is better)
+            document.getElementById('spread-val').textContent = w.spread + '°';
+            document.getElementById('spread-bar').style.width = (100 - (w.spread / 15 * 100)) + '%';
+            
+            document.getElementById('mag-val').textContent = w.magSize;
+            document.getElementById('mag-bar').style.width = ((w.magSize - 3) / 27 * 100) + '%';
+        }
+        
         // Shooting
         const projectiles = [];
         
@@ -236,10 +455,21 @@
             muzzleFlash.intensity = 10;
             setTimeout(() => muzzleFlash.intensity = 0, 50);
             
-            // Raycast for hit detection
+            // Apply spread
+            const spreadRad = (game.weapon.spread * Math.PI / 180);
+            const spreadX = (Math.random() - 0.5) * spreadRad;
+            const spreadY = (Math.random() - 0.5) * spreadRad;
+            
+            // Raycast for hit detection with spread
             const raycaster = new THREE.Raycaster();
             const direction = new THREE.Vector3(0, 0, -1);
             direction.applyQuaternion(camera.getWorldQuaternion(new THREE.Quaternion()));
+            
+            // Apply spread to direction
+            const spreadQuaternion = new THREE.Quaternion();
+            spreadQuaternion.setFromEuler(new THREE.Euler(spreadY, spreadX, 0));
+            direction.applyQuaternion(spreadQuaternion);
+            
             raycaster.set(camera.getWorldPosition(new THREE.Vector3()), direction);
             
             const intersects = raycaster.intersectObjects(scene.children, true);
@@ -263,8 +493,8 @@
                         hit.object.material.color.copy(originalColor);
                     }, 100);
                     
-                    // Apply physics impulse
-                    const impulse = direction.clone().multiplyScalar(0.5);
+                    // Apply physics impulse based on projectile speed
+                    const impulse = direction.clone().multiplyScalar(game.weapon.projectileSpeed * 0.02);
                     hit.object.position.add(impulse);
                 }
                 
@@ -355,6 +585,24 @@
             requestAnimationFrame(animate);
             
             if (game.locked) {
+                // Update morph timer
+                const now = Date.now();
+                const timeSinceLastMorph = now - game.lastMorphTime;
+                const timeUntilNextMorph = game.morphInterval - timeSinceLastMorph;
+                
+                if (timeUntilNextMorph <= 0) {
+                    morphWeapon();
+                    game.lastMorphTime = now;
+                } else {
+                    // Update countdown display
+                    const secondsLeft = (timeUntilNextMorph / 1000).toFixed(1);
+                    document.getElementById('morph-countdown').textContent = secondsLeft + 's';
+                    
+                    // Update progress bar
+                    const progress = (timeSinceLastMorph / game.morphInterval) * 100;
+                    document.getElementById('morph-progress-fill').style.width = progress + '%';
+                }
+                
                 // Movement
                 moveDirection.set(0, 0, 0);
                 
@@ -403,6 +651,7 @@
         // Initialize
         createEnvironment();
         updateUI();
+        updateWeaponStatsUI();
         animate();
     </script>
 </body>
