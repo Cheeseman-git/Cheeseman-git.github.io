@@ -1,131 +1,3 @@
-<!DOCTYPE html>
-< langhtml="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Geometry Dash Clone</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Pusab&display=swap');
-
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #111;
-            overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            touch-action: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: white;
-        }
-
-        #game-container {
-            position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-
-        canvas {
-            display: block;
-            background: linear-gradient(to bottom, #0066ff, #003399);
-        }
-
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-shadow: 2px 2px 0 #000;
-        }
-
-        .title {
-            font-size: 40px;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-        }
-
-        .subtitle {
-            font-size: 18px;
-            color: #eee;
-            animation: pulse 1s infinite alternate;
-        }
-
-        @keyframes pulse {
-            from { opacity: 0.8; transform: scale(1); }
-            to { opacity: 1; transform: scale(1.05); }
-        }
-
-        #progress-bar {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            height: 10px;
-            background: rgba(0,0,0,0.5);
-            border: 2px solid white;
-            border-radius: 5px;
-            display: none; 
-        }
-
-        #progress-fill {
-            height: 100%;
-            background: #00ff00;
-            width: 0%;
-            border-radius: 3px;
-        }
-
-        #debug-info {
-            position: absolute;
-            bottom: 5px;
-            left: 5px;
-            font-size: 10px;
-            opacity: 0.5;
-            display: none;
-        }
-
-        #music-toggle {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            border: 2px solid white;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            pointer-events: all;
-            transition: background 0.2s;
-        }
-
-        #music-toggle:hover {
-            background: rgba(255,255,255,0.2);
-        }
-    </style>
-</head>
-<body>
-
-<div id="game-container">
-    <canvas id="gameCanvas"></canvas>
-    <div id="ui-layer">
-        <div class="title" id="main-title">GEOMETRY DASH</div>
-        <div class="subtitle" id="start-msg">Click or Space to Start</div>
-    </div>
-    <div id="progress-bar"><div id="progress-fill"></div></div>
-    <div id="debug-info"></div>
-    <button id="music-toggle">🔊 Music: ON</button>
-</div>
-
-<script>
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 let musicEnabled = true;
@@ -580,7 +452,7 @@ function win() {
     Sound.win();
     Music.stop();
     uiLayer.style.display = 'flex';
-    document.getElementById('main-title').innerText = '🎉 YOU WIN! 🎉';
+    document.getElementById('main-title').innerText = '🏆 YOU WIN! 🏆';
     document.getElementById('start-msg').innerText = 'Click to Restart';
     progressBar.style.display = 'none';
 }
@@ -871,7 +743,3 @@ resizeCanvas();
 
 // Start
 requestAnimationFrame(gameLoop);
-
-</script>
-</body>
-</html>
