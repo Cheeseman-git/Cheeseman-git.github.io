@@ -24,12 +24,16 @@ CheeseMan Games: 🟢
 Games Tab: 🟢
 
     cube combat: 🔴
+    
+    Sketchy Caisno: 🟢
 
 Test branch: 🟢
 
     Cube combat 2: 🟨
 
-    Sketchy Caisno: 🟢
+Slop index: 🟡
+
+    Sketchy Caisno (legacy): 🟢
 
     Fent sim: 🟢
 
