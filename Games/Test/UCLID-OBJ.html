@@ -150,13 +150,127 @@
         #instructions.hidden {
             display: none;
         }
+        
+        #lobby {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #0f0;
+            font-size: 18px;
+            text-align: center;
+            text-shadow: 2px 2px 8px #000;
+            z-index: 101;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border: 2px solid #0f0;
+            min-width: 400px;
+        }
+        
+        #lobby.hidden {
+            display: none;
+        }
+        
+        #lobby h2 {
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: #0ff;
+        }
+        
+        #lobby button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            margin: 10px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        #lobby button:hover {
+            background: #0ff;
+            box-shadow: 0 0 20px #0ff;
+        }
+        
+        #lobby input {
+            background: #001100;
+            color: #0f0;
+            border: 2px solid #0f0;
+            padding: 10px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            width: 80%;
+            margin: 10px 0;
+        }
+        
+        #player-list {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #0f0;
+        }
+        
+        #player-list div {
+            padding: 5px;
+            margin: 5px 0;
+        }
+        
+        .player-name {
+            display: inline-block;
+            min-width: 150px;
+        }
+        
+        #network-status {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #0f0;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px #000;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border: 1px solid #0f0;
+        }
     </style>
 </head>
 <body>
     <div id="crosshair"></div>
+    
+    <div id="network-status">
+        <div>MODE: <span id="net-mode">OFFLINE</span></div>
+        <div>PLAYERS: <span id="net-players">0</span></div>
+        <div>PING: <span id="net-ping">-</span></div>
+    </div>
+    
     <div id="ui">
         <div>AMMO: <span id="ammo">30/30</span></div>
         <div>HEALTH: <span id="health">100</span></div>
+    </div>
+    
+    <div id="lobby">
+        <h2>MULTIPLAYER LOBBY</h2>
+        <div id="lobby-main">
+            <button onclick="createRoom()">HOST GAME</button>
+            <button onclick="showJoinRoom()">JOIN GAME</button>
+            <button onclick="startSingleplayer()">SINGLEPLAYER</button>
+        </div>
+        <div id="lobby-join" style="display: none;">
+            <input type="text" id="room-code" placeholder="Enter Room Code" />
+            <br>
+            <button onclick="joinRoom()">CONNECT</button>
+            <button onclick="showMainLobby()">BACK</button>
+        </div>
+        <div id="lobby-host" style="display: none;">
+            <p>ROOM CODE: <span id="host-room-code" style="color: #0ff; font-size: 24px;">----</span></p>
+            <p style="font-size: 14px; margin: 10px 0;">Share this code with players</p>
+            <div id="player-list"></div>
+            <button onclick="startGame()">START GAME</button>
+            <button onclick="cancelHost()">CANCEL</button>
+        </div>
+        <div id="lobby-status" style="display: none; margin-top: 20px;"></div>
     </div>
     
     <div id="weapon-stats">
@@ -220,7 +334,7 @@
         </div>
     </div>
     
-    <div id="instructions">
+    <div id="instructions" class="hidden">
         <h2>NON-EUCLIDEAN FPS</h2>
         <p style="margin-top: 20px;">WASD - Move</p>
         <p>SPACE - Jump</p>
@@ -232,7 +346,344 @@
     </div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
+        // Networking system
+        const network = {
+            peer: null,
+            isHost: false,
+            roomCode: null,
+            connections: new Map(),
+            players: new Map(),
+            playerId: 'player_' + Math.random().toString(36).substr(2, 9),
+            lastUpdate: Date.now(),
+            updateRate: 50 // 20 updates per second
+        };
+        
+        // Player data structure
+        class NetworkPlayer {
+            constructor(id, name) {
+                this.id = id;
+                this.name = name;
+                this.position = new THREE.Vector3();
+                this.rotation = { pitch: 0, yaw: 0 };
+                this.health = 100;
+                this.lastUpdate = Date.now();
+                this.mesh = null;
+                this.createMesh();
+            }
+            
+            createMesh() {
+                // Simple player representation
+                const group = new THREE.Group();
+                
+                // Body
+                const bodyGeometry = new THREE.CapsuleGeometry(0.5, 1.5, 8, 16);
+                const bodyMaterial = new THREE.MeshStandardMaterial({ 
+                    color: 0x00ff00,
+                    roughness: 0.7
+                });
+                const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+                body.castShadow = true;
+                group.add(body);
+                
+                // Name tag
+                const canvas = document.createElement('canvas');
+                canvas.width = 256;
+                canvas.height = 64;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, 256, 64);
+                ctx.fillStyle = '#00ff00';
+                ctx.font = 'bold 32px Courier New';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.name, 128, 42);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                const nameTag = new THREE.Sprite(
+                    new THREE.SpriteMaterial({ map: texture })
+                );
+                nameTag.scale.set(2, 0.5, 1);
+                nameTag.position.y = 2;
+                group.add(nameTag);
+                
+                this.mesh = group;
+                scene.add(group);
+            }
+            
+            update(data) {
+                if (data.position) {
+                    this.position.set(data.position.x, data.position.y, data.position.z);
+                    this.mesh.position.copy(this.position);
+                }
+                if (data.rotation) {
+                    this.rotation = data.rotation;
+                    this.mesh.rotation.y = data.rotation.yaw;
+                }
+                if (data.health !== undefined) {
+                    this.health = data.health;
+                }
+                this.lastUpdate = Date.now();
+            }
+            
+            destroy() {
+                if (this.mesh) {
+                    scene.remove(this.mesh);
+                }
+            }
+        }
+        
+        // Initialize PeerJS
+        function initNetworking() {
+            network.peer = new Peer(network.playerId);
+            
+            network.peer.on('open', (id) => {
+                console.log('Connected to PeerJS server with ID:', id);
+            });
+            
+            network.peer.on('error', (err) => {
+                console.error('PeerJS error:', err);
+                showStatus('Connection error: ' + err.type, true);
+            });
+        }
+        
+        // Host creates room
+        function createRoom() {
+            network.isHost = true;
+            network.roomCode = Math.random().toString(36).substr(2, 6).toUpperCase();
+            
+            document.getElementById('lobby-main').style.display = 'none';
+            document.getElementById('lobby-host').style.display = 'block';
+            document.getElementById('host-room-code').textContent = network.roomCode;
+            
+            updatePlayerList();
+            
+            // Listen for incoming connections
+            network.peer.on('connection', (conn) => {
+                handleNewConnection(conn);
+            });
+            
+            document.getElementById('net-mode').textContent = 'HOST';
+        }
+        
+        // Handle new player connection
+        function handleNewConnection(conn) {
+            console.log('New connection from:', conn.peer);
+            
+            conn.on('open', () => {
+                network.connections.set(conn.peer, conn);
+                
+                // Send welcome message with current game state
+                conn.send({
+                    type: 'welcome',
+                    hostId: network.playerId,
+                    players: Array.from(network.players.values()).map(p => ({
+                        id: p.id,
+                        name: p.name
+                    })),
+                    mapSeed: mapData.seed
+                });
+            });
+            
+            conn.on('data', (data) => {
+                handleNetworkMessage(conn.peer, data);
+            });
+            
+            conn.on('close', () => {
+                console.log('Player disconnected:', conn.peer);
+                network.connections.delete(conn.peer);
+                const player = network.players.get(conn.peer);
+                if (player) {
+                    player.destroy();
+                    network.players.delete(conn.peer);
+                }
+                updatePlayerList();
+            });
+        }
+        
+        // Join existing room
+        function showJoinRoom() {
+            document.getElementById('lobby-main').style.display = 'none';
+            document.getElementById('lobby-join').style.display = 'block';
+        }
+        
+        function joinRoom() {
+            const roomCode = document.getElementById('room-code').value.toUpperCase();
+            if (!roomCode) return;
+            
+            showStatus('Connecting...', false);
+            
+            // Try to connect to host
+            const conn = network.peer.connect(roomCode.toLowerCase() + '_' + network.playerId.substr(0, 6));
+            
+            conn.on('open', () => {
+                network.connections.set(conn.peer, conn);
+                network.roomCode = roomCode;
+                
+                conn.send({
+                    type: 'join',
+                    playerId: network.playerId,
+                    playerName: 'Player_' + network.playerId.substr(0, 4)
+                });
+                
+                document.getElementById('net-mode').textContent = 'CLIENT';
+            });
+            
+            conn.on('data', (data) => {
+                handleNetworkMessage(conn.peer, data);
+            });
+            
+            conn.on('error', (err) => {
+                showStatus('Failed to connect: ' + err, true);
+            });
+        }
+        
+        // Handle network messages
+        function handleNetworkMessage(senderId, data) {
+            switch (data.type) {
+                case 'welcome':
+                    // Host sent us game state
+                    mapData.seed = data.mapSeed;
+                    clearMap();
+                    createEnvironment();
+                    
+                    // Create other players
+                    data.players.forEach(playerData => {
+                        if (playerData.id !== network.playerId) {
+                            const player = new NetworkPlayer(playerData.id, playerData.name);
+                            network.players.set(playerData.id, player);
+                        }
+                    });
+                    
+                    showStatus('Connected! Starting game...', false);
+                    setTimeout(() => {
+                        document.getElementById('lobby').classList.add('hidden');
+                        document.body.requestPointerLock();
+                    }, 2000);
+                    break;
+                    
+                case 'join':
+                    // New player joined
+                    if (network.isHost) {
+                        const player = new NetworkPlayer(data.playerId, data.playerName);
+                        network.players.set(data.playerId, player);
+                        updatePlayerList();
+                        
+                        // Broadcast to all other players
+                        broadcastToAll({
+                            type: 'playerJoined',
+                            playerId: data.playerId,
+                            playerName: data.playerName
+                        });
+                    }
+                    break;
+                    
+                case 'playerJoined':
+                    // Another player joined
+                    const newPlayer = new NetworkPlayer(data.playerId, data.playerName);
+                    network.players.set(data.playerId, newPlayer);
+                    break;
+                    
+                case 'playerUpdate':
+                    // Update player state
+                    let player = network.players.get(data.playerId);
+                    if (!player) {
+                        player = new NetworkPlayer(data.playerId, data.playerName || 'Player');
+                        network.players.set(data.playerId, player);
+                    }
+                    player.update(data);
+                    break;
+                    
+                case 'startGame':
+                    document.getElementById('lobby').classList.add('hidden');
+                    document.body.requestPointerLock();
+                    break;
+            }
+        }
+        
+        // Broadcast message to all connected players
+        function broadcastToAll(data) {
+            network.connections.forEach(conn => {
+                if (conn.open) {
+                    conn.send(data);
+                }
+            });
+        }
+        
+        // Send player update
+        function sendPlayerUpdate() {
+            if (!game.locked || network.connections.size === 0) return;
+            
+            const now = Date.now();
+            if (now - network.lastUpdate < network.updateRate) return;
+            network.lastUpdate = now;
+            
+            const data = {
+                type: 'playerUpdate',
+                playerId: network.playerId,
+                position: {
+                    x: yawObject.position.x,
+                    y: yawObject.position.y,
+                    z: yawObject.position.z
+                },
+                rotation: {
+                    pitch: pitch,
+                    yaw: yaw
+                },
+                health: game.health
+            };
+            
+            broadcastToAll(data);
+        }
+        
+        // UI functions
+        function showMainLobby() {
+            document.getElementById('lobby-main').style.display = 'block';
+            document.getElementById('lobby-join').style.display = 'none';
+            document.getElementById('lobby-host').style.display = 'none';
+        }
+        
+        function showStatus(message, isError) {
+            const status = document.getElementById('lobby-status');
+            status.textContent = message;
+            status.style.color = isError ? '#ff0000' : '#0f0';
+            status.style.display = 'block';
+        }
+        
+        function updatePlayerList() {
+            const list = document.getElementById('player-list');
+            list.innerHTML = '<p style="margin-bottom: 10px;">PLAYERS IN LOBBY:</p>';
+            
+            // Add host
+            list.innerHTML += '<div><span class="player-name">You (Host)</span></div>';
+            
+            // Add connected players
+            network.players.forEach(player => {
+                list.innerHTML += `<div><span class="player-name">${player.name}</span></div>`;
+            });
+            
+            document.getElementById('net-players').textContent = (1 + network.players.size);
+        }
+        
+        function startGame() {
+            broadcastToAll({ type: 'startGame' });
+            document.getElementById('lobby').classList.add('hidden');
+            document.body.requestPointerLock();
+        }
+        
+        function cancelHost() {
+            network.connections.forEach(conn => conn.close());
+            network.connections.clear();
+            network.players.forEach(player => player.destroy());
+            network.players.clear();
+            showMainLobby();
+        }
+        
+        function startSingleplayer() {
+            document.getElementById('lobby').classList.add('hidden');
+            document.getElementById('net-mode').textContent = 'OFFLINE';
+        }
+        
         // Game state
         const game = {
             locked: false,
@@ -295,8 +746,117 @@
             cells: [],
             rooms: [],
             corridors: [],
+            portals: [],
             seed: Math.random()
         };
+        
+        // Portal system for non-Euclidean spaces
+        class Portal {
+            constructor(entryPos, exitPos, entryNormal, exitNormal, width, height) {
+                this.entryPos = entryPos.clone();
+                this.exitPos = exitPos.clone();
+                this.entryNormal = entryNormal.clone();
+                this.exitNormal = exitNormal.clone();
+                this.width = width;
+                this.height = height;
+                this.active = true;
+                
+                // Visual mesh for the portal
+                this.mesh = null;
+                this.createVisuals();
+            }
+            
+            createVisuals() {
+                // Portal frame
+                const frameGeometry = new THREE.BoxGeometry(this.width + 0.2, this.height + 0.2, 0.1);
+                const frameMaterial = new THREE.MeshStandardMaterial({ 
+                    color: 0x00ffff,
+                    emissive: 0x00ffff,
+                    emissiveIntensity: 0.5,
+                    metalness: 0.8,
+                    roughness: 0.2
+                });
+                
+                this.mesh = new THREE.Mesh(frameGeometry, frameMaterial);
+                
+                // Position and orient the portal
+                this.mesh.position.copy(this.entryPos);
+                this.mesh.lookAt(this.entryPos.clone().add(this.entryNormal));
+                
+                // Add swirling effect plane
+                const portalGeometry = new THREE.PlaneGeometry(this.width, this.height);
+                const portalMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0x00ffff,
+                    transparent: true,
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                });
+                
+                const portalPlane = new THREE.Mesh(portalGeometry, portalMaterial);
+                portalPlane.position.z = 0.05;
+                this.mesh.add(portalPlane);
+                
+                // Add glow effect
+                const glowLight = new THREE.PointLight(0x00ffff, 1, 10);
+                glowLight.position.z = 0.5;
+                this.mesh.add(glowLight);
+                
+                this.mesh.userData.portal = this;
+            }
+            
+            checkTeleport(playerPos, playerVelocity) {
+                // Calculate if player passed through portal plane
+                const toPlayer = playerPos.clone().sub(this.entryPos);
+                const distanceToPlane = toPlayer.dot(this.entryNormal);
+                
+                // Check if within portal bounds and passing through
+                if (Math.abs(distanceToPlane) < 0.5) {
+                    const localX = toPlayer.dot(new THREE.Vector3(
+                        -this.entryNormal.z, 0, this.entryNormal.x
+                    ));
+                    const localY = toPlayer.y - this.entryPos.y;
+                    
+                    if (Math.abs(localX) < this.width / 2 && Math.abs(localY) < this.height / 2) {
+                        // Player is in portal bounds
+                        const velocityDot = playerVelocity.dot(this.entryNormal);
+                        if (velocityDot < 0) { // Moving towards portal
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+            
+            teleport(playerPos, playerYaw) {
+                // Calculate relative position in entry portal
+                const toPlayer = playerPos.clone().sub(this.entryPos);
+                const entryRight = new THREE.Vector3(-this.entryNormal.z, 0, this.entryNormal.x);
+                const entryUp = new THREE.Vector3(0, 1, 0);
+                
+                const localX = toPlayer.dot(entryRight);
+                const localY = toPlayer.y - this.entryPos.y;
+                const localZ = toPlayer.dot(this.entryNormal);
+                
+                // Transform to exit portal space
+                const exitRight = new THREE.Vector3(-this.exitNormal.z, 0, this.exitNormal.x);
+                const exitUp = new THREE.Vector3(0, 1, 0);
+                
+                const newPos = this.exitPos.clone()
+                    .add(exitRight.multiplyScalar(localX))
+                    .add(exitUp.multiplyScalar(localY))
+                    .add(this.exitNormal.clone().multiplyScalar(-localZ));
+                
+                // Calculate rotation change
+                const entryAngle = Math.atan2(this.entryNormal.x, this.entryNormal.z);
+                const exitAngle = Math.atan2(-this.exitNormal.x, -this.exitNormal.z);
+                const rotationDelta = exitAngle - entryAngle;
+                
+                return {
+                    position: newPos,
+                    yawDelta: rotationDelta
+                };
+            }
+        }
         
         // Clear existing map objects
         function clearMap() {
@@ -309,6 +869,7 @@
                 }
             });
             objectsToRemove.forEach(obj => scene.remove(obj));
+            mapData.portals = [];
         }
         
         // Regenerate entire map
@@ -540,6 +1101,165 @@
                 const spawnZ = (spawnRoom.centerZ - mapData.mapDepth / 2) * cellSize;
                 yawObject.position.set(spawnX, player.height, spawnZ);
             }
+            
+            // Generate portals for non-Euclidean connections
+            generatePortals();
+        }
+        
+        function generatePortals() {
+            mapData.portals = [];
+            
+            if (mapData.rooms.length < 3) return;
+            
+            let seed = mapData.seed * 999;
+            const cellSize = mapData.gridSize;
+            
+            // Create 3-5 portal pairs connecting distant rooms
+            const numPortalPairs = 3 + Math.floor(seededRandom(seed++) * 3);
+            
+            for (let i = 0; i < numPortalPairs; i++) {
+                // Pick two random rooms that aren't adjacent
+                const roomAIdx = Math.floor(seededRandom(seed++) * mapData.rooms.length);
+                let roomBIdx = Math.floor(seededRandom(seed++) * mapData.rooms.length);
+                
+                // Make sure they're different rooms and somewhat far apart
+                let attempts = 0;
+                while ((roomBIdx === roomAIdx || Math.abs(roomBIdx - roomAIdx) < 2) && attempts < 10) {
+                    roomBIdx = Math.floor(seededRandom(seed++) * mapData.rooms.length);
+                    attempts++;
+                }
+                
+                const roomA = mapData.rooms[roomAIdx];
+                const roomB = mapData.rooms[roomBIdx];
+                
+                // Choose random walls in each room
+                const wallChoice = Math.floor(seededRandom(seed++) * 4);
+                const directions = [
+                    { normal: new THREE.Vector3(0, 0, -1), offset: { x: 0, z: -0.5 } }, // North
+                    { normal: new THREE.Vector3(1, 0, 0), offset: { x: 0.5, z: 0 } },   // East
+                    { normal: new THREE.Vector3(0, 0, 1), offset: { x: 0, z: 0.5 } },   // South
+                    { normal: new THREE.Vector3(-1, 0, 0), offset: { x: -0.5, z: 0 } }  // West
+                ];
+                
+                const dirA = directions[wallChoice];
+                const dirB = directions[(wallChoice + 2) % 4]; // Opposite wall
+                
+                // Portal A position (in room A)
+                const portalAX = (roomA.centerX - mapData.mapWidth / 2) * cellSize + dirA.offset.x * cellSize;
+                const portalAZ = (roomA.centerZ - mapData.mapDepth / 2) * cellSize + dirA.offset.z * cellSize;
+                const portalAPos = new THREE.Vector3(portalAX, 2, portalAZ);
+                
+                // Portal B position (in room B)
+                const portalBX = (roomB.centerX - mapData.mapWidth / 2) * cellSize + dirB.offset.x * cellSize;
+                const portalBZ = (roomB.centerZ - mapData.mapDepth / 2) * cellSize + dirB.offset.z * cellSize;
+                const portalBPos = new THREE.Vector3(portalBX, 2, portalBZ);
+                
+                // Create bi-directional portal pair
+                const portalWidth = 3 + seededRandom(seed++) * 2;
+                const portalHeight = 3 + seededRandom(seed++);
+                
+                const portalAB = new Portal(
+                    portalAPos, 
+                    portalBPos,
+                    dirA.normal,
+                    dirB.normal,
+                    portalWidth,
+                    portalHeight
+                );
+                
+                const portalBA = new Portal(
+                    portalBPos,
+                    portalAPos,
+                    dirB.normal,
+                    dirA.normal,
+                    portalWidth,
+                    portalHeight
+                );
+                
+                scene.add(portalAB.mesh);
+                scene.add(portalBA.mesh);
+                
+                mapData.portals.push(portalAB);
+                mapData.portals.push(portalBA);
+            }
+            
+            // Create impossible space - a room that's bigger on the inside
+            if (mapData.rooms.length >= 2) {
+                const room = mapData.rooms[1];
+                const cellSize = mapData.gridSize;
+                
+                // Create a small doorway on one wall
+                const doorX = (room.x - mapData.mapWidth / 2) * cellSize;
+                const doorZ = (room.centerZ - mapData.mapDepth / 2) * cellSize;
+                const doorPos = new THREE.Vector3(doorX, 2, doorZ);
+                
+                // Exit leads to a massive hidden space far outside the normal map
+                const hiddenX = 200; // Way outside normal bounds
+                const hiddenZ = 200;
+                const exitPos = new THREE.Vector3(hiddenX, 2, hiddenZ);
+                
+                // Create huge room in hidden space
+                const hugeRoomSize = 40;
+                const hugeFloor = new THREE.Mesh(
+                    new THREE.PlaneGeometry(hugeRoomSize, hugeRoomSize),
+                    new THREE.MeshStandardMaterial({ color: 0x1a1a2a })
+                );
+                hugeFloor.rotation.x = -Math.PI / 2;
+                hugeFloor.position.set(hiddenX, 0, hiddenZ);
+                hugeFloor.receiveShadow = true;
+                scene.add(hugeFloor);
+                
+                // Walls for huge room
+                const hugeWallMaterial = new THREE.MeshStandardMaterial({ 
+                    color: 0x2a2a3a,
+                    emissive: 0x0a0a1a
+                });
+                
+                for (let i = 0; i < 4; i++) {
+                    const wall = new THREE.Mesh(
+                        new THREE.BoxGeometry(hugeRoomSize, 10, 1),
+                        hugeWallMaterial
+                    );
+                    wall.rotation.y = i * Math.PI / 2;
+                    const offset = hugeRoomSize / 2;
+                    if (i === 0) wall.position.set(hiddenX, 5, hiddenZ - offset);
+                    if (i === 1) wall.position.set(hiddenX + offset, 5, hiddenZ);
+                    if (i === 2) wall.position.set(hiddenX, 5, hiddenZ + offset);
+                    if (i === 3) wall.position.set(hiddenX - offset, 5, hiddenZ);
+                    wall.castShadow = true;
+                    scene.add(wall);
+                }
+                
+                // Eerie lighting in the huge room
+                const hugeLight = new THREE.PointLight(0xff00ff, 2, 50);
+                hugeLight.position.set(hiddenX, 8, hiddenZ);
+                scene.add(hugeLight);
+                
+                // Portal into the huge space
+                const portalIn = new Portal(
+                    doorPos,
+                    exitPos,
+                    new THREE.Vector3(-1, 0, 0),
+                    new THREE.Vector3(0, 0, 1),
+                    3, 3.5
+                );
+                
+                // Return portal (back wall of huge room)
+                const returnPos = new THREE.Vector3(hiddenX, 2, hiddenZ - hugeRoomSize/2 + 2);
+                const portalOut = new Portal(
+                    returnPos,
+                    doorPos,
+                    new THREE.Vector3(0, 0, -1),
+                    new THREE.Vector3(1, 0, 0),
+                    3, 3.5
+                );
+                
+                scene.add(portalIn.mesh);
+                scene.add(portalOut.mesh);
+                
+                mapData.portals.push(portalIn);
+                mapData.portals.push(portalOut);
+            }
         }
         
         // Lighting
@@ -749,17 +1469,15 @@
         });
         
         // Pointer lock
-        const instructions = document.getElementById('instructions');
-        
         document.addEventListener('click', () => {
-            if (!game.locked) {
-                document.body.requestPointerLock();
+            if (!game.locked && !document.getElementById('lobby').classList.contains('hidden')) {
+                // Don't lock if lobby is visible
+                return;
             }
         });
         
         document.addEventListener('pointerlockchange', () => {
             game.locked = document.pointerLockElement === document.body;
-            instructions.classList.toggle('hidden', game.locked);
         });
         
         // Update UI
@@ -825,6 +1543,31 @@
                     player.velocity.y = 0;
                     player.canJump = true;
                 }
+                
+                // Portal teleportation check
+                mapData.portals.forEach(portal => {
+                    if (portal.active && portal.checkTeleport(yawObject.position, player.velocity)) {
+                        const result = portal.teleport(yawObject.position, yaw);
+                        yawObject.position.copy(result.position);
+                        yaw += result.yawDelta;
+                        yawObject.rotation.y = yaw;
+                        
+                        // Prevent immediate re-teleport
+                        portal.active = false;
+                        setTimeout(() => portal.active = true, 500);
+                    }
+                });
+                
+                // Animate portal materials
+                mapData.portals.forEach((portal, idx) => {
+                    if (portal.mesh && portal.mesh.children[0]) {
+                        const time = Date.now() * 0.001;
+                        portal.mesh.children[0].material.opacity = 0.3 + Math.sin(time * 2 + idx) * 0.2;
+                    }
+                });
+                
+                // Send network updates
+                sendPlayerUpdate();
             }
             
             renderer.render(scene, camera);
@@ -838,6 +1581,7 @@
         });
         
         // Initialize
+        initNetworking();
         createEnvironment();
         updateUI();
         updateWeaponStatsUI();
