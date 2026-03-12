@@ -186,7 +186,7 @@ function launchGame(gameType) {
         titleEl.innerHTML = '<i class="fa-solid fa-cube text-indigo-400 mr-2"></i> CUBE COMBAT';
         hintEl.innerHTML = 'Physics Arena';
         iframe.classList.remove('hidden');
-        iframe.src = 'Games/Full/cube-combat.html';
+        iframe.src = 'games/full/cube-combat/index.html';
         
         startBtn.classList.add('hidden');
         statusTitle.textContent = "";
@@ -196,7 +196,7 @@ function launchGame(gameType) {
         titleEl.innerHTML = '<i class="fa-solid fa-dice text-red-400 mr-2"></i> SKETCHY CASINO';
         hintEl.innerHTML = 'Try Your Luck';
         iframe.classList.remove('hidden');
-        iframe.src = 'Games/Full/Sketchy-Casino.html';
+        iframe.src = 'games/full/sketchy-casino/index.html';
         
         startBtn.classList.add('hidden');
         statusTitle.textContent = "";
