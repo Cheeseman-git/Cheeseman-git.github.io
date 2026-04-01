@@ -23,15 +23,15 @@ CheeseMan Games: 🟢
 
 Games Tab: 🟢
 
-    cube combat: 🔴
+    cube combat: 🟡
     
     Sketchy Caisno: 🟢
 
 Test branch: 🟢
 
-    Cube combat 2: 🟨
+    Cube combat 2: the time isn't right
 
-Slop index: 🟡
+Slop index: 🟢
 
     Sketchy Caisno (legacy): 🟢
 
@@ -40,5 +40,5 @@ Slop index: 🟡
     Shitty Gd: 🟢
 
 
-Announcements: 🟢
+Announcements: scrapped
 
