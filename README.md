@@ -7,7 +7,7 @@ the following website can be accessed at "cheeseman-git.github.io"
 Currently there is no way to run this offline but this is being worked on.
 
 ## Rework
-as Fkm_X3 picks the project up again, a rework was inevitable, this project runs purely on html, css, and javascript. this isn't good a for a project maintained by one person since there are so many bugs. there will be a typescript and vile rework coming soon. 
+as Fkm_X3 picks the project up again, a rework was inevitable, this project runs purely on html, css, and javascript. this isn't good a for a project maintained by one person since there are so many bugs. there will be a typescript rework eventually
 
 ## Status'
 
