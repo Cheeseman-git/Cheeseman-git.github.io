@@ -3006,6 +3006,7 @@ function startGame(mode, modeInfo) {
             }; 
         }
 
+        setupSidebars();
         updateUI();
         if (animationId) cancelAnimationFrame(animationId);
         gameLoop();
@@ -3104,17 +3105,103 @@ function checkGameOver() {
     }
 }
 
+function setupSidebars() {
+    if (!blueCube || !redCube) return;
+
+    // Get cube data for names
+    const p1Data = CUBE_DATA.find(c => c.id === selectedCubeId) || CUBE_DATA[0];
+    
+    // Set P1 name and icon
+    const p1Name = document.getElementById('p1-sb-name');
+    const p1Icon = document.getElementById('p1-sb-icon');
+    if (p1Name) p1Name.innerText = p1Data.name;
+    if (p1Icon) p1Icon.style.background = blueCube.color;
+
+    // Set P2 name and icon
+    const p2Name = document.getElementById('p2-sb-name');
+    const p2Icon = document.getElementById('p2-sb-icon');
+    if (p2Name) p2Name.innerText = (gameMode === 'ai') ? 'AI Enemy' : 'Player 2';
+    if (p2Icon) p2Icon.style.background = redCube.color;
+
+    // Show appropriate P2 role section
+    const p2RoleAi = document.getElementById('p2-role-ai');
+    const p2RoleHuman = document.getElementById('p2-role-human');
+    if (gameMode === 'ai' || gameMode === 'sandbox') {
+        if (p2RoleAi) p2RoleAi.style.display = 'block';
+        if (p2RoleHuman) p2RoleHuman.style.display = 'none';
+    } else {
+        if (p2RoleAi) p2RoleAi.style.display = 'none';
+        if (p2RoleHuman) p2RoleHuman.style.display = 'block';
+    }
+}
+
 function updateUI() {
     if (!blueCube || !redCube) return;
 
-    
     const p1Pct = (blueCube.hp / blueCube.maxHp) * 100;
-    const p2Pct = ((this.target || redCube).hp / (this.target || redCube).maxHp) * 100;
+    const p2Pct = (redCube.hp / redCube.maxHp) * 100;
 
-    document.getElementById('p1-health').style.width = Math.max(0, p1Pct) + '%';
-    document.getElementById('p2-health').style.width = Math.max(0, p2Pct) + '%';
+    // Update old HUD health bars (if visible)
+    const p1Health = document.getElementById('p1-health');
+    const p2Health = document.getElementById('p2-health');
+    if (p1Health) p1Health.style.width = Math.max(0, p1Pct) + '%';
+    if (p2Health) p2Health.style.width = Math.max(0, p2Pct) + '%';
 
-    
+    // Update sidebar health bars
+    const p1SbHealth = document.getElementById('p1-sb-health');
+    const p2SbHealth = document.getElementById('p2-sb-health');
+    if (p1SbHealth) p1SbHealth.style.width = Math.max(0, p1Pct) + '%';
+    if (p2SbHealth) p2SbHealth.style.width = Math.max(0, p2Pct) + '%';
+
+    // Update P1 cooldowns
+    const p1Cd1 = document.getElementById('p1-sb-cd1');
+    const p1Cd2 = document.getElementById('p1-sb-cd2');
+    if (p1Cd1) {
+        if (blueCube.slashCooldown > 0) {
+            p1Cd1.innerText = Math.ceil(blueCube.slashCooldown / 60 * 10) / 10 + 's';
+            p1Cd1.style.color = '#ff6666';
+        } else {
+            p1Cd1.innerText = 'READY';
+            p1Cd1.style.color = '#66ff66';
+        }
+    }
+    if (p1Cd2) {
+        if (blueCube.parryCooldown > 0) {
+            p1Cd2.innerText = Math.ceil(blueCube.parryCooldown / 60 * 10) / 10 + 's';
+            p1Cd2.style.color = '#ff6666';
+        } else if (blueCube.parryActive) {
+            p1Cd2.innerText = 'ACTIVE';
+            p1Cd2.style.color = '#66ffff';
+        } else {
+            p1Cd2.innerText = 'READY';
+            p1Cd2.style.color = '#66ff66';
+        }
+    }
+
+    // Update P2 AI status
+    const p2Status = document.getElementById('p2-sb-status');
+    if (p2Status && redCube.state) {
+        p2Status.innerText = redCube.state;
+        if (redCube.state === 'IDLE') p2Status.style.color = '#aaaaaa';
+        else if (redCube.state === 'DASHING') p2Status.style.color = '#ff6666';
+        else if (redCube.state === 'LASER_CHARGE' || redCube.state === 'LASER_FIRE') p2Status.style.color = '#66ffff';
+        else if (redCube.state === 'STUNNED') p2Status.style.color = '#ffff66';
+        else p2Status.style.color = '#ffffff';
+    }
+
+    // Update combo display in sidebar
+    const comboSidebar = document.getElementById('p1-combo-sidebar');
+    const comboVal = document.getElementById('p1-combo-val');
+    if (comboSidebar && comboVal) {
+        if (sessionStats.womboComboHits > 1) {
+            comboSidebar.style.display = 'flex';
+            comboVal.innerText = sessionStats.womboComboHits;
+        } else {
+            comboSidebar.style.display = 'none';
+        }
+    }
+
+    // Update old combo box (if visible)
     const comboBox = document.getElementById('p1-combo');
     if (comboBox) {
         if (sessionStats.womboComboHits > 1) {
