@@ -2923,9 +2923,10 @@ function startGame(mode, modeInfo) {
         
         navTo('game-container');
         document.getElementById('ui-layer').style.display = 'flex';
-        document.querySelector('.sidebar').style.display = 'none';
+        document.querySelectorAll('.sidebar').forEach(el => el.style.display = 'flex');
         document.getElementById('game-over-screen').classList.add('hidden'); 
-        document.getElementById('menu-overlay').style.pointerEvents = 'none'; 
+        document.getElementById('menu-overlay').style.pointerEvents = 'none';
+        document.getElementById('menu-overlay').style.display = 'none'; 
 
         document.getElementById('rainbow-overlay').classList.remove('active');
         document.getElementById('rainbow-text').innerText = "";
@@ -3035,6 +3036,9 @@ function showMainMenu() {
     gameState = 'menu';
     navTo('screen-main');
     document.getElementById('ui-layer').style.display = 'none';
+    document.querySelectorAll('.sidebar').forEach(el => el.style.display = 'none');
+    document.getElementById('menu-overlay').style.display = 'flex';
+    document.getElementById('menu-overlay').style.pointerEvents = 'auto';
     if (animationId) cancelAnimationFrame(animationId);
 
     
@@ -3110,16 +3114,15 @@ function updateUI() {
     document.getElementById('p1-health').style.width = Math.max(0, p1Pct) + '%';
     document.getElementById('p2-health').style.width = Math.max(0, p2Pct) + '%';
 
-    document.getElementById('p1-hp-text').innerText = Math.ceil(blueCube.hp);
-    document.getElementById('p2-hp-text').innerText = Math.ceil((this.target || redCube).hp);
-
     
-    const comboBox = document.getElementById('combo-box');
-    if (sessionStats.womboComboHits > 1) {
-        comboBox.style.display = 'flex';
-        comboBox.innerText = sessionStats.womboComboHits;
-    } else {
-        comboBox.style.display = 'none';
+    const comboBox = document.getElementById('p1-combo');
+    if (comboBox) {
+        if (sessionStats.womboComboHits > 1) {
+            comboBox.style.display = 'flex';
+            comboBox.innerText = sessionStats.womboComboHits;
+        } else {
+            comboBox.style.display = 'none';
+        }
     }
 }
 
