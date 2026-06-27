@@ -2925,7 +2925,7 @@ function startGame(mode, modeInfo) {
         document.getElementById('ui-layer').style.display = 'flex';
         document.querySelector('.sidebar').style.display = 'none';
         document.getElementById('game-over-screen').classList.add('hidden'); 
-        document.getElementById('menu-overlay').style.pointerEvents = 'none'; 
+        document.getElementById('menu-overlay').style.display = 'none'; 
 
         document.getElementById('rainbow-overlay').classList.remove('active');
         document.getElementById('rainbow-text').innerText = "";
@@ -3035,6 +3035,7 @@ function showMainMenu() {
     gameState = 'menu';
     navTo('screen-main');
     document.getElementById('ui-layer').style.display = 'none';
+    document.getElementById('menu-overlay').style.display = 'flex';
     if (animationId) cancelAnimationFrame(animationId);
 
     
